@@ -1,7 +1,4 @@
-const { v4: uuidv4 } = require("uuid");
-const specifyID = function (name) {
-    return name + uuidv4();
-};
+
 
 module.exports = {
     UNHANDLED_ERROR: 'Encountered an error while processing...',
@@ -15,6 +12,5 @@ module.exports = {
     RESPONSE_INT_SERVER_ERROR: 500,
     RESPONSE_NOT_FOUND: 404,
 
-    specifyID
     
 }

@@ -12,13 +12,15 @@ const app   = express();
 const CONFIG = require('./config/config');
 const routes = require('./app/routes-index');
 const fetch = require('cross-fetch');
-const db = require('./app/DB/db.connection');
+const { connectiondb } = require('./app/DB/connectiondb.js');
+
+
 globalThis.fetch = fetch;
 
 //app.use(i18n.init);
 //app.use(logger('dev'));
 app.use(morgan('combined', { stream: LOG.stream }));
-app.use(bodyParser.json());
+app.use(bodyParser.json({limit:"5kb"}));
 app.use(bodyParser.urlencoded({ extended: false }));
 //Passport
 app.use(passport.initialize());
@@ -47,6 +49,9 @@ app.use(function(req, res, next) {
       next();
     }
 });
+
+
+connectiondb()
 
 routes.v1routes(app)
 

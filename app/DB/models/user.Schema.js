@@ -1,29 +1,31 @@
 const   mongoose = require('mongoose');
-const {AddressSchema} = require('../../utils/utils.schema')
+var bcrypt = require('bcryptjs');
+const {AddressSchema, SkillsSchema} = require('../../utils/utils.schema.js');
+const CONFIG = require('../../../config/config.js');
 
 const userSchema = new mongoose.Schema(
     {
-        email: String,
         userId: String,
-        fristName: String,
+        email: {
+            type:String,
+            required:true
+        },
+        encryptedPassword: {
+            type:String,
+            required:true
+        },
+        firstName: String,
         lastName: String,
-        password: String,
         birthdate: Date,
         gender:{
             type: String,
-            enum: ['male', 'female']
+            enum: ['male', 'female',"other"]
         },
         address: AddressSchema,
+        skills:SkillsSchema,
+        cv:String,
         phone: [String],
         profileImage: String,
-        //CV: File,
-        skills:[
-            {
-                skillName:{
-                    type: String,
-                }
-            }
-        ],
         experienceYears: Number,
         educationLevel: String,
         college: String,
@@ -38,6 +40,13 @@ const userSchema = new mongoose.Schema(
         timestamps: true
     }
 );
+
+userSchema.virtual("password").set(function(password){
+    this.encryptedPassword=bcrypt.hashSync(password,parseInt(CONFIG.BCRYPT_SALT))
+})
+.get(function(){
+    return this.encryptedPassword
+})
 
 const userModel = mongoose.model('User', userSchema);
 

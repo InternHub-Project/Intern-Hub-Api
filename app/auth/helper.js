@@ -1,6 +1,6 @@
-const jwt = require('jsonwebtoken')
-const CONFIG = require('../../config/config')
-const {SEND_EMAIL_BY_NODEMAILER} = require('./email.configuration');
+const jwt = require('jsonwebtoken');
+const CONFIG = require('../../config/config.js');
+const { SEND_EMAIL_BY_NODEMAILER } = require('../utils/email.configuration.js');
 //............check from atcivate email.........//
 const checkEmail = function (req, user) {
     const tokenconfirm = jwt.sign(
