@@ -127,7 +127,7 @@ const login = async (req, res, next) => {
       );
     }
     //..Check if Email is Activated..//
-    if (user.activateEmail) {
+    if (!user.activateEmail) {
       const result = checkEmail(req, user);
       if (result) {
         sendResponse(
