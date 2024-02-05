@@ -110,7 +110,6 @@ const confirmemail = async (req, res, next) => {
 };
 
 ///LOGIN///
-
 const login = async (req, res, next) => {
   try {
     const { email, password } = req.body;
@@ -118,25 +117,32 @@ const login = async (req, res, next) => {
 
     //..Check if User Exists..//
     if (!user) {
-      return sendResponse(
+      sendResponse(
         res,
         constans.RESPONSE_NOT_FOUND,
-        constans.UNHANDLED_ERROR,
+        "Email not found!",
         {},
-        "Email not found!"
+        []
       );
+    }
+    //..Check if Email is Activated..//
+    if (user.activateEmail) {
+      const result = checkEmail(req, user);
+      if (result) {
+        sendResponse(
+          res,
+          constans.RESPONSE_BAD_REQUEST,
+          "Confirm your email ... we've sent a message at your email",
+          {},
+          []
+        );
+      }
     }
 
     //..Compare Passwords..//
     const isPasswordCorrect = await bcrypt.compare(password, user.password);
     if (!isPasswordCorrect) {
-      sendResponse(
-        res,
-        constans.RESPONSE_NOT_FOUND,
-        constans.UNHANDLED_ERROR,
-        {},
-        "Wrong Password!"
-      );
+      sendResponse(res, constans.RESPONSE_NOT_FOUND, "Wrong password!", {}, []);
     }
 
     //..Generate Access Token..//
@@ -162,19 +168,6 @@ const login = async (req, res, next) => {
       secure: true,
     });
 
-    //..Check if Email is Activated..//
-    if (!user.activateEmail) {
-      const result = checkEmail(req, user);
-      if (result) {
-        sendResponse(
-          res,
-          constans.RESPONSE_BAD_REQUEST,
-          "Confirm your email ... we've sent a message at your email",
-          {},
-          []
-        );
-      }
-    }
     sendResponse(res, constans.RESPONSE_SUCCESS, "Confirmed Succeed", {}, []);
   } catch (error) {
     sendResponse(
