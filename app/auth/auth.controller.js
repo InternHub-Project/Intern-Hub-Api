@@ -1,4 +1,5 @@
 const userModel = require("../DB/models/user.schema");
+const tokenSchema = require("./token.schema.js");
 const { sendResponse } = require("../utils/util.service");
 const CONFIG = require("../../config/config");
 const jwt = require("jsonwebtoken");
@@ -113,8 +114,9 @@ const confirmemail = async (req, res, next) => {
 const login = async (req, res, next) => {
   try {
     const { email, password } = req.body;
-    const user = await userModel.findOne({ email: email });
+    const user = await userModel.findOne({ email });
 
+    //..Check if User Exists..//
     if (!user) {
       return sendResponse(
         res,
@@ -125,22 +127,8 @@ const login = async (req, res, next) => {
       );
     }
 
-    //using bcrypt to compare password with encryptedPassword.
+    //..Compare Passwords..//
     const isPasswordCorrect = await bcrypt.compare(password, user.password);
-    if (isPasswordCorrect) {
-      const accToken = jwt.sign({ userId: user.id }, CONFIG.jwt_encryption);
-      res.cookie("accToken", accToken, {
-        httpOnly: true,
-        secure: true,
-      });
-      return sendResponse(
-        res,
-        constans.RESPONSE_SUCCESS,
-        "Confirmed Succeed",
-        {},
-        []
-      );
-    }
     if (!isPasswordCorrect) {
       return sendResponse(
         res,
@@ -151,11 +139,31 @@ const login = async (req, res, next) => {
       );
     }
 
-    //if the email was not activated ..we will use checkEmail function to send confirmation to email .
-    if (user.activateEmail !== true) {
+    //..Generate Access Token..//
+    const accToken = await jwtGenerator({ userId: user.id });
+    const schemaToken = new tokenSchema({
+      userId: "User" + uuidv4(),
+      token: accToken,
+    });
+    const savedToken = await schemaToken.save();
+
+    res.cookie("accToken", accToken, {
+      httpOnly: true,
+      secure: true,
+    });
+
+    //..Check if Email is Activated..//
+    if (!user.activateEmail) {
       const result = checkEmail(req, user);
       return sendResponse(res, constans.RESPONSE_SUCCESS, "Sent", result);
     }
+    return sendResponse(
+      res,
+      constans.RESPONSE_SUCCESS,
+      "Confirmed Succeed",
+      {},
+      []
+    );
   } catch (error) {
     return sendResponse(
       res,
