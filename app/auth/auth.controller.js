@@ -8,6 +8,7 @@ const constans = require("../utils/constants");
 const path = require("path");
 const constants = require("../utils/constants");
 const checkEmail = require("./helper.js");
+const jwtGenerator = require("../utils/jwt.generator.js");
 const { v4: uuidv4 } = require("uuid");
 
 //...........SignUp.................//
