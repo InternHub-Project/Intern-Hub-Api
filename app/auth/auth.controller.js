@@ -121,15 +121,11 @@ const login = async (req, res, next) => {
         constans.RESPONSE_NOT_FOUND,
         constans.UNHANDLED_ERROR,
         {},
-        "Email is  not found"
+        "Email not found!"
       );
     }
 
-    if (user.activateEmail !== true) {
-      const result = checkEmail(req, user);
-      return sendResponse(res, constans.RESPONSE_SUCCESS, "Sent", result);
-    }
-
+    //using bcrypt to compare password with encryptedPassword.
     const isPasswordCorrect = await bcrypt.compare(password, user.password);
     if (isPasswordCorrect) {
       const accToken = jwt.sign({ userId: user.id }, CONFIG.jwt_encryption);
@@ -144,7 +140,8 @@ const login = async (req, res, next) => {
         {},
         []
       );
-    } else {
+    }
+    if (!isPasswordCorrect) {
       return sendResponse(
         res,
         constans.RESPONSE_BAD_REQUEST,
@@ -152,6 +149,12 @@ const login = async (req, res, next) => {
         "",
         "Wrong password"
       );
+    }
+
+    //if the email was not activated ..we will use checkEmail function to send confirmation to email .
+    if (user.activateEmail !== true) {
+      const result = checkEmail(req, user);
+      return sendResponse(res, constans.RESPONSE_SUCCESS, "Sent", result);
     }
   } catch (error) {
     return sendResponse(
@@ -163,7 +166,6 @@ const login = async (req, res, next) => {
     );
   }
 };
-
 module.exports = {
   signUp,
   confirmemail,

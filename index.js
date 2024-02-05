@@ -21,6 +21,7 @@ globalThis.fetch = fetch;
 //Cookie Parser
 app.use(express.json());
 app.use(cookieParser());
+
 app.use(morgan("combined", { stream: LOG.stream }));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
