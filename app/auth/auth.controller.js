@@ -130,23 +130,33 @@ const login = async (req, res, next) => {
     //..Compare Passwords..//
     const isPasswordCorrect = await bcrypt.compare(password, user.password);
     if (!isPasswordCorrect) {
-      return sendResponse(
+      sendResponse(
         res,
-        constans.RESPONSE_BAD_REQUEST,
+        constans.RESPONSE_NOT_FOUND,
         constans.UNHANDLED_ERROR,
-        "",
-        "Wrong password"
+        {},
+        "Wrong Password!"
       );
     }
 
     //..Generate Access Token..//
-    const accToken = await jwtGenerator({ userId: user.id });
-    const schemaToken = new tokenSchema({
-      userId: "User" + uuidv4(),
-      token: accToken,
-    });
-    const savedToken = await schemaToken.save();
+    const accToken = await jwtGenerator({ userId: user.userId });
+    existingToken = await tokenSchema.findOne({ userId: user.userId });
 
+    if (existingToken) {
+      await tokenSchema.updateOne(
+        { userId: user.userId },
+        { $set: { accToken } }
+      );
+    } else {
+      newToken = new tokenSchema({
+        userId: user.userId,
+        token: accToken,
+      });
+      await newToken.save();
+    }
+
+    // Set the access token as an HTTP-only cookie
     res.cookie("accToken", accToken, {
       httpOnly: true,
       secure: true,
@@ -155,17 +165,19 @@ const login = async (req, res, next) => {
     //..Check if Email is Activated..//
     if (!user.activateEmail) {
       const result = checkEmail(req, user);
-      return sendResponse(res, constans.RESPONSE_SUCCESS, "Sent", result);
+      if (result) {
+        sendResponse(
+          res,
+          constans.RESPONSE_BAD_REQUEST,
+          "Confirm your email ... we've sent a message at your email",
+          {},
+          []
+        );
+      }
     }
-    return sendResponse(
-      res,
-      constans.RESPONSE_SUCCESS,
-      "Confirmed Succeed",
-      {},
-      []
-    );
+    sendResponse(res, constans.RESPONSE_SUCCESS, "Confirmed Succeed", {}, []);
   } catch (error) {
-    return sendResponse(
+    sendResponse(
       res,
       constans.RESPONSE_INT_SERVER_ERROR,
       constans.UNHANDLED_ERROR,
@@ -174,6 +186,7 @@ const login = async (req, res, next) => {
     );
   }
 };
+
 module.exports = {
   signUp,
   confirmemail,
