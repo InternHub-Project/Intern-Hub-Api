@@ -12,7 +12,8 @@ const app   = express();
 const CONFIG = require('./config/config');
 const routes = require('./app/routes-index');
 const fetch = require('cross-fetch');
-const { connectiondb } = require('./app/DB/connectiondb.js');
+const { connectiondb } = require('./app/DB/connectionDB.js');
+
 
 
 globalThis.fetch = fetch;
@@ -96,4 +97,3 @@ app.on('unhandledRejection', error => {
   console.log(error)
   console.error('Uncaught Error', pe(error));
 });
-
