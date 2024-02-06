@@ -42,6 +42,7 @@ const userSchema = new mongoose.Schema(
 );
 
 userSchema.virtual("password").set(function(password){
+    console.log(password, CONFIG.BCRYPT_SALT);
     this.encryptedPassword=bcrypt.hashSync(password,parseInt(CONFIG.BCRYPT_SALT))
 })
 .get(function(){
