@@ -5,7 +5,8 @@ require('../utils/passport')(passport);
 const authGuard = passport.authenticate("appAuth", { session: false });
 
 
-
 // routes
+
+
 
 module.exports = router;

@@ -12,12 +12,15 @@ const app   = express();
 const CONFIG = require('./config/config');
 const routes = require('./app/routes-index');
 const fetch = require('cross-fetch');
+const { connectiondb } = require('./app/DB/connectiondb.js');
+
+
 globalThis.fetch = fetch;
 
 //app.use(i18n.init);
 //app.use(logger('dev'));
 app.use(morgan('combined', { stream: LOG.stream }));
-app.use(bodyParser.json());
+app.use(bodyParser.json({limit:"5kb"}));
 app.use(bodyParser.urlencoded({ extended: false }));
 //Passport
 app.use(passport.initialize());
@@ -25,21 +28,8 @@ app.use(compression())
 //Log Env
 console.log("Environment:", CONFIG.app)
 
-const db = require("./app/schema-index");
-db.mongoose
-  .connect(db.url, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true
-  })
-  .then(() => {
-    console.log("Connected to the database!");
-  })
-  .catch(err => {
-    console.log("Cannot connect to the database!", err);
-    process.exit();
-  });
 
-// CORS
+// CORS 
 app.use(cors());
 
 app.use(function(req, res, next) {
@@ -49,7 +39,7 @@ app.use(function(req, res, next) {
     var contentType = req.headers['content-type'];
     let path = req.path;
     if( // path.indexOf('common/uploadFile') < 0 && //* any path that uses form-data should be excluded here
-       contentType != 'application/json'){
+        contentType != 'application/json'){
         res.status(415);
         res.json({
           error: 'Unsupported Content-Type.',
@@ -59,6 +49,9 @@ app.use(function(req, res, next) {
       next();
     }
 });
+
+
+connectiondb()
 
 routes.v1routes(app)
 
@@ -103,3 +96,4 @@ app.on('unhandledRejection', error => {
   console.log(error)
   console.error('Uncaught Error', pe(error));
 });
+

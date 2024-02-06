@@ -128,3 +128,30 @@ const sendEmail = async (emailParams, subject, templateName, attachments) => {
     );
 };
 module.exports.sendEmail = sendEmail;
+
+
+const SEND_EMAIL_BY_NODEMAILER = async (
+    dest,
+    subject,
+    message,
+    attachments = []
+) => {
+        const transporter = nodemailer.createTransport({
+            service: "gmail",
+            auth: {
+                user: CONFIG.NODEMAILER_EMAIL_FROM,
+                pass: CONFIG.NODEMAILER_API_KEY,
+            },
+        });
+        // send mail with defined transport object
+        const info = await transporter.sendMail({
+        from: `Inertn-Hub ${process.env.nodeMailerEmail}`, // sender address
+        to: dest, // list of receivers
+        subject: subject, // Subject line
+        html: message, // html body
+        attachments,
+    });
+    return info;
+};
+
+module.exports.SEND_EMAIL_BY_NODEMAILER = SEND_EMAIL_BY_NODEMAILER;
