@@ -1,5 +1,5 @@
 const userModel = require('../db/models/user.schema')
-const { sendResponse } = require('../utils/util.service');
+const { sendResponse, validateExpiry } = require('../utils/util.service');
 const CONFIG = require('../../config/config');
 const jwt = require('jsonwebtoken')
 const constans = require('../utils/constants')
@@ -131,13 +131,13 @@ const forgotPasswordEmail = async (req, res, next)=>{
     if(!user){
       sendResponse(res, constans.RESPONSE_BAD_REQUEST, constans.UNHANDLED_ERROR, {}, "this email is not exist");
     }else{
-      const code = helper.createRandomCode()
+      const code = Math.floor(100000 + Math.random() * 900000)
       const setPasswordLink = `set your password use code`;
       const setPasswordMessag = "Set password Email Send From Intern-Hub Application";
       const info = helper.sendEmail(req, user, "setPassword", setPasswordLink, setPasswordMessag, code);
       if(info){
         await userModel.updateOne({email}, {$set:{recoveryCode: code, recoveryCodeDate: Date.now()}});
-        sendResponse(res, constans.RESPONSE_SUCCESS, `we send you an email at ${helper.hashEmail(email)}`, {}, []);
+        sendResponse(res, constans.RESPONSE_SUCCESS, `we send you an email at ${email}`, {}, []);
       }
     }
   }catch(error){
@@ -148,16 +148,15 @@ const forgotPasswordEmail = async (req, res, next)=>{
 const setPassword = async(req, res, next)=>{
   try {
     const { token } = req.params;
-    const {code} = req.body;
-    const { password } = req.body;
+    const { password, code } = req.body;
     const decoded = jwt.verify(token, CONFIG.jwt_encryption);
     if (!decoded?.userId) {
       sendResponse(res, constans.UNPROCESSABLE_CONTENT, constans.UNHANDLED_ERROR, {}, "invaildToken");
     } else {
       const user = await userModel.findOne({userId: decoded.userId});
-      if(user.recoveryCode === code){
+      if(user.recoveryCode === code && validateExpiry(user.recoveryCodeDate) && code){
         const encryptedPassword = bcrypt.hashSync(password, parseInt(CONFIG.BCRYPT_SALT));
-        const set = await userModel.updateOne({userId:user.userId}, {$set:{encryptedPassword}});
+        const set = await userModel.updateOne({userId:user.userId}, {$set:{encryptedPassword, recoveryCode:''}});
         sendResponse(res, constans.RESPONSE_SUCCESS, "Set new password Succeed", set, []);
       }else{
         sendResponse(res, constans.RESPONSE_BAD_REQUEST, "This code is not correct", '', []);

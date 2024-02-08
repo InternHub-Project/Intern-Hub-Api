@@ -35,7 +35,7 @@ const userSchema = new mongoose.Schema(
             type: Boolean,
             default: false,
         },
-        recoveryCode: String,
+        recoveryCode: Number,
         recoveryCodeDate: Date
     },
     {

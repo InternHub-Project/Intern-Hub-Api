@@ -90,7 +90,7 @@ module.exports.randomString = randomString;
 
 const validateExpiry = (inputDate) => {
     let diffHours = moment().diff(moment(inputDate), 'hours', true);
-    return diffHours <= 48;
+    return diffHours <= 2;
 }
 module.exports.validateExpiry = validateExpiry;
 
