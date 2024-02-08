@@ -131,10 +131,12 @@ const forgotPasswordEmail = async (req, res, next)=>{
     if(!user){
       sendResponse(res, constans.RESPONSE_BAD_REQUEST, constans.UNHANDLED_ERROR, {}, "this email is not exist");
     }else{
-      const setPasswordLink = "set your password";
+      const code = helper.createRandomCode()
+      const setPasswordLink = `set your password use code`;
       const setPasswordMessag = "Set password Email Send From Intern-Hub Application";
-      const info = helper.sendEmail(req, user, "setPassword", setPasswordLink, setPasswordMessag);
+      const info = helper.sendEmail(req, user, "setPassword", setPasswordLink, setPasswordMessag, code);
       if(info){
+        await userModel.updateOne({email}, {$set:{recoveryCode: code, recoveryCodeDate: Date.now()}});
         sendResponse(res, constans.RESPONSE_SUCCESS, `we send you an email at ${helper.hashEmail(email)}`, {}, []);
       }
     }
@@ -146,15 +148,20 @@ const forgotPasswordEmail = async (req, res, next)=>{
 const setPassword = async(req, res, next)=>{
   try {
     const { token } = req.params;
+    const {code} = req.body;
     const { password } = req.body;
     const decoded = jwt.verify(token, CONFIG.jwt_encryption);
     if (!decoded?.userId) {
       sendResponse(res, constans.UNPROCESSABLE_CONTENT, constans.UNHANDLED_ERROR, {}, "invaildToken");
     } else {
       const user = await userModel.findOne({userId: decoded.userId});
-      const encryptedPassword = bcrypt.hashSync(password, parseInt(CONFIG.BCRYPT_SALT));
-      const set = await userModel.updateOne({userId:user.userId}, {$set:{encryptedPassword}});
-      sendResponse(res, constans.RESPONSE_SUCCESS, "Set new password Succeed", set, []);
+      if(user.recoveryCode === code){
+        const encryptedPassword = bcrypt.hashSync(password, parseInt(CONFIG.BCRYPT_SALT));
+        const set = await userModel.updateOne({userId:user.userId}, {$set:{encryptedPassword}});
+        sendResponse(res, constans.RESPONSE_SUCCESS, "Set new password Succeed", set, []);
+      }else{
+        sendResponse(res, constans.RESPONSE_BAD_REQUEST, "This code is not correct", '', []);
+      }
     }
   } catch (error) {
     sendResponse(res, constans.RESPONSE_INT_SERVER_ERROR, constans.UNHANDLED_ERROR, {}, [error.message]);

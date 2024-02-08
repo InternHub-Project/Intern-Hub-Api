@@ -5,10 +5,10 @@ const { SEND_EMAIL_BY_NODEMAILER } = require('../utils/email.configuration.js');
 
 
 //............check from atcivate email.........//
-const sendEmail = async function (req, user, routeLink, messageLink, messagHeader) {
+const sendEmail = async function (req, user, routeLink, messageLink, messagHeader , code="") {
     const tokenconfirm = await jwtGenerator({ userId: user.userId }, 1 , 'h'); 
     const link = `${req.protocol}://${req.headers.host}${CONFIG.BASEURL}/${routeLink}/${tokenconfirm}`;
-    const message = `<a href='${link}'>follow me to ${messageLink}</a><br></br>`;
+    const message = `<a href='${link}'>follow me to ${messageLink}</a> "${code}"<br></br>`;
     const info = SEND_EMAIL_BY_NODEMAILER(
         user.email,
         messagHeader,
@@ -31,9 +31,19 @@ const hashEmail = (email)=>{
     return email;
 }
 
+//--------------------//
+const createRandomCode = ()=>{
+    let code = '';
+    for(var i=0; i<4;i++){
+        code += `${Math.floor(Math.random() * 10)} `
+    }
+    return code.trim();
+}
+
 module.exports ={
     hashEmail,
-    sendEmail
+    sendEmail,
+    createRandomCode
 }
 
     
