@@ -36,7 +36,12 @@ const userSchema = new mongoose.Schema(
             default: false,
         },
         recoveryCode: Number,
-        recoveryCodeDate: Date
+        recoveryCodeDate: Date,
+        accountType:{
+            type:String,
+            default:"system",
+            enum:["system","google"]
+          }
     },
     {
         timestamps: true

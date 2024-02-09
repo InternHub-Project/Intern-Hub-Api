@@ -6,6 +6,7 @@ CONFIG.APP_NAME = process.env.APP_NAME || '';
 
 CONFIG.app          = process.env.APP   || 'dev';
 CONFIG.port         = process.env.PORT  || '3000';
+CONFIG.BASEURL      =process.env.BASEURL||'/api/v1'
 
 CONFIG.db_name      = process.env.DB_NAME || '..';
 CONFIG.db_user      = process.env.DB_USER;
@@ -23,7 +24,12 @@ CONFIG.BCRYPT_SALT = process.env.BCRYPT_SALT || 10;
 CONFIG.DUMMY_PASSWORD = `${CONFIG.APP_NAME}$#ord`;
 
 
+//signup with google Configuration
+CONFIG.GOOGLE_CLIENT_ID=process.env.GOOGLE_CLIENT_ID
+CONFIG.GOOGLE_CLIENT_SECRET=process.env.GOOGLE_CLIENT_SECRET
+CONFIG.CALL_BACK_URL=process.env.CALL_BACK_URL
 
+CONFIG.SIGNUP_GOOGLE_PASSWORD=process.env.SIGNUP_GOOGLE_PASSWORD
 
 //Send Grid API Configuration
 CONFIG.SENDGRID_API_KEY = process.env.SENDGRID_API_KEY;
