@@ -323,8 +323,7 @@ const reSendcode = async (req, res, next) => {
     } else {
       const code = Math.floor(10000 + Math.random() * 90000);
       const setResendCodeLink = `Resend Code`;
-      const setResendCodeMessage =
-        "recovery code Send From Intern-Hub Application";
+      const setResendCodeMessage = "a recovery code from Intern-Hub";
 
       const info = helper.sendEmail(
         req,
