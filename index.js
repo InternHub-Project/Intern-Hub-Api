@@ -12,9 +12,11 @@ const app   = express();
 const CONFIG = require('./config/config');
 const routes = require('./app/routes-index');
 const fetch = require('cross-fetch');
+
 const { connectiondb } = require('./app/db/connectiondb.js');
 const passportSetup=require("./app/utils/social.login.setup");
 const cookieParser = require('cookie-parser');
+
 
 
 globalThis.fetch = fetch;
@@ -99,4 +101,3 @@ app.on('unhandledRejection', error => {
   console.log(error)
   console.error('Uncaught Error', pe(error));
 });
-
