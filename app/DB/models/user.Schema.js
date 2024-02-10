@@ -19,7 +19,7 @@ const userSchema = new mongoose.Schema(
         birthdate: Date,
         gender:{
             type: String,
-            enum: ['male', 'female',"other"]
+            enum: ['male', 'female']
         },
         address: AddressSchema,
         skills:SkillsSchema,
@@ -35,6 +35,13 @@ const userSchema = new mongoose.Schema(
             type: Boolean,
             default: false,
         },
+        recoveryCode: Number,
+        recoveryCodeDate: Date,
+        accountType:{
+            type:String,
+            default:"system",
+            enum:["system","google"]
+          }
     },
     {
         timestamps: true

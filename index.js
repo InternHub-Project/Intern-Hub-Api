@@ -8,11 +8,14 @@ const pe            = require('parse-error');
 const cors          = require('cors');
 var LOG             = require('./config/logger');
 const path          = require('path');
-const app   = express();
+const app   = express(); 
 const CONFIG = require('./config/config');
 const routes = require('./app/routes-index');
 const fetch = require('cross-fetch');
-const { connectiondb } = require('./app/DB/connectionDB.js');
+
+const { connectiondb } = require('./app/db/connectiondb.js');
+const passportSetup=require("./app/utils/social.login.setup");
+const cookieParser = require('cookie-parser');
 
 
 
@@ -37,7 +40,8 @@ app.use(function(req, res, next) {
     var originalUrl = req.originalUrl;
     var method = req.method;
     console.log(req.path)
-    var contentType = req.headers['content-type'];
+    // var contentType = req.headers['content-type'];
+    var contentType="application/json"
     let path = req.path;
     if( // path.indexOf('common/uploadFile') < 0 && //* any path that uses form-data should be excluded here
         contentType != 'application/json'){
@@ -51,7 +55,7 @@ app.use(function(req, res, next) {
     }
 });
 
-
+app.use(cookieParser());
 connectiondb()
 
 routes.v1routes(app)
