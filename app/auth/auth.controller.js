@@ -10,6 +10,8 @@ const tokenSchema = require("./token.schema.js");
 const bcrypt = require("bcryptjs");
 const userModel = require("../DB/models/user.Schema.js");
 
+
+
 //...........SignUp.................//
 const signUp = async (req, res, next) => {
   try {
@@ -402,7 +404,7 @@ const social_google = async (req, res, next) => {
         });
         sendResponse(res, constans.RESPONSE_SUCCESS, "Login Succeed", {}, []);
       }
-      //.....if not user then saved then user in database.........//
+      //.....if not user then saved  user in database.........//
       else {
         const { given_name, family_name } = req.user._json;
         const { provider } = req.user;
@@ -413,7 +415,6 @@ const social_google = async (req, res, next) => {
           activateEmail: true,
           firstName: given_name,
           lastName: family_name,
-          password: `${CONFIG.DUMMY_PASSWORD}${uuidv4()}`,
         });
         const savedUser = await user.save();
         const signupToken = await jwtGenerator(

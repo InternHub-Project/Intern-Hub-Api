@@ -40,8 +40,8 @@ app.use(function(req, res, next) {
     var originalUrl = req.originalUrl;
     var method = req.method;
     console.log(req.path)
-    // var contentType = req.headers['content-type'];
-    var contentType="application/json"
+    var contentType = req.headers['content-type'];
+    // var contentType="application/json"
     let path = req.path;
     if( // path.indexOf('common/uploadFile') < 0 && //* any path that uses form-data should be excluded here
         contentType != 'application/json'){
