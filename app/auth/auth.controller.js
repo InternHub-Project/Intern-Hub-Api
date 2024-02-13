@@ -10,8 +10,6 @@ const tokenSchema = require("./token.schema.js");
 const bcrypt = require("bcryptjs");
 const userModel = require("../DB/models/user.Schema.js");
 
-
-
 //...........SignUp.................//
 const signUp = async (req, res, next) => {
   try {
@@ -307,6 +305,64 @@ const setPassword = async (req, res, next) => {
   }
 };
 
+//****** changePassword *******/
+const changePassword = async (req, res, next) => {
+  try {
+    const { email, currentPassword, newPassword } = req.body;
+    const user = await userModel.findOne({ email: email });
+    if (!user) {
+      sendResponse(
+        res,
+        constans.RESPONSE_BAD_REQUEST,
+        constans.UNHANDLED_ERROR,
+        {},
+        "This email does not exist"
+      );
+    }
+
+    const isPasswordValid = bcrypt.compareSync(
+      currentPassword,
+      user.encryptedPassword
+    );
+
+    if (!isPasswordValid) {
+      sendResponse(
+        res,
+        constans.RESPONSE_UNAUTHORIZED,
+        "Current password is invalid",
+        {},
+        []
+      );
+    } else {
+      const encryptedNewPassword = bcrypt.hashSync(
+        newPassword,
+        parseInt(CONFIG.BCRYPT_SALT)
+      );
+
+      const updatedPassword = await userModel.updateOne(
+        { email },
+        { $set: { encryptedPassword: encryptedNewPassword } }
+      );
+
+      sendResponse(
+        res,
+        constans.RESPONSE_SUCCESS,
+        "Password changed successfully",
+        updatedPassword,
+        []
+      );
+    }
+  } catch (error) {
+    sendResponse(
+      res,
+      constans.RESPONSE_INT_SERVER_ERROR,
+      constans.UNHANDLED_ERROR,
+      {},
+      [error.message]
+    );
+  }
+};
+
 ///***** reSendcode *****///
 
 const reSendcode = async (req, res, next) => {
@@ -451,6 +507,7 @@ module.exports = {
   login,
   forgotPasswordEmail,
   setPassword,
+  changePassword,
   social_google,
   reSendcode,
 };

@@ -9,6 +9,7 @@ router.post("/signUp/user", authCon.signUp);
 router.get("/confirmEmail/:token", authCon.confirmemail);
 router.post("/login/user", authCon.login);
 router.post("/forgotPasswordEmail/user", authCon.forgotPasswordEmail);
+router.post("/changePassword/user", authCon.changePassword);
 router.put("/setPassword/user/:token", authCon.setPassword);
 router.post("/reSendcode", rateLimiter, authCon.reSendcode);
 router.get(
