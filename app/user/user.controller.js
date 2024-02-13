@@ -32,7 +32,7 @@ const addSkills=async(req,res,next)=>{
             constans.UNHANDLED_ERROR,
             "",
             error.message
-          );
+        );
     }
 }
 
@@ -66,8 +66,18 @@ const updateUser=async(req,res,next)=>{
         //     }
         // })
         const user=await userModel.findOneAndUpdate({userId:userId},{$set:req.body},{runValidators: true})
-           sendResponse(res,constans.RESPONSE_SUCCESS,"user updated success",{user:user.userId},[])
-        } catch (error) {
+            sendResponse(res,constans.RESPONSE_SUCCESS,"user updated success",{user:user.userId},[])
+    } catch (error) {
+        sendResponse(res,constans.RESPONSE_INT_SERVER_ERROR,constans.UNHANDLED_ERROR,"",error.message);
+    }
+}
+
+const deleteUser = async (req, res, next)=>{
+    try{
+        const {userId}=req.user;
+        await userModel.updateOne({userId}, {$set:{isDeleted: true}})
+        sendResponse(res, constans.RESPONSE_SUCCESS, "userr deleted", '', [] );
+    }catch(error){
         sendResponse(res,constans.RESPONSE_INT_SERVER_ERROR,constans.UNHANDLED_ERROR,"",error.message);
     }
 }
@@ -77,8 +87,8 @@ const updateUser=async(req,res,next)=>{
 
 
 
-
 module.exports={
     addSkills,
-    updateUser
+    updateUser,
+    deleteUser
 }

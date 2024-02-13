@@ -10,7 +10,7 @@ const authGuard = passport.authenticate("cookie", { session: false });
 
 router.post("/addskill",authGuard,userCon.addSkills)
 router.post("/updateUserprofile",authGuard,myMullter().fields([{ name: "image", maxCount: 1 }, { name: "file", maxCount: 1 }]),HME,userCon.updateUser);
-
+router.post('/delete', authGuard, userCon.deleteUser);
 
 
 

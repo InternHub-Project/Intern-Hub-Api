@@ -51,9 +51,18 @@ const signUp = async (req, res, next) => {
           constans.UNHANDLED_ERROR,
           [],
           "rejected Eamil"
+          );
+        }
+      }else if(user && user.isDeleted){
+        await userModel.updateOne({email}, {$set:{isDeleted: false}});
+        sendResponse(
+          res,
+          constans.RESPONSE_CREATED,
+          "Done",
+          user.userId,
+          {}
         );
-      }
-    } else {
+    }else{
       sendResponse(
         res,
         constans.RESPONSE_BAD_REQUEST,
@@ -127,7 +136,7 @@ const login = async (req, res, next) => {
     const user = await userModel.findOne({ email });
 
     //..Check if User Exists..//
-    if (!user) {
+    if (!user|| user.isDeleted) {
       sendResponse(
         res,
         constans.RESPONSE_NOT_FOUND,
@@ -204,7 +213,7 @@ const forgotPasswordEmail = async (req, res, next) => {
   try {
     const { email } = req.body;
     const user = await userModel.findOne({ email: email });
-    if (!user) {
+    if (!user|| user.isDeleted) {
       sendResponse(
         res,
         constans.RESPONSE_BAD_REQUEST,
@@ -314,7 +323,7 @@ const reSendcode = async (req, res, next) => {
     const { email } = req.body;
     const user = await userModel.findOne({ email: email });
 
-    if (!user) {
+    if (!user|| user.isDeleted) {
       sendResponse(
         res,
         constans.RESPONSE_BAD_REQUEST,

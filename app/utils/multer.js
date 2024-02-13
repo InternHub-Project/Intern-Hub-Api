@@ -15,7 +15,7 @@ const fileMimeTypes = ["application/pdf", "application/msword", "text/plain"];
   };
 
 
- function myMullter(){
+  function myMullter(){
     const storage = multer.diskStorage({});
     function fileFilter(req, file, cb) {
         // Check if the file is an image

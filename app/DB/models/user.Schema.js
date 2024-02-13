@@ -41,7 +41,7 @@ const userSchema = new mongoose.Schema(
             type:String,
             default:"system",
             enum:["system","google"]
-          },
+        },
         isDeleted:{
             type:Boolean,
             default:false
