@@ -305,7 +305,7 @@ const setPassword = async (req, res, next) => {
   }
 };
 
-//****** changePassword *******/
+//******* changePassword ********/
 const changePassword = async (req, res, next) => {
   try {
     const { email, currentPassword, newPassword } = req.body;
