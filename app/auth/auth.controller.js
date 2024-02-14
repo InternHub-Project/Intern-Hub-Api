@@ -139,7 +139,7 @@ const forgotPasswordEmail = async (req, res, next) => {
       const setPasswordLink = `set your password`;
       const setPasswordMessag =
         "Set password Email Send From Intern-Hub Application";
-      const info = helper.sendEmail(req,user,"setPassword",setPasswordLink,setPasswordMessag,code);
+      const info = helper.sendEmail(req,user,"auth/setPassword/user",setPasswordLink,setPasswordMessag,code);
       if (info) {
         await userModel.updateOne(
           { email },
