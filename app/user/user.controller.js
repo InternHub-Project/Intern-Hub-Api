@@ -45,20 +45,20 @@ const updateUser=async(req,res,next)=>{
         // const updateFields = {gender,birthdate,experienceYears,educationLevel,college,interests,gruduationDate,skillIDs,phone,address};
         let profileImage,cv;
         if(req.files.length){
-        if(req.files["image"][0]){
-            const {secure_url}=await cloudinary.v2.uploader.upload(req.files["image"][0].path,{
-                resource_type: 'image',
-                folder:`internHub/${req.user._id}`
-            })
-            profileImage=secure_url
-        }
-        if(req.files["file"][0]){
-            const {secure_url}=await cloudinary.v2.uploader.upload(req.files["file"][0].path,{
-                resource_type: 'raw',
-                folder:`internHub/${req.user._id}`,
-            })
-            cv=secure_url
-        }
+            if(req.files["image"][0]){
+                const {secure_url}=await cloudinary.v2.uploader.upload(req.files["image"][0].path,{
+                    resource_type: 'image',
+                    folder:`internHub/${req.user._id}`
+                })
+                profileImage=secure_url
+            }
+            if(req.files["file"][0]){
+                const {secure_url}=await cloudinary.v2.uploader.upload(req.files["file"][0].path,{
+                    resource_type: 'raw',
+                    folder:`internHub/${req.user._id}`,
+                })
+                cv=secure_url
+            }
         }
         // Object.keys(updateFields).forEach(key=>{
         //     if (updateFields[key]) {
