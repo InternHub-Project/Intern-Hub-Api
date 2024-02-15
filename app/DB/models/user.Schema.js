@@ -29,8 +29,9 @@ const userSchema = new mongoose.Schema(
         experienceYears: Number,
         educationLevel: String,
         college: String,
-        interests: String,
+        fieldOfInterest: [String],
         gruduationDate: String,
+        bio:String,
         activateEmail: {
             type: Boolean,
             default: false,
@@ -46,7 +47,6 @@ const userSchema = new mongoose.Schema(
             type:Boolean,
             default:false
         }
-
     },
     {
         timestamps: true

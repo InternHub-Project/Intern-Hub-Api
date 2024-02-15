@@ -11,10 +11,7 @@ router.post("/login/user", authCon.login);
 router.post("/forgotPasswordEmail/user", authCon.forgotPasswordEmail);
 router.put("/setPassword/user/:token", authCon.setPassword);
 router.post("/reSendcode", rateLimiter, authCon.reSendcode);
-router.get(
-  "/google",
-  passport.authenticate("google", { scope: ["email", "profile"] })
-);
+router.get("/google",passport.authenticate("google", { scope: ["email", "profile"] }));
 router.get(
   "/google/callback",
   passport.authenticate("google", {

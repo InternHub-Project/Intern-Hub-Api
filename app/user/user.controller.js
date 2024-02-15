@@ -4,6 +4,8 @@ const { skillsModel } = require("../utils/utils.schema.js");
 const { v4: uuidv4 } = require("uuid");
 const constans=require("../utils/constants.js");
 const { cloudinary } = require("../utils/cloudnairy.js");
+const bcrypt = require("bcryptjs");
+const tokenSchema = require("../auth/token.schema.js");
 
 
 
@@ -14,7 +16,7 @@ const addSkills=async(req,res,next)=>{
         const {skillName}=req.body;
         const checkSkill=await skillsModel.findOne({skillName:skillName.toLowerCase()})
         if(checkSkill){
-            sendResponse(res,constans.RESPONSE_BAD_REQUEST,constans.UNHANDLED_ERROR,{},"Skill already exist")
+            sendResponse(res,constans.RESPONSE_BAD_REQUEST,constans.UNHANDLED_ERROR,'',"Skill already exist")
         }
         else{
             const {userId}=req.user;
@@ -26,18 +28,12 @@ const addSkills=async(req,res,next)=>{
             sendResponse(res,constans.RESPONSE_CREATED,"Done",{},[])
         }
     } catch (error) {
-        sendResponse(
-            res,
-            constans.RESPONSE_INT_SERVER_ERROR,
-            constans.UNHANDLED_ERROR,
-            "",
-            error.message
-        );
+        sendResponse(res,constans.RESPONSE_INT_SERVER_ERROR,constans.UNHANDLED_ERROR,"",error.message);
     }
 }
 
 
-//..........Update user profile..............//
+//.............Update user profile.................//
 const updateUser=async(req,res,next)=>{
     try {
         const {userId}=req.user;
@@ -72,14 +68,53 @@ const updateUser=async(req,res,next)=>{
     }
 }
 
+
+//..............soft Delete User .............//
 const deleteUser = async (req, res, next)=>{
     try{
         const {userId}=req.user;
         await userModel.updateOne({userId}, {$set:{isDeleted: true}})
-        sendResponse(res, constans.RESPONSE_SUCCESS, "userr deleted", '', [] );
+        sendResponse(res, constans.RESPONSE_SUCCESS, "user deleted", '', [] );
     }catch(error){
         sendResponse(res,constans.RESPONSE_INT_SERVER_ERROR,constans.UNHANDLED_ERROR,"",error.message);
     }
+}
+
+
+//****** changePassword *******/
+const changePassword = async (req, res, next) => {
+    try {
+      const { _id } = req.user;
+      const user=await userModel.findById({_id})
+      const { currentPassword, newPassword } = req.body;
+      const isPasswordValid = bcrypt.compareSync(currentPassword,user.encryptedPassword);
+      if (!isPasswordValid) {
+        sendResponse(res,constans.RESPONSE_UNAUTHORIZED,"Current password is invalid",'',[]);
+      } else {
+        if (currentPassword === newPassword) {
+          sendResponse(res,constans.RESPONSE_BAD_REQUEST,"New password must be different from the old password.",'', []);
+        }
+        const updatedPassword = await userModel.updateOne({ _id },{ $set: { password: newPassword } });
+
+        sendResponse(res,constans.RESPONSE_SUCCESS,"Password changed successfully",updatedPassword,[]);
+      }
+    } catch (error) {
+      sendResponse(res,constans.RESPONSE_INT_SERVER_ERROR,constans.UNHANDLED_ERROR,{},[error.message]);
+    }
+  };
+
+
+
+//............SignOut.................//
+const signOut=async(req,res,next)=>{
+    try {
+        res.clearCookie("token");   //.....this line for test only, frontend will remove token from cookie, we will remove it later
+        await tokenSchema.findOneAndDelete({token:req.cookies.token})
+        sendResponse(res,constans.RESPONSE_SUCCESS, "Sign-Out successfully", '', []);
+    } catch (error) {
+        sendResponse(res, constans.RESPONSE_INT_SERVER_ERROR, constans.UNHANDLED_ERROR, '', error.message);
+    }
+
 }
 
 
@@ -90,5 +125,7 @@ const deleteUser = async (req, res, next)=>{
 module.exports={
     addSkills,
     updateUser,
-    deleteUser
+    deleteUser,
+    changePassword,
+    signOut
 }
