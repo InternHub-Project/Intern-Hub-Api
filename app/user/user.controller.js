@@ -92,9 +92,23 @@ const changePassword = async (req, res, next) => {
         sendResponse(res,constans.RESPONSE_UNAUTHORIZED,"Current password is invalid",'',[]);
       } else {
         if (currentPassword === newPassword) {
-          sendResponse(res,constans.RESPONSE_BAD_REQUEST,"New password must be different from the old password.",'', []);
+          sendResponse(
+            res,
+            constans.RESPONSE_BAD_REQUEST,
+            "New password must be different from the old password.",
+            "",
+            []
+          );
         }
-        const updatedPassword = await userModel.updateOne({ _id },{ $set: { password: newPassword } });
+         const encryptedPassword = bcrypt.hashSync(
+           newPassword,
+           parseInt(CONFIG.BCRYPT_SALT)
+         );
+        const updatedPassword = await userModel.updateOne(
+          { _id },
+          { $set: { encryptedPassword } },
+          { new: true }
+        );
 
         sendResponse(res,constans.RESPONSE_SUCCESS,"Password changed successfully",updatedPassword,[]);
       }
@@ -102,7 +116,6 @@ const changePassword = async (req, res, next) => {
       sendResponse(res,constans.RESPONSE_INT_SERVER_ERROR,constans.UNHANDLED_ERROR,{},[error.message]);
     }
   };
-
 
 
 //............SignOut.................//
