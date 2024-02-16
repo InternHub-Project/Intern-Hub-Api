@@ -6,6 +6,7 @@ const constans=require("../utils/constants.js");
 const { cloudinary } = require("../utils/cloudnairy.js");
 const bcrypt = require("bcryptjs");
 const tokenSchema = require("../auth/token.schema.js");
+const CONFIG = require('../../config/config.js')
 
 
 
@@ -84,24 +85,26 @@ const deleteUser = async (req, res, next)=>{
 //****** changePassword *******/
 const changePassword = async (req, res, next) => {
     try {
-      const { _id } = req.user;
-      const user=await userModel.findById({_id})
-      const { currentPassword, newPassword } = req.body;
-      const isPasswordValid = bcrypt.compareSync(currentPassword,user.encryptedPassword);
-      if (!isPasswordValid) {
-        sendResponse(res,constans.RESPONSE_UNAUTHORIZED,"Current password is invalid",'',[]);
-      } else {
-        if (currentPassword === newPassword) {
-          sendResponse(res,constans.RESPONSE_BAD_REQUEST,"New password must be different from the old password.",'', []);
-        }
-        const updatedPassword = await userModel.updateOne({ _id },{ $set: { password: newPassword } });
+        const { userId } = req.user;
+        const user=await userModel.findOne({userId})
+        const { currentPassword, newPassword } = req.body;
+        const isPasswordValid = bcrypt.compareSync(currentPassword,user.encryptedPassword);
+        if (!isPasswordValid) {
+            sendResponse(res,constans.RESPONSE_UNAUTHORIZED,"Current password is invalid",'',[]);
+        } else {
+            if (currentPassword === newPassword) {
+                sendResponse(res,constans.RESPONSE_BAD_REQUEST,"New password must be different from the old password.",'', []);
+            }
+            const encryptedPassword = bcrypt.hashSync(newPassword, parseInt(CONFIG.BCRYPT_SALT));
+            const updatedPassword = await userModel.updateOne({ userId },{ $set: {encryptedPassword} });
+            //const updatedPassword = await userModel.updateOne({ userId },{ $set: { password: newPassword } });
 
-        sendResponse(res,constans.RESPONSE_SUCCESS,"Password changed successfully",updatedPassword,[]);
-      }
+            sendResponse(res,constans.RESPONSE_SUCCESS,"Password changed successfully",updatedPassword,[]);
+        }
     } catch (error) {
-      sendResponse(res,constans.RESPONSE_INT_SERVER_ERROR,constans.UNHANDLED_ERROR,{},[error.message]);
+        sendResponse(res,constans.RESPONSE_INT_SERVER_ERROR,constans.UNHANDLED_ERROR,{},[error.message]);
     }
-  };
+};
 
 
 
