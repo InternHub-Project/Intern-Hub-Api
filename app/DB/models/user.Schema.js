@@ -1,6 +1,7 @@
 const   mongoose = require('mongoose');
+const Schema = mongoose.Schema;
 var bcrypt = require('bcryptjs');
-const {AddressSchema, SkillsSchema} = require('../../utils/utils.schema.js');
+const {AddressSchema} = require('../../utils/utils.schema.js');
 const CONFIG = require('../../../config/config.js');
 
 const userSchema = new mongoose.Schema(
@@ -12,7 +13,6 @@ const userSchema = new mongoose.Schema(
         },
         encryptedPassword: {
             type:String,
-            required:true
         },
         firstName: String,
         lastName: String,
@@ -22,26 +22,31 @@ const userSchema = new mongoose.Schema(
             enum: ['male', 'female']
         },
         address: AddressSchema,
-        skills:SkillsSchema,
+        skillIDs:[{type:Schema.Types.ObjectId,ref:"Skill"}],
         cv:String,
         phone: [String],
         profileImage: String,
         experienceYears: Number,
         educationLevel: String,
         college: String,
-        interests: String,
+        fieldOfInterest: [String],
         gruduationDate: String,
+        bio:String,
         activateEmail: {
             type: Boolean,
             default: false,
         },
-        recoveryCode: Number,
+        recoveryCode:String ,
         recoveryCodeDate: Date,
         accountType:{
             type:String,
             default:"system",
             enum:["system","google"]
-          }
+        },
+        isDeleted:{
+            type:Boolean,
+            default:false
+        }
     },
     {
         timestamps: true

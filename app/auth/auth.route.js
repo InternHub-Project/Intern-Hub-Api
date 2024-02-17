@@ -5,16 +5,13 @@ const passport = require("passport");
 require("../utils/passport")(passport);
 const rateLimiter = require("../utils/rate.limit.js"); //ADDED A RATE-LIMITER USE ((( npm install express-rate-limit )))
 
-router.post("/signUp", authCon.signUp);
+router.post("/signUp/user", authCon.signUp);
 router.get("/confirmEmail/:token", authCon.confirmemail);
-router.post("/login", authCon.login);
-router.post("/forgotPasswordEmail", authCon.forgotPasswordEmail);
-router.put("/setPassword/:token", authCon.setPassword);
+router.post("/login/user", authCon.login);
+router.post("/forgotPasswordEmail/user", authCon.forgotPasswordEmail);
+router.put("/setPassword/user/:token", authCon.setPassword);
 router.post("/reSendcode", rateLimiter, authCon.reSendcode);
-router.get(
-  "/google",
-  passport.authenticate("google", { scope: ["email", "profile"] })
-);
+router.get("/google",passport.authenticate("google", { scope: ["email", "profile"] }));
 router.get(
   "/google/callback",
   passport.authenticate("google", {

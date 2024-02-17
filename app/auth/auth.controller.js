@@ -10,6 +10,8 @@ const tokenSchema = require("./token.schema.js");
 const bcrypt = require("bcryptjs");
 const userModel = require("../DB/models/user.Schema.js");
 
+
+
 //...........SignUp.................//
 const signUp = async (req, res, next) => {
   try {
@@ -26,48 +28,21 @@ const signUp = async (req, res, next) => {
       const confirmLink = "confirm u account";
       const confirmMessag =
         "Confirmation Email Send From Intern-Hub Application";
-      const info = await helper.sendEmail(
-        req,
-        newUser,
-        "confirmEmail",
-        confirmLink,
-        confirmMessag
-      );
+      const info = await helper.sendEmail(req,newUser,"auth/confirmEmail",confirmLink,confirmMessag);
       if (info) {
         const savedUser = await newUser.save();
-        sendResponse(
-          res,
-          constans.RESPONSE_CREATED,
-          "Done",
-          savedUser.userId,
-          {}
-        );
+        sendResponse(res,constans.RESPONSE_CREATED,"Done",savedUser.userId,{});
       } else {
-        sendResponse(
-          res,
-          constans.RESPONSE_BAD_REQUEST,
-          constans.UNHANDLED_ERROR,
-          [],
-          "rejected Eamil"
-        );
-      }
-    } else {
-      sendResponse(
-        res,
-        constans.RESPONSE_BAD_REQUEST,
-        constans.UNHANDLED_ERROR,
-        "",
-        "email already exist"
-      );
+        sendResponse(res,constans.RESPONSE_BAD_REQUEST,constans.UNHANDLED_ERROR,[],"rejected Eamil");
+        }
+      }else if(user && user.isDeleted){
+        await userModel.updateOne({email}, {$set:{isDeleted: false}});
+        sendResponse(res,constans.RESPONSE_CREATED,"Done",user.userId,{});
+    }else{
+      sendResponse(res,constans.RESPONSE_BAD_REQUEST,constans.UNHANDLED_ERROR,"","email already exist");
     }
   } catch (error) {
-    sendResponse(
-      res,
-      constans.RESPONSE_BAD_REQUEST,
-      constans.UNHANDLED_ERROR,
-      "",
-      error.message
-    );
+    sendResponse(res,constans.RESPONSE_BAD_REQUEST,constans.UNHANDLED_ERROR,"",error.message);
   }
 };
 
@@ -77,44 +52,20 @@ const confirmemail = async (req, res, next) => {
     const { token } = req.params;
     const decoded = jwt.verify(token, CONFIG.jwt_encryption);
     if (!decoded?.userId) {
-      sendResponse(
-        res,
-        constans.UNPROCESSABLE_CONTENT,
-        constans.UNHANDLED_ERROR,
-        {},
-        "invaildToken"
-      );
+      sendResponse(res,constans.UNPROCESSABLE_CONTENT,constans.UNHANDLED_ERROR,{},"invaildToken");
     } else {
       const user = await userModel.findOneAndUpdate(
         { userId: decoded.userId, activateEmail: false },
         { activateEmail: true }
       );
       if (!user) {
-        sendResponse(
-          res,
-          constans.RESPONSE_NOT_FOUND,
-          constans.UNHANDLED_ERROR,
-          {},
-          "email already confirmed or in-vaild token"
-        );
+        sendResponse(res,constans.RESPONSE_NOT_FOUND,constans.UNHANDLED_ERROR,{},"email already confirmed or in-vaild token");
       } else {
-        sendResponse(
-          res,
-          constans.RESPONSE_SUCCESS,
-          "Confirmed Succeed",
-          {},
-          []
-        );
+        sendResponse(res,constans.RESPONSE_SUCCESS,"Confirmed Succeed",{},[]);
       }
     }
   } catch (error) {
-    sendResponse(
-      res,
-      constans.RESPONSE_INT_SERVER_ERROR,
-      constans.UNHANDLED_ERROR,
-      {},
-      [error.message]
-    );
+    sendResponse( res,constans.RESPONSE_INT_SERVER_ERROR,constans.UNHANDLED_ERROR,{},error.message);
   }
 };
 
@@ -123,40 +74,20 @@ const login = async (req, res, next) => {
   try {
     const { email, password } = req.body;
     const user = await userModel.findOne({ email });
-
     //..Check if User Exists..//
-    if (!user) {
-      sendResponse(
-        res,
-        constans.RESPONSE_NOT_FOUND,
-        "Email not found!",
-        {},
-        []
-      );
+    if (!user|| user.isDeleted) {
+      sendResponse(res,constans.RESPONSE_NOT_FOUND,"Email not found!",{},[]);
     }
     //..Check if Email is Activated..//
     if (!user.activateEmail) {
       const confirmLink = "confirm u account";
       const confirmMessag =
         "Confirmation Email Send From Intern-Hub Application";
-      const result = await helper.sendEmail(
-        req,
-        newUser,
-        "confirmEmail",
-        confirmLink,
-        confirmMessag
-      );
+      const result = await helper.sendEmail(req,user,"auth/confirmEmail",confirmLink,confirmMessag);
       if (result) {
-        sendResponse(
-          res,
-          constans.RESPONSE_BAD_REQUEST,
-          "Confirm your email ... we've sent a message at your email",
-          {},
-          []
-        );
+        sendResponse(res,constans.RESPONSE_BAD_REQUEST,"Confirm your email ... we've sent a message at your email",{},[]);
       }
     }
-
     //..Compare Passwords..//
     const isPasswordCorrect = await bcrypt.compare(password, user.password);
     if (!isPasswordCorrect) {
@@ -179,7 +110,6 @@ const login = async (req, res, next) => {
       });
       await newToken.save();
     }
-
     // Set the access token as an HTTP-only cookie
     res.cookie("token", accToken, {
       httpOnly: true,
@@ -187,13 +117,7 @@ const login = async (req, res, next) => {
     });
     sendResponse(res, constans.RESPONSE_SUCCESS, "Login Succeed", {}, []);
   } catch (error) {
-    sendResponse(
-      res,
-      constans.RESPONSE_INT_SERVER_ERROR,
-      constans.UNHANDLED_ERROR,
-      "",
-      [error.message]
-    );
+    sendResponse(res,constans.RESPONSE_INT_SERVER_ERROR,constans.UNHANDLED_ERROR,"",error.message);
   }
 };
 
@@ -202,7 +126,7 @@ const forgotPasswordEmail = async (req, res, next) => {
   try {
     const { email } = req.body;
     const user = await userModel.findOne({ email: email });
-    if (!user) {
+    if (!user|| user.isDeleted) {
       sendResponse(
         res,
         constans.RESPONSE_BAD_REQUEST,
@@ -215,36 +139,17 @@ const forgotPasswordEmail = async (req, res, next) => {
       const setPasswordLink = `set your password`;
       const setPasswordMessag =
         "Set password Email Send From Intern-Hub Application";
-      const info = helper.sendEmail(
-        req,
-        user,
-        "setPassword",
-        setPasswordLink,
-        setPasswordMessag,
-        code
-      );
+      const info = helper.sendEmail(req,user,"auth/setPassword/user",setPasswordLink,setPasswordMessag,code);
       if (info) {
         await userModel.updateOne(
           { email },
           { $set: { recoveryCode: code, recoveryCodeDate: Date.now() } }
         );
-        sendResponse(
-          res,
-          constans.RESPONSE_SUCCESS,
-          `we send you an email at ${email}`,
-          {},
-          []
-        );
+        sendResponse(res,constans.RESPONSE_SUCCESS,`we send you an email at ${email}`,{},[]);
       }
     }
   } catch (error) {
-    sendResponse(
-      res,
-      constans.RESPONSE_INT_SERVER_ERROR,
-      constans.UNHANDLED_ERROR,
-      "",
-      [error.message]
-    );
+    sendResponse(res,constans.RESPONSE_INT_SERVER_ERROR,constans.UNHANDLED_ERROR,"",error.message);
   }
 };
 
@@ -312,7 +217,7 @@ const reSendcode = async (req, res, next) => {
     const { email } = req.body;
     const user = await userModel.findOne({ email: email });
 
-    if (!user) {
+    if (!user|| user.isDeleted) {
       sendResponse(
         res,
         constans.RESPONSE_BAD_REQUEST,
@@ -402,7 +307,7 @@ const social_google = async (req, res, next) => {
         });
         sendResponse(res, constans.RESPONSE_SUCCESS, "Login Succeed", {}, []);
       }
-      //.....if not user then saved then user in database.........//
+      //.....if not user then saved  user in database.........//
       else {
         const { given_name, family_name } = req.user._json;
         const { provider } = req.user;
@@ -413,7 +318,7 @@ const social_google = async (req, res, next) => {
           activateEmail: true,
           firstName: given_name,
           lastName: family_name,
-          password: `${CONFIG.DUMMY_PASSWORD}${uuidv4()}`,
+          password:CONFIG.DUMMY_PASSWORD
         });
         const savedUser = await user.save();
         const signupToken = await jwtGenerator(
