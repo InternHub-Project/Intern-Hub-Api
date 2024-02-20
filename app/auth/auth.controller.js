@@ -9,6 +9,7 @@ const jwtGenerator = require("../utils/jwt.generator.js");
 const tokenSchema = require("./token.schema.js");
 const bcrypt = require("bcryptjs");
 const userModel = require("../DB/models/user.Schema.js");
+const companyModel = require("../DB/models/company.Schema.js");
 
 
 
@@ -51,14 +52,25 @@ const confirmemail = async (req, res, next) => {
   try {
     const { token } = req.params;
     const decoded = jwt.verify(token, CONFIG.jwt_encryption);
-    if (!decoded?.userId) {
-      sendResponse(res,constans.UNPROCESSABLE_CONTENT,constans.UNHANDLED_ERROR,{},"invaildToken");
+    
+    if (!decoded?.userId && !decoded?.companyId) {
+      sendResponse(res,constans.RESPONSE_UNAUTHORIZED,constans.UNHANDLED_ERROR,{},"invaildToken");
     } else {
-      const user = await userModel.findOneAndUpdate(
-        { userId: decoded.userId, activateEmail: false },
-        { activateEmail: true }
-      );
-      if (!user) {
+      let user = '';
+      let company = '';
+      if(decoded.TO === "user"){
+        user = await userModel.findOneAndUpdate(
+          { userId: decoded.userId, activateEmail: false },
+          { activateEmail: true }
+          );
+        }
+        if(decoded.TO === "company"){
+          company = await companyModel.findOneAndUpdate(
+            { companyId: decoded.companyId, activateEmail: false },
+            { activateEmail: true }
+            );
+          }
+      if (!user && !company) {
         sendResponse(res,constans.RESPONSE_NOT_FOUND,constans.UNHANDLED_ERROR,{},"email already confirmed or in-vaild token");
       } else {
         sendResponse(res,constans.RESPONSE_SUCCESS,"Confirmed Succeed",{},[]);
@@ -349,6 +361,41 @@ const social_google = async (req, res, next) => {
   }
 };
 
+
+//------------company---------------------//
+
+//...........company SignUp.................//
+const companySignUp = async (req, res, next) => {
+  try {
+      const { email, name, password, address, fields } = req.body;
+      const company = await companyModel.findOne({ email: email });
+      if (!company) {
+          const newCompany = await companyModel({
+              email,
+              name,
+              companyId: "Company" + uuidv4(),
+              password,
+              address, 
+              fields 
+          });
+          const confirmLink = "confirm company account";
+          const confirmMessag = "Confirmation Email Send From Intern-Hub Application";
+          const info = await helper.sendComoanyEmail(req, newCompany, "auth/confirmEmail", confirmLink, confirmMessag);
+          if (info) {
+            const savedCompany = await newCompany.save();
+            sendResponse(res,constans.RESPONSE_CREATED,"Done",savedCompany.companyId,{});
+          } else {
+            sendResponse(res,constans.RESPONSE_BAD_REQUEST,constans.UNHANDLED_ERROR,[],"rejected Eamil");
+          }
+      }else{
+          sendResponse(res,constans.RESPONSE_BAD_REQUEST,constans.UNHANDLED_ERROR,"","email already exist");
+      }
+  } catch (error) {
+      sendResponse(res,constans.RESPONSE_BAD_REQUEST,constans.UNHANDLED_ERROR,"",error.message);
+  }
+};
+
+
 module.exports = {
   signUp,
   confirmemail,
@@ -357,4 +404,5 @@ module.exports = {
   setPassword,
   social_google,
   reSendcode,
+  companySignUp
 };

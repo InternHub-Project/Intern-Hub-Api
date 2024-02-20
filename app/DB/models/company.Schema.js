@@ -5,12 +5,12 @@ const CONFIG = require("../../../config/config.js");
 
 const companySchema = new mongoose.Schema({
     companyId: String,
-    company_email: {
+    email: {
         type: String,
         required: true,
         unique: true,
     },
-    company_name:{
+    name:{
         type: String,
         require: true
     },
@@ -24,6 +24,12 @@ const companySchema = new mongoose.Schema({
     },
     description: String,
     image: String,
+    phone: [String],
+    employees_number: Number,
+    activateEmail: {
+        type: Boolean,
+        default: false
+    }
 });
 
 companySchema

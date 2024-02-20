@@ -38,32 +38,25 @@ const addSkills=async(req,res,next)=>{
 const updateUser=async(req,res,next)=>{
     try {
         const {userId}=req.user;
-        // const {gender,birthdate,experienceYears,educationLevel,college,interests,gruduationDate,skillIDs,phone,address}=req.body
-        // const updateFields = {gender,birthdate,experienceYears,educationLevel,college,interests,gruduationDate,skillIDs,phone,address};
-        let profileImage,cv;
-        if(req.files.length){
-            if(req.files["image"][0]){
-                const {secure_url}=await cloudinary.v2.uploader.upload(req.files["image"][0].path,{
-                    resource_type: 'image',
-                    folder:`internHub/${req.user._id}`
-                })
-                profileImage=secure_url
-            }
-            if(req.files["file"][0]){
-                const {secure_url}=await cloudinary.v2.uploader.upload(req.files["file"][0].path,{
-                    resource_type: 'raw',
-                    folder:`internHub/${req.user._id}`,
-                })
-                cv=secure_url
-            }
+        if(req.files && req.files["image"] && req.files["image"][0]){
+            const {secure_url}=await cloudinary.v2.uploader.upload(req.files["image"][0].path,{
+                resource_type: 'image',
+                folder:`internHub/${req.user._id}`
+            })
+            req.body.profileImage=secure_url
+            console.log(secure_url);
         }
-        // Object.keys(updateFields).forEach(key=>{
-        //     if (updateFields[key]) {
-        //         req.body[key] = updateFields[key];
-        //     }
-        // })
+        if(req.files && req.files["file"] && req.files["file"][0]){
+            const {secure_url}=await cloudinary.v2.uploader.upload(req.files["file"][0].path,{
+                resource_type: 'raw',
+                folder:`internHub/${req.user._id}`
+            })
+            req.body.cv=secure_url
+        }
+        
         const user=await userModel.findOneAndUpdate({userId:userId},{$set:req.body},{runValidators: true})
-            sendResponse(res,constans.RESPONSE_SUCCESS,"user updated success",{user:user.userId},[])
+        sendResponse(res,constans.RESPONSE_SUCCESS,"user updated success",{user:user.userId},[])
+    
     } catch (error) {
         sendResponse(res,constans.RESPONSE_INT_SERVER_ERROR,constans.UNHANDLED_ERROR,"",error.message);
     }

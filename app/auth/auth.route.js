@@ -1,6 +1,6 @@
 const express = require("express");
 const router = express.Router();
-const authCon = require("./auth.controller.js");
+const authCon = require("./auth.controller.js")
 const passport = require("passport");
 require("../utils/passport")(passport);
 const rateLimiter = require("../utils/rate.limit.js"); //ADDED A RATE-LIMITER USE ((( npm install express-rate-limit )))
@@ -19,5 +19,7 @@ router.get(
   }),
   authCon.social_google
 );
+//----------------companyy--------------//
+router.post("/signUp/company", authCon.companySignUp);
 
 module.exports = router;
