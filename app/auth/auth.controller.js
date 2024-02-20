@@ -460,7 +460,6 @@ const social_google = async (req, res, next) => {
 
 //...........company SignUp.................//
 const companySignUp = async (req, res, next) => {
-  console.log("sda");
   try {
     const { email, name, password, address, fields } = req.body;
     const company = await companyModel.findOne({ email: email });
@@ -521,6 +520,119 @@ const companySignUp = async (req, res, next) => {
   }
 };
 
+///***** forget Company Password *****///
+const forgetCompanyPassword = async (req, res, next) => {
+  try {
+    const { email } = req.body;
+    const company = await companyModel.findOne({ email: email });
+    if (!company || company.isDeleted) {
+      sendResponse(
+        res,
+        constans.RESPONSE_BAD_REQUEST,
+        constans.UNHANDLED_ERROR,
+        {},
+        "this email does not exist"
+      );
+    } else {
+      const code = Math.floor(10000 + Math.random() * 90000);
+      const setPasswordLink = `set your password`;
+      const setPasswordMessag =
+        "an update password email was sent from Intern-Hub";
+      const info = helper.sendCompanyEmail(
+        req,
+        company,
+        "auth/updateCompanyPassword/company",
+        setPasswordLink,
+        setPasswordMessag,
+        code
+      );
+      if (info) {
+        await companyModel.updateOne(
+          { email },
+          { $set: { recoveryCode: code, recoveryCodeDate: Date.now() } }
+        );
+        sendResponse(
+          res,
+          constans.RESPONSE_SUCCESS,
+          `we sent you an email at ${email}`,
+          {},
+          []
+        );
+      }
+    }
+  } catch (error) {
+    sendResponse(
+      res,
+      constans.RESPONSE_INT_SERVER_ERROR,
+      constans.UNHANDLED_ERROR,
+      "",
+      error.message
+    );
+  }
+};
+
+///***** update Company Password *****///
+const updateCompanyPassword = async (req, res, next) => {
+  try {
+    const { token } = req.params;
+    const { password, code } = req.body;
+    const decoded = jwt.verify(token, CONFIG.jwt_encryption);
+    if (!decoded?.companyId) {
+      sendResponse(
+        res,
+        constans.UNPROCESSABLE_CONTENT,
+        constans.UNHANDLED_ERROR,
+        {},
+        "Invalid token"
+      );
+    } else {
+      const company = await companyModel.findOne({
+        companyId: decoded.companyId,
+      });
+
+      if (
+        company.recoveryCode === code &&
+        validateExpiry(company.recoveryCodeDate) &&
+        code
+      ) {
+        const encryptedPassword = bcrypt.hashSync(
+          password,
+          parseInt(CONFIG.BCRYPT_SALT)
+        );
+
+        const set = await companyModel.updateOne(
+          { companyId: company.companyId },
+          { $set: { encryptedPassword, recoveryCode: "" } }
+        );
+
+        sendResponse(
+          res,
+          constans.RESPONSE_SUCCESS,
+          "Set new password successful",
+          set,
+          []
+        );
+      } else {
+        sendResponse(
+          res,
+          constans.RESPONSE_BAD_REQUEST,
+          "Invalid or expired code",
+          "",
+          []
+        );
+      }
+    }
+  } catch (error) {
+    sendResponse(
+      res,
+      constans.RESPONSE_INT_SERVER_ERROR,
+      constans.UNHANDLED_ERROR,
+      {},
+      [error.message]
+    );
+  }
+};
+
 module.exports = {
   signUp,
   confirmemail,
@@ -530,4 +642,6 @@ module.exports = {
   social_google,
   reSendcode,
   companySignUp,
+  forgetCompanyPassword,
+  updateCompanyPassword,
 };

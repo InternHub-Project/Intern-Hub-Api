@@ -3,37 +3,48 @@ var bcrypt = require("bcryptjs");
 const { AddressSchema } = require("../../utils/utils.schema.js");
 const CONFIG = require("../../../config/config.js");
 
-const companySchema = new mongoose.Schema({
-  companyId: String,
-  email: {
-    type: String,
-    required: true,
-    unique: true,
+const companySchema = new mongoose.Schema(
+  {
+    companyId: String,
+    email: {
+      type: String,
+      required: true,
+      unique: true,
+    },
+    name: {
+      type: String,
+      require: true,
+    },
+    encryptedPassword: {
+      type: String,
+    },
+    address: AddressSchema,
+    fields: {
+      default: [],
+    },
+    description: String,
+    image: String,
+    phone: {
+      type: [String],
+      default: [],
+      unique: true,
+    },
+    employees_number: Number,
+    activateEmail: {
+      type: Boolean,
+      default: false,
+    },
+    recoveryCode: String,
+    recoveryCodeDate: Date,
+    isDeleted: {
+      type: Boolean,
+      default: false,
+    },
   },
-  name: {
-    type: String,
-    require: true,
-  },
-  encryptedPassword: {
-    type: String,
-  },
-  address: AddressSchema,
-  fields: {
-    default: [],
-  },
-  description: String,
-  image: String,
-  phone: {
-    type: [String],
-    default: [],
-    unique: true,
-  },
-  employees_number: Number,
-  activateEmail: {
-    type: Boolean,
-    default: false,
-  },
-});
+  {
+    timestamps: true,
+  }
+);
 
 companySchema
   .virtual("password")
