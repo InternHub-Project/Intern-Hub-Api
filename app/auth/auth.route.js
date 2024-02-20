@@ -21,5 +21,6 @@ router.get(
 );
 //----------------companyy--------------//
 router.post("/signUp/company", authCon.companySignUp);
+router.post("/login/company", authCon.companyLogin);
 
 module.exports = router;

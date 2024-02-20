@@ -28,7 +28,7 @@ const companySchema = new mongoose.Schema({
     employees_number: Number,
     activateEmail: {
         type: Boolean,
-        default: false
+        default: false,
     }
 });
 
