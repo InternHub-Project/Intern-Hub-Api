@@ -8,16 +8,23 @@ const pe            = require('parse-error');
 const cors          = require('cors');
 var LOG             = require('./config/logger');
 const path          = require('path');
-const app   = express();
+const app   = express(); 
 const CONFIG = require('./config/config');
 const routes = require('./app/routes-index');
 const fetch = require('cross-fetch');
+
+const { connectiondb } = require('./app/db/connectiondb.js');
+const passportSetup=require("./app/utils/social.login.setup");
+const cookieParser = require('cookie-parser');
+
+
+
 globalThis.fetch = fetch;
 
 //app.use(i18n.init);
 //app.use(logger('dev'));
 app.use(morgan('combined', { stream: LOG.stream }));
-app.use(bodyParser.json());
+app.use(bodyParser.json({limit:"5kb"}));
 app.use(bodyParser.urlencoded({ extended: false }));
 //Passport
 app.use(passport.initialize());
@@ -25,21 +32,8 @@ app.use(compression())
 //Log Env
 console.log("Environment:", CONFIG.app)
 
-const db = require("./app/schema-index");
-db.mongoose
-  .connect(db.url, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true
-  })
-  .then(() => {
-    console.log("Connected to the database!");
-  })
-  .catch(err => {
-    console.log("Cannot connect to the database!", err);
-    process.exit();
-  });
 
-// CORS
+// CORS 
 app.use(cors());
 
 app.use(function(req, res, next) {
@@ -47,9 +41,10 @@ app.use(function(req, res, next) {
     var method = req.method;
     console.log(req.path)
     var contentType = req.headers['content-type'];
+    //  var contentType="application/json"
     let path = req.path;
     if( // path.indexOf('common/uploadFile') < 0 && //* any path that uses form-data should be excluded here
-       contentType != 'application/json'){
+        contentType != 'application/json'){
         res.status(415);
         res.json({
           error: 'Unsupported Content-Type.',
@@ -59,6 +54,9 @@ app.use(function(req, res, next) {
       next();
     }
 });
+
+app.use(cookieParser());
+connectiondb()
 
 routes.v1routes(app)
 

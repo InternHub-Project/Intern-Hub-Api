@@ -48,3 +48,19 @@ const CommunicationSchema = new Schema({
 // module.exports.Communication = mongoose.model("Communication", CommunicationSchema);
 module.exports.CommunicationSchema = CommunicationSchema;
 
+//.......SkillsSchema.......//
+const SkillSchema=new Schema(
+        {
+            skillName:{
+                type: String,
+            },
+            skillId:{
+                type:String
+            }
+        }
+)
+
+module.exports.skillsModel = mongoose.model("Skill", SkillSchema);
+
+
+

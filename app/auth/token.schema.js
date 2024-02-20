@@ -1,21 +1,23 @@
-const mongoose = require('mongoose');
+const mongoose = require("mongoose");
 const Schema = mongoose.Schema;
 
 const TokenSchema = new Schema({
-  userId : {
+  userId: {
     type: String,
     required: false,
   },
-  token : {
+  token: {
     type: String,
     required: false,
-  }
+  },
 });
 
-TokenSchema.method("toJSON", function() {
-    const { __v, _id, ...object } = this.toObject();
-    //object.userID = _id;
-    return object;
+TokenSchema.method("toJSON", function () {
+  const { __v, _id, ...object } = this.toObject();
+  //object.userID = _id;
+  return object;
 });
 
-module.exports = mongoose.model("token", TokenSchema);
+
+module.exports = mongoose.model("Token", TokenSchema);
+

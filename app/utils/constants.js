@@ -1,3 +1,5 @@
+
+
 module.exports = {
     UNHANDLED_ERROR: 'Encountered an error while processing...',
     VALIDATION_ERROR: 'Encountered an validation error while processing...',
@@ -9,7 +11,6 @@ module.exports = {
     RESPONSE_FORBIDDEN: 403,
     RESPONSE_INT_SERVER_ERROR: 500,
     RESPONSE_NOT_FOUND: 404,
-
 
     
 }
