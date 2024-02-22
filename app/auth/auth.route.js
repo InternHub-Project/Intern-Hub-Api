@@ -24,9 +24,10 @@ router.get(
 );
 //----------------companyy--------------//
 router.post("/signUp/company", authCon.companySignUp);
+
+router.post("/login/company", authCon.companyLogin);
 router.post("/forgetCompanyPassword/company", authCon.forgetCompanyPassword);
-router.put(
-  "/updateCompanyPassword/company/:token",
-  authCon.updateCompanyPassword
-);
+router.put("/updateCompanyPassword/company/:token",authCon.updateCompanyPassword);
+
+
 module.exports = router;

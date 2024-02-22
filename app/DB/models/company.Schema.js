@@ -13,13 +13,13 @@ const companySchema = new mongoose.Schema(
     },
     name: {
       type: String,
-      require: true,
     },
     encryptedPassword: {
       type: String,
     },
     address: AddressSchema,
     fields: {
+        type: [String],
       default: [],
     },
     description: String,
@@ -27,7 +27,6 @@ const companySchema = new mongoose.Schema(
     phone: {
       type: [String],
       default: [],
-      unique: true,
     },
     employees_number: Number,
     activateEmail: {
@@ -45,6 +44,7 @@ const companySchema = new mongoose.Schema(
     timestamps: true,
   }
 );
+
 
 companySchema
   .virtual("password")

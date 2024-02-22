@@ -520,11 +520,66 @@ const companySignUp = async (req, res, next) => {
   }
 };
 
+
+//-------------------companyLogin---------------------//
+const companyLogin = async (req, res, next) => {
+  try {
+    const { email, password } = req.body;
+    const company = await companyModel.findOne({ email });
+    //..Check if company Exists..//
+    if (!company) {
+      sendResponse(res,constans.RESPONSE_NOT_FOUND,"Email not found!",{},[]);
+    }
+    //..Check if Email is Activated..//
+    if (!company.activateEmail) {
+      const confirmLink = "confirm u account";
+      const confirmMessag =
+        "Confirmation Email Send From Intern-Hub Application";
+      const result = await helper.sendComoanyEmail(req,company,"auth/confirmEmail",confirmLink,confirmMessag);
+      if (result) {
+        sendResponse(res,constans.RESPONSE_BAD_REQUEST,"Confirm your email ... we've sent a message at your email",{},[]);
+      }
+    }
+    //..Compare Passwords..//
+    const isPasswordCorrect = await bcrypt.compare(password, company.password);
+    if (!isPasswordCorrect) {
+      sendResponse(res, constans.RESPONSE_NOT_FOUND, "Wrong password!", {}, []);
+    }
+
+    //..Generate Access Token..//
+    const accToken = await jwtGenerator({ companyId: company.companyId }, 24, "h");
+    existingToken = await tokenSchema.findOne({ companyId: company.companyId });
+
+    if (existingToken) {
+      await tokenSchema.updateOne(
+        { companyId: company.companyId },
+        { $set: { accToken } }
+      );
+    } else {
+      newToken = new tokenSchema({
+        companyId: company.companyId,
+        token: accToken,
+      });
+      await newToken.save();
+    }
+    // Set the access token as an HTTP-only cookie
+    res.cookie("token", accToken, {
+      httpOnly: true,
+      secure: true,
+    });
+    sendResponse(res, constans.RESPONSE_SUCCESS, "Login Succeed", {}, []);
+  } catch (error) {
+    sendResponse(res,constans.RESPONSE_INT_SERVER_ERROR,constans.UNHANDLED_ERROR,"",error.message);
+  }
+};
+
+
 ///***** forget Company Password *****///
 const forgetCompanyPassword = async (req, res, next) => {
   try {
     const { email } = req.body;
     const company = await companyModel.findOne({ email: email });
+
     if (!company || company.isDeleted) {
       sendResponse(
         res,
@@ -538,7 +593,8 @@ const forgetCompanyPassword = async (req, res, next) => {
       const setPasswordLink = `set your password`;
       const setPasswordMessag =
         "an update password email was sent from Intern-Hub";
-      const info = helper.sendCompanyEmail(
+
+      const info = helper.sendComoanyEmail(        
         req,
         company,
         "auth/updateCompanyPassword/company",
@@ -546,6 +602,7 @@ const forgetCompanyPassword = async (req, res, next) => {
         setPasswordMessag,
         code
       );
+
       if (info) {
         await companyModel.updateOne(
           { email },
@@ -633,6 +690,7 @@ const updateCompanyPassword = async (req, res, next) => {
   }
 };
 
+
 module.exports = {
   signUp,
   confirmemail,
@@ -642,6 +700,7 @@ module.exports = {
   social_google,
   reSendcode,
   companySignUp,
+  companyLogin,
   forgetCompanyPassword,
-  updateCompanyPassword,
+  updateCompanyPassword
 };
