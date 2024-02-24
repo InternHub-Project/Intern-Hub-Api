@@ -18,7 +18,7 @@ const companySchema = new mongoose.Schema({
         type: String,
     },
     address: AddressSchema,
-    fields: {
+    field: {
         type: [String],
         default: [],
     },
@@ -29,7 +29,11 @@ const companySchema = new mongoose.Schema({
     activateEmail: {
         type: Boolean,
         default: false,
-    }
+    },
+    recoveryCode:String,
+    recoveryCodeDate:Date
+},{
+    timestamps:true
 });
 
 companySchema

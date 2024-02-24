@@ -362,12 +362,12 @@ const social_google = async (req, res, next) => {
 };
 
 
-//------------company---------------------//
+//------------------------------------company-----------------------------------------//
 
 //...........company SignUp.................//
 const companySignUp = async (req, res, next) => {
   try {
-      const { email, name, password, address, fields } = req.body;
+      const { email, name, password, address, field } = req.body;
       const company = await companyModel.findOne({ email: email });
       if (!company) {
           const newCompany = await companyModel({
@@ -376,7 +376,7 @@ const companySignUp = async (req, res, next) => {
               companyId: "Company" + uuidv4(),
               password,
               address, 
-              fields 
+              field 
           });
           const confirmLink = "confirm company account";
           const confirmMessag = "Confirmation Email Send From Intern-Hub Application";
@@ -468,7 +468,7 @@ const forgetCompanyPassword = async (req, res, next) => {
       const info = helper.sendComoanyEmail(        
         req,
         company,
-        "auth/updateCompanyPassword/company",
+        "auth/updatePassword/company",
         setPasswordLink,
         setPasswordMessag,
         code

@@ -61,7 +61,7 @@ connectiondb()
 routes.v1routes(app)
 
 app.use('/', function(req, res){
-	res.json({message:`${CONFIG.APP_NAME} API Server`})
+	res.status(500).json({message:`${CONFIG.APP_NAME} API Server`})
 });
 
 
