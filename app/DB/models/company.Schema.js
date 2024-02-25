@@ -18,7 +18,7 @@ const companySchema = new mongoose.Schema(
       type: String,
     },
     address: AddressSchema,
-    fields: {
+    field: {
         type: [String],
       default: [],
     },
@@ -30,6 +30,7 @@ const companySchema = new mongoose.Schema(
     },
     employees_number: Number,
     activateEmail: {
+<<<<<<< HEAD
       type: Boolean,
       default: false,
     },
@@ -45,6 +46,16 @@ const companySchema = new mongoose.Schema(
   }
 );
 
+=======
+        type: Boolean,
+        default: false,
+    },
+    recoveryCode:String,
+    recoveryCodeDate:Date
+},{
+    timestamps:true
+});
+>>>>>>> 7a3de2822ffbd3e20895626cf6036e5ec39fbb0a
 
 companySchema
   .virtual("password")

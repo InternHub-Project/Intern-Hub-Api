@@ -456,11 +456,17 @@ const social_google = async (req, res, next) => {
   }
 };
 
+<<<<<<< HEAD
 //------------company---------------------//
+=======
+
+//------------------------------------company-----------------------------------------//
+>>>>>>> 7a3de2822ffbd3e20895626cf6036e5ec39fbb0a
 
 //...........company SignUp.................//
 const companySignUp = async (req, res, next) => {
   try {
+<<<<<<< HEAD
     const { email, name, password, address, fields } = req.body;
     const company = await companyModel.findOne({ email: email });
     if (!company) {
@@ -499,6 +505,30 @@ const companySignUp = async (req, res, next) => {
           [],
           "rejected Eamil"
         );
+=======
+      const { email, name, password, address, field } = req.body;
+      const company = await companyModel.findOne({ email: email });
+      if (!company) {
+          const newCompany = await companyModel({
+              email,
+              name,
+              companyId: "Company" + uuidv4(),
+              password,
+              address, 
+              field 
+          });
+          const confirmLink = "confirm company account";
+          const confirmMessag = "Confirmation Email Send From Intern-Hub Application";
+          const info = await helper.sendComoanyEmail(req, newCompany, "auth/confirmEmail", confirmLink, confirmMessag);
+          if (info) {
+            const savedCompany = await newCompany.save();
+            sendResponse(res,constans.RESPONSE_CREATED,"Done",savedCompany.companyId,{});
+          } else {
+            sendResponse(res,constans.RESPONSE_BAD_REQUEST,constans.UNHANDLED_ERROR,[],"rejected Eamil");
+          }
+      }else{
+          sendResponse(res,constans.RESPONSE_BAD_REQUEST,constans.UNHANDLED_ERROR,"","email already exist");
+>>>>>>> 7a3de2822ffbd3e20895626cf6036e5ec39fbb0a
       }
     } else {
       sendResponse(
@@ -597,7 +627,7 @@ const forgetCompanyPassword = async (req, res, next) => {
       const info = helper.sendComoanyEmail(        
         req,
         company,
-        "auth/updateCompanyPassword/company",
+        "auth/updatePassword/company",
         setPasswordLink,
         setPasswordMessag,
         code

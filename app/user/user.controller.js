@@ -3,10 +3,10 @@ const { sendResponse } = require("../utils/util.service.js");
 const { skillsModel } = require("../utils/utils.schema.js");
 const { v4: uuidv4 } = require("uuid");
 const constans=require("../utils/constants.js");
-const { cloudinary } = require("../utils/cloudnairy.js");
 const bcrypt = require("bcryptjs");
 const tokenSchema = require("../auth/token.schema.js");
-const CONFIG = require('../../config/config.js')
+const CONFIG = require('../../config/config.js');
+const { imageKit } = require("../utils/imagekit.js");
 
 
 
@@ -39,19 +39,28 @@ const updateUser=async(req,res,next)=>{
     try {
         const {userId}=req.user;
         if(req.files && req.files["image"] && req.files["image"][0]){
-            const {secure_url}=await cloudinary.v2.uploader.upload(req.files["image"][0].path,{
-                resource_type: 'image',
-                folder:`internHub/${req.user._id}`
-            })
-            req.body.profileImage=secure_url
-            console.log(secure_url);
+           const image=await imageKit.upload(
+                {
+                  file: req.files["image"][0].buffer.toString('base64'), //required
+                  fileName: req.files["image"][0].originalname, //required,
+                  folder:`internHub/${userId}`,
+                  useUniqueFileName:true
+                },
+              );
+             req.body.profileImage=image.url
         }
+    
         if(req.files && req.files["file"] && req.files["file"][0]){
-            const {secure_url}=await cloudinary.v2.uploader.upload(req.files["file"][0].path,{
-                resource_type: 'raw',
-                folder:`internHub/${req.user._id}`
-            })
-            req.body.cv=secure_url
+           const cv =await imageKit.upload(
+                {
+                  file:req.files["file"][0].buffer.toString('base64'), //required
+                  fileName: req.files["file"][0].originalname, //required,
+                  folder:`internHub/${userId}`,
+                  useUniqueFileName:true
+                },
+              );
+              req.body.cv=cv.url
+
         }
         
         const user=await userModel.findOneAndUpdate({userId:userId},{$set:req.body},{runValidators: true})
