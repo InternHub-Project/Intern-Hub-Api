@@ -24,16 +24,25 @@ const createIntern=async(req,res,next)=>{
             skills,
             description
         })
-    const jobData=await job.save();
-    sendResponse(res,constans.RESPONSE_CREATED,"Done",jobData,[]);
+        const jobData=await job.save();
+        sendResponse(res,constans.RESPONSE_CREATED,"Done",jobData,[]);
     } catch (error) {
-    sendResponse(res,constans.RESPONSE_INT_SERVER_ERROR,constans.UNHANDLED_ERROR,"",error.message);
+        sendResponse(res,constans.RESPONSE_INT_SERVER_ERROR,constans.UNHANDLED_ERROR,"",error.message);
     }
-       
+}
+
+const updateIntren = async (req, res, next)=>{
+    try{
+        const { jobId } = req.params;
+        const job = await jobModel.findOneAndUpdate({jobId},{$set:req.body},{runValidators: true})
+        sendResponse(res,constans.RESPONSE_SUCCESS,"intern updated success",{job},[])
+    }catch(err){
+        sendResponse(res,constans.RESPONSE_INT_SERVER_ERROR,constans.UNHANDLED_ERROR,"",err.message);
+    }
 }
 
 
-
 module.exports = {
-createIntern
+    createIntern,
+    updateIntren
 };
