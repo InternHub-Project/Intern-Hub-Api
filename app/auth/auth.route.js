@@ -7,7 +7,7 @@ const rateLimiter = require("../utils/rate.limit.js"); //ADDED A RATE-LIMITER US
 
 router.post("/user/signup", authCon.signUp);
 router.get("/confirmemail/:token", authCon.confirmemail);
-router.post("user/login", authCon.login);
+router.post("/user/login", authCon.login);
 router.post("/user/forgotPasswordEmail", authCon.forgotPasswordEmail);
 router.put("/user/setPassword/:token", authCon.setPassword);
 router.post("/reSendcode", rateLimiter, authCon.reSendcode);
