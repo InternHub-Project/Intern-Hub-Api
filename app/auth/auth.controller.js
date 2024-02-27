@@ -380,7 +380,7 @@ const companySignUp = async (req, res, next) => {
           });
           const confirmLink = "confirm company account";
           const confirmMessag = "Confirmation Email Send From Intern-Hub Application";
-          const info = await helper.sendComoanyEmail(req, newCompany, "auth/confirmemail", confirmLink, confirmMessag);
+          const info = await helper.sendCompanyEmail(req, newCompany, "auth/confirmemail", confirmLink, confirmMessag);
           if (info) {
             const savedCompany = await newCompany.save();
             sendResponse(res,constans.RESPONSE_CREATED,"Done",savedCompany.companyId,{});
@@ -409,7 +409,7 @@ const companyLogin = async (req, res, next) => {
       const confirmLink = "confirm u account";
       const confirmMessag =
         "Confirmation Email Send From Intern-Hub Application";
-      const result = await helper.sendComoanyEmail(req,company,"auth/confirmemail",confirmLink,confirmMessag);
+      const result = await helper.sendCompanyEmail(req,company,"auth/confirmemail",confirmLink,confirmMessag);
       if (result) {
         sendResponse(res,constans.RESPONSE_BAD_REQUEST,"Confirm your email ... we've sent a message at your email",{},[]);
       }
@@ -465,7 +465,7 @@ const forgetCompanyPassword = async (req, res, next) => {
       const setPasswordLink = `set your password`;
       const setPasswordMessag =
         "an update password email was sent from Intern-Hub";
-      const info = helper.sendComoanyEmail(        
+      const info = helper.sendCompanyEmail(        
         req,
         company,
         "auth/company/updatePassword",
