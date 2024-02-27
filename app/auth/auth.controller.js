@@ -29,7 +29,7 @@ const signUp = async (req, res, next) => {
       const confirmLink = "confirm u account";
       const confirmMessag =
         "Confirmation Email Send From Intern-Hub Application";
-      const info = await helper.sendEmail(req,newUser,"auth/confirmEmail",confirmLink,confirmMessag);
+      const info = await helper.sendEmail(req,newUser,"auth/confirmemail",confirmLink,confirmMessag);
       if (info) {
         const savedUser = await newUser.save();
         sendResponse(res,constans.RESPONSE_CREATED,"Done",savedUser.userId,{});
@@ -95,7 +95,7 @@ const login = async (req, res, next) => {
       const confirmLink = "confirm u account";
       const confirmMessag =
         "Confirmation Email Send From Intern-Hub Application";
-      const result = await helper.sendEmail(req,user,"auth/confirmEmail",confirmLink,confirmMessag);
+      const result = await helper.sendEmail(req,user,"auth/confirmemail",confirmLink,confirmMessag);
       if (result) {
         sendResponse(res,constans.RESPONSE_BAD_REQUEST,"Confirm your email ... we've sent a message at your email",{},[]);
       }
@@ -151,7 +151,7 @@ const forgotPasswordEmail = async (req, res, next) => {
       const setPasswordLink = `set your password`;
       const setPasswordMessag =
         "Set password Email Send From Intern-Hub Application";
-      const info = helper.sendEmail(req,user,"auth/setPassword/user",setPasswordLink,setPasswordMessag,code);
+      const info = helper.sendEmail(req,user,"auth/user/setPassword",setPasswordLink,setPasswordMessag,code);
       if (info) {
         await userModel.updateOne(
           { email },
@@ -380,7 +380,7 @@ const companySignUp = async (req, res, next) => {
           });
           const confirmLink = "confirm company account";
           const confirmMessag = "Confirmation Email Send From Intern-Hub Application";
-          const info = await helper.sendComoanyEmail(req, newCompany, "auth/confirmEmail", confirmLink, confirmMessag);
+          const info = await helper.sendComoanyEmail(req, newCompany, "auth/confirmemail", confirmLink, confirmMessag);
           if (info) {
             const savedCompany = await newCompany.save();
             sendResponse(res,constans.RESPONSE_CREATED,"Done",savedCompany.companyId,{});
@@ -409,7 +409,7 @@ const companyLogin = async (req, res, next) => {
       const confirmLink = "confirm u account";
       const confirmMessag =
         "Confirmation Email Send From Intern-Hub Application";
-      const result = await helper.sendComoanyEmail(req,company,"auth/confirmEmail",confirmLink,confirmMessag);
+      const result = await helper.sendComoanyEmail(req,company,"auth/confirmemail",confirmLink,confirmMessag);
       if (result) {
         sendResponse(res,constans.RESPONSE_BAD_REQUEST,"Confirm your email ... we've sent a message at your email",{},[]);
       }
@@ -468,7 +468,7 @@ const forgetCompanyPassword = async (req, res, next) => {
       const info = helper.sendComoanyEmail(        
         req,
         company,
-        "auth/updatePassword/company",
+        "auth/company/updatePassword",
         setPasswordLink,
         setPasswordMessag,
         code
