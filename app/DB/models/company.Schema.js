@@ -4,7 +4,10 @@ const { AddressSchema } = require("../../utils/utils.schema.js");
 const CONFIG = require("../../../config/config.js");
 
 const companySchema = new mongoose.Schema({
-    companyId: String,
+    companyId:{
+        type:String,
+        required:true,
+    },
     email: {
         type: String,
         required: true,
