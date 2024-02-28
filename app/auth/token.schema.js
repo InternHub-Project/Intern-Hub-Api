@@ -22,6 +22,4 @@ TokenSchema.method("toJSON", function () {
   return object;
 });
 
-
 module.exports = mongoose.model("Token", TokenSchema);
-
