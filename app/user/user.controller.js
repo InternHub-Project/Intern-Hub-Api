@@ -66,11 +66,11 @@ const updateUser=async(req,res,next)=>{
         const user=await userModel.findOneAndUpdate({userId:userId},{$set:req.body},{runValidators: true})
         sendResponse(res,constans.RESPONSE_SUCCESS,"user updated success",{user:user.userId},[])
     
+
     } catch (error) {
         sendResponse(res,constans.RESPONSE_INT_SERVER_ERROR,constans.UNHANDLED_ERROR,"",error.message);
     }
 }
-
 
 //..............soft Delete User .............//
 const deleteUser = async (req, res, next)=>{
@@ -87,6 +87,7 @@ const deleteUser = async (req, res, next)=>{
 //****** changePassword *******/
 const changePassword = async (req, res, next) => {
     try {
+
         const { userId } = req.user;
         const user=await userModel.findOne({userId})
         const { currentPassword, newPassword } = req.body;
@@ -107,7 +108,6 @@ const changePassword = async (req, res, next) => {
         sendResponse(res,constans.RESPONSE_INT_SERVER_ERROR,constans.UNHANDLED_ERROR,{},[error.message]);
     }
 };
-
 
 
 //............SignOut.................//
