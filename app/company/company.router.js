@@ -8,5 +8,6 @@ const authGuard = passport.authenticate("cookie", { session: false });
 router.post("/createJob", authGuard, companyCon.createIntern);
 router.put("/updateJob/:jobId", authGuard, companyCon.updateIntren);
 router.put("/closeJob/:jobId", authGuard, companyCon.closeIntern);
+router.get("/companyjobs",authGuard,companyCon.companyJobs)
 
 module.exports = router;

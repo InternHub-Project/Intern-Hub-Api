@@ -2,9 +2,10 @@ const mongoose = require("mongoose");
 
 const jobSchema=new mongoose.Schema({
     jobId:String,
-    companyId:{
-        type:String,
-        required:true
+    companyId: {
+        type: String,
+        ref: 'Company', 
+        required: true
     },
     jobType:{
         type:String,
@@ -30,8 +31,17 @@ const jobSchema=new mongoose.Schema({
     },
     description:String,
 },{
+    toJSON: { virtuals: true },
+    toObject: { virtuals: true },
     timestamps:true
 })
+
+jobSchema.virtual("company" /* any name you want */, {
+    ref:"Company",            //->refer to Company model
+    localField:"companyId",   //->specifies the field in the current schema that contains the value to match against the foreignField.
+    foreignField:"companyId"  //->specifies the field in  (Company schema) that should match the value of the localField.
+})
+
 
 const jobModel=mongoose.model("Job",jobSchema);
 module.exports=jobModel;

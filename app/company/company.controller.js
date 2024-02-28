@@ -5,6 +5,7 @@ const constans = require("../utils/constants");
 const path = require("path");
 const { v4: uuidv4 } = require("uuid");
 const jobModel = require("../DB/models/job.schema.js");
+const paginate = require("../utils/pagination.js");
 
 const createIntern = async (req, res, next) => {
   try {
@@ -79,7 +80,6 @@ const closeIntern = async (req, res, next) => {
       { $set: { statusOfIntern: "closed" } },
       { new: true, runValidators: true }
     );
-
     if (!updatedStatus) {
       return sendResponse(
         res,
@@ -89,7 +89,6 @@ const closeIntern = async (req, res, next) => {
         []
       );
     }
-
     sendResponse(
       res,
       constans.RESPONSE_SUCCESS,
@@ -108,8 +107,34 @@ const closeIntern = async (req, res, next) => {
   }
 };
 
+
+const companyJobs=async(req,res,next)=>{
+  try {
+    const {companyId}=req.user
+    const{skip,limit}=paginate({
+      page:req.query.page,
+      size:req.query.size
+    })
+    const jobs=await jobModel.find({companyId}).populate([
+      {
+        path:"company",
+        select:"name address image"
+      }
+    ],
+    ).limit(limit).skip(skip)
+    if(!jobs){
+      sendResponse(res,constans.RESPONSE_NOT_FOUND,"No Job Found!",{},[])
+    }else{
+    sendResponse(res,constans.RESPONSE_SUCCESS,"Done",{jobs},[])
+    }
+  } catch (error) {
+    sendResponse(res,constans.RESPONSE_INT_SERVER_ERROR,constans.UNHANDLED_ERROR,"",error.message);
+  }
+}
+
 module.exports = {
   createIntern,
   updateIntren,
   closeIntern,
+  companyJobs
 };
