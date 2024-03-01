@@ -9,6 +9,7 @@ const jwtGenerator = require("../utils/jwt.generator.js");
 const tokenSchema = require("./token.schema.js");
 const bcrypt = require("bcryptjs");
 const userModel = require("../DB/models/user.Schema.js");
+const companyModel = require("../DB/models/company.Schema.js");
 
 
 
@@ -28,7 +29,7 @@ const signUp = async (req, res, next) => {
       const confirmLink = "confirm u account";
       const confirmMessag =
         "Confirmation Email Send From Intern-Hub Application";
-      const info = await helper.sendEmail(req,newUser,"auth/confirmEmail",confirmLink,confirmMessag);
+      const info = await helper.sendEmail(req,newUser,"auth/confirmemail",confirmLink,confirmMessag);
       if (info) {
         const savedUser = await newUser.save();
         sendResponse(res,constans.RESPONSE_CREATED,"Done",savedUser.userId,{});
@@ -51,14 +52,25 @@ const confirmemail = async (req, res, next) => {
   try {
     const { token } = req.params;
     const decoded = jwt.verify(token, CONFIG.jwt_encryption);
-    if (!decoded?.userId) {
-      sendResponse(res,constans.UNPROCESSABLE_CONTENT,constans.UNHANDLED_ERROR,{},"invaildToken");
+    
+    if (!decoded?.userId && !decoded?.companyId) {
+      sendResponse(res,constans.RESPONSE_UNAUTHORIZED,constans.UNHANDLED_ERROR,{},"invaildToken");
     } else {
-      const user = await userModel.findOneAndUpdate(
-        { userId: decoded.userId, activateEmail: false },
-        { activateEmail: true }
-      );
-      if (!user) {
+      let user = '';
+      let company = '';
+      if(decoded.TO === "user"){
+        user = await userModel.findOneAndUpdate(
+          { userId: decoded.userId, activateEmail: false },
+          { activateEmail: true }
+          );
+        }
+        if(decoded.TO === "company"){
+          company = await companyModel.findOneAndUpdate(
+            { companyId: decoded.companyId, activateEmail: false },
+            { activateEmail: true }
+            );
+          }
+      if (!user && !company) {
         sendResponse(res,constans.RESPONSE_NOT_FOUND,constans.UNHANDLED_ERROR,{},"email already confirmed or in-vaild token");
       } else {
         sendResponse(res,constans.RESPONSE_SUCCESS,"Confirmed Succeed",{},[]);
@@ -83,7 +95,7 @@ const login = async (req, res, next) => {
       const confirmLink = "confirm u account";
       const confirmMessag =
         "Confirmation Email Send From Intern-Hub Application";
-      const result = await helper.sendEmail(req,user,"auth/confirmEmail",confirmLink,confirmMessag);
+      const result = await helper.sendEmail(req,user,"auth/confirmemail",confirmLink,confirmMessag);
       if (result) {
         sendResponse(res,constans.RESPONSE_BAD_REQUEST,"Confirm your email ... we've sent a message at your email",{},[]);
       }
@@ -139,7 +151,7 @@ const forgotPasswordEmail = async (req, res, next) => {
       const setPasswordLink = `set your password`;
       const setPasswordMessag =
         "Set password Email Send From Intern-Hub Application";
-      const info = helper.sendEmail(req,user,"auth/setPassword/user",setPasswordLink,setPasswordMessag,code);
+      const info = helper.sendEmail(req,user,"auth/user/setPassword",setPasswordLink,setPasswordMessag,code);
       if (info) {
         await userModel.updateOne(
           { email },
@@ -349,6 +361,206 @@ const social_google = async (req, res, next) => {
   }
 };
 
+
+//------------------------------------company-----------------------------------------//
+
+//...........company SignUp.................//
+const companySignUp = async (req, res, next) => {
+  try {
+      const { email, name, password, address, field } = req.body;
+      const company = await companyModel.findOne({ email: email });
+      if (!company) {
+          const newCompany = await companyModel({
+              email,
+              name,
+              companyId: "Company" + uuidv4(),
+              password,
+              address, 
+              field 
+          });
+          const confirmLink = "confirm company account";
+          const confirmMessag = "Confirmation Email Send From Intern-Hub Application";
+          const info = await helper.sendCompanyEmail(req, newCompany, "auth/confirmemail", confirmLink, confirmMessag);
+          if (info) {
+            const savedCompany = await newCompany.save();
+            sendResponse(res,constans.RESPONSE_CREATED,"Done",savedCompany.companyId,{});
+          } else {
+            sendResponse(res,constans.RESPONSE_BAD_REQUEST,constans.UNHANDLED_ERROR,[],"rejected Eamil");
+          }
+      }else{
+          sendResponse(res,constans.RESPONSE_BAD_REQUEST,constans.UNHANDLED_ERROR,"","email already exist");
+      }
+  } catch (error) {
+      sendResponse(res,constans.RESPONSE_BAD_REQUEST,constans.UNHANDLED_ERROR,"",error.message);
+  }
+};
+
+//-------------------companyLogin---------------------//
+const companyLogin = async (req, res, next) => {
+  try {
+    const { email, password } = req.body;
+    const company = await companyModel.findOne({ email });
+    //..Check if company Exists..//
+    if (!company) {
+      sendResponse(res,constans.RESPONSE_NOT_FOUND,"Email not found!",{},[]);
+    }
+    //..Check if Email is Activated..//
+    if (!company.activateEmail) {
+      const confirmLink = "confirm u account";
+      const confirmMessag =
+        "Confirmation Email Send From Intern-Hub Application";
+      const result = await helper.sendCompanyEmail(req,company,"auth/confirmemail",confirmLink,confirmMessag);
+      if (result) {
+        sendResponse(res,constans.RESPONSE_BAD_REQUEST,"Confirm your email ... we've sent a message at your email",{},[]);
+      }
+    }
+    //..Compare Passwords..//
+    const isPasswordCorrect = await bcrypt.compare(password, company.password);
+    if (!isPasswordCorrect) {
+      sendResponse(res, constans.RESPONSE_NOT_FOUND, "Wrong password!", {}, []);
+    }
+
+    //..Generate Access Token..//
+    const accToken = await jwtGenerator({ companyId: company.companyId }, 24, "h");
+    existingToken = await tokenSchema.findOne({ companyId: company.companyId });
+
+    if (existingToken) {
+      await tokenSchema.updateOne(
+        { companyId: company.companyId },
+        { $set: { accToken } }
+      );
+    } else {
+      newToken = new tokenSchema({
+        companyId: company.companyId,
+        token: accToken,
+      });
+      await newToken.save();
+    }
+    // Set the access token as an HTTP-only cookie
+    res.cookie("token", accToken, {
+      httpOnly: true,
+      secure: true,
+    });
+    sendResponse(res, constans.RESPONSE_SUCCESS, "Login Succeed", {}, []);
+  } catch (error) {
+    sendResponse(res,constans.RESPONSE_INT_SERVER_ERROR,constans.UNHANDLED_ERROR,"",error.message);
+  }
+};
+
+///***** forget Company Password *****///
+const forgetCompanyPassword = async (req, res, next) => {
+  try {
+    const { email } = req.body;
+    const company = await companyModel.findOne({ email: email });
+    if (!company) {
+      sendResponse(
+        res,
+        constans.RESPONSE_BAD_REQUEST,
+        constans.UNHANDLED_ERROR,
+        {},
+        "this email does not exist"
+      );
+    } else {
+      const code = Math.floor(10000 + Math.random() * 90000);
+      const setPasswordLink = `set your password`;
+      const setPasswordMessag =
+        "an update password email was sent from Intern-Hub";
+      const info = helper.sendCompanyEmail(        
+        req,
+        company,
+        "auth/company/updatePassword",
+        setPasswordLink,
+        setPasswordMessag,
+        code
+      ); 
+      if (info) {
+        await companyModel.updateOne(
+          { email },
+          { $set: { recoveryCode: code, recoveryCodeDate: Date.now() } }
+        );
+        sendResponse(
+          res,
+          constans.RESPONSE_SUCCESS,
+          `we sent you an email at ${email}`,
+          {},
+          []
+        );
+      }
+    }
+  } catch (error) {
+    sendResponse(
+      res,
+      constans.RESPONSE_INT_SERVER_ERROR,
+      constans.UNHANDLED_ERROR,
+      "",
+      error.message
+    );
+  }
+};
+
+///***** update Company Password *****///
+const updateCompanyPassword = async (req, res, next) => {
+  try {
+    const { token } = req.params;
+    const { password, code } = req.body;
+    const decoded = jwt.verify(token, CONFIG.jwt_encryption);
+    if (!decoded?.companyId) {
+      sendResponse(
+        res,
+        constans.UNPROCESSABLE_CONTENT,
+        constans.UNHANDLED_ERROR,
+        {},
+        "Invalid token"
+      );
+    } else {
+      const company = await companyModel.findOne({
+        companyId: decoded.companyId,
+      });
+
+      if (
+        company.recoveryCode === code &&
+        validateExpiry(company.recoveryCodeDate) &&
+        code
+      ) {
+        const encryptedPassword = bcrypt.hashSync(
+          password,
+          parseInt(CONFIG.BCRYPT_SALT)
+        );
+
+        const set = await companyModel.updateOne(
+          { companyId: company.companyId },
+          { $set: { encryptedPassword, recoveryCode: "" } }
+        );
+
+        sendResponse(
+          res,
+          constans.RESPONSE_SUCCESS,
+          "Set new password successful",
+          set,
+          []
+        );
+      } else {
+        sendResponse(
+          res,
+          constans.RESPONSE_BAD_REQUEST,
+          "Invalid or expired code",
+          "",
+          []
+        );
+      }
+    }
+  } catch (error) {
+    sendResponse(
+      res,
+      constans.RESPONSE_INT_SERVER_ERROR,
+      constans.UNHANDLED_ERROR,
+      {},
+      [error.message]
+    );
+  }
+};
+
+
 module.exports = {
   signUp,
   confirmemail,
@@ -357,4 +569,8 @@ module.exports = {
   setPassword,
   social_google,
   reSendcode,
-};
+  companySignUp,
+  companyLogin,
+  forgetCompanyPassword,
+  updateCompanyPassword
+}; 

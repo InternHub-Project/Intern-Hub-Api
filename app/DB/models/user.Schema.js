@@ -36,7 +36,8 @@ const userSchema = new mongoose.Schema(
             type: Boolean,
             default: false,
         },
-        recoveryCode:String ,
+        recoveryCode: String,
+
         recoveryCodeDate: Date,
         accountType:{
             type:String,

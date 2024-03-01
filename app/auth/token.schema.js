@@ -6,6 +6,10 @@ const TokenSchema = new Schema({
     type: String,
     required: false,
   },
+  companyId: {
+    type: String,
+    required: false,
+  },
   token: {
     type: String,
     required: false,
@@ -18,6 +22,4 @@ TokenSchema.method("toJSON", function () {
   return object;
 });
 
-
 module.exports = mongoose.model("Token", TokenSchema);
-

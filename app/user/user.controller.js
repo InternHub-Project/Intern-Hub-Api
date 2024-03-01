@@ -3,9 +3,10 @@ const { sendResponse } = require("../utils/util.service.js");
 const { skillsModel } = require("../utils/utils.schema.js");
 const { v4: uuidv4 } = require("uuid");
 const constans=require("../utils/constants.js");
-const { cloudinary } = require("../utils/cloudnairy.js");
 const bcrypt = require("bcryptjs");
 const tokenSchema = require("../auth/token.schema.js");
+const CONFIG = require('../../config/config.js');
+const { imageKit } = require("../utils/imagekit.js");
 
 
 
@@ -38,23 +39,34 @@ const updateUser=async(req,res,next)=>{
     try {
         const {userId}=req.user;
         if(req.files && req.files["image"] && req.files["image"][0]){
-            const {secure_url}=await cloudinary.v2.uploader.upload(req.files["image"][0].path,{
-                resource_type: 'image',
-                folder:`internHub/${req.user._id}`
-            })
-            req.body.profileImage=secure_url
+           const image=await imageKit.upload(
+                {
+                  file: req.files["image"][0].buffer.toString('base64'), //required
+                  fileName: req.files["image"][0].originalname, //required,
+                  folder:`internHub/${userId}`,
+                  useUniqueFileName:true
+                },
+              );
+             req.body.profileImage=image.url
         }
+    
         if(req.files && req.files["file"] && req.files["file"][0]){
-            const {secure_url}=await cloudinary.v2.uploader.upload(req.files["file"][0].path,{
-                resource_type: 'raw',
-                folder:`internHub/${req.user._id}`,
-            })
-            req.body.cv=secure_url
+           const cv =await imageKit.upload(
+                {
+                  file:req.files["file"][0].buffer.toString('base64'), //required
+                  fileName: req.files["file"][0].originalname, //required,
+                  folder:`internHub/${userId}`,
+                  useUniqueFileName:true
+                },
+              );
+              req.body.cv=cv.url
+
         }
         
         const user=await userModel.findOneAndUpdate({userId:userId},{$set:req.body},{runValidators: true})
         sendResponse(res,constans.RESPONSE_SUCCESS,"user updated success",{user:user.userId},[])
-     
+    
+
     } catch (error) {
         sendResponse(res,constans.RESPONSE_INT_SERVER_ERROR,constans.UNHANDLED_ERROR,"",error.message);
     }
@@ -75,38 +87,27 @@ const deleteUser = async (req, res, next)=>{
 //****** changePassword *******/
 const changePassword = async (req, res, next) => {
     try {
-      const { _id } = req.user;
-      const user=await userModel.findById({_id})
-      const { currentPassword, newPassword } = req.body;
-      const isPasswordValid = bcrypt.compareSync(currentPassword,user.encryptedPassword);
-      if (!isPasswordValid) {
-        sendResponse(res,constans.RESPONSE_UNAUTHORIZED,"Current password is invalid",'',[]);
-      } else {
-        if (currentPassword === newPassword) {
-          sendResponse(
-            res,
-            constans.RESPONSE_BAD_REQUEST,
-            "New password must be different from the old password.",
-            "",
-            []
-          );
-        }
-         const encryptedPassword = bcrypt.hashSync(
-           newPassword,
-           parseInt(CONFIG.BCRYPT_SALT)
-         );
-        const updatedPassword = await userModel.updateOne(
-          { _id },
-          { $set: { encryptedPassword } },
-          { new: true }
-        );
 
-        sendResponse(res,constans.RESPONSE_SUCCESS,"Password changed successfully",updatedPassword,[]);
-      }
+        const { userId } = req.user;
+        const user=await userModel.findOne({userId})
+        const { currentPassword, newPassword } = req.body;
+        const isPasswordValid = bcrypt.compareSync(currentPassword,user.encryptedPassword);
+        if (!isPasswordValid) {
+            sendResponse(res,constans.RESPONSE_UNAUTHORIZED,"Current password is invalid",'',[]);
+        } else {
+            if (currentPassword === newPassword) {
+                sendResponse(res,constans.RESPONSE_BAD_REQUEST,"New password must be different from the old password.",'', []);
+            }
+            const encryptedPassword = bcrypt.hashSync(newPassword, parseInt(CONFIG.BCRYPT_SALT));
+            const updatedPassword = await userModel.updateOne({ userId },{ $set: {encryptedPassword} });
+            //const updatedPassword = await userModel.updateOne({ userId },{ $set: { password: newPassword } });
+
+            sendResponse(res,constans.RESPONSE_SUCCESS,"Password changed successfully",updatedPassword,[]);
+        }
     } catch (error) {
-      sendResponse(res,constans.RESPONSE_INT_SERVER_ERROR,constans.UNHANDLED_ERROR,{},[error.message]);
+        sendResponse(res,constans.RESPONSE_INT_SERVER_ERROR,constans.UNHANDLED_ERROR,{},[error.message]);
     }
-  };
+};
 
 
 //............SignOut.................//

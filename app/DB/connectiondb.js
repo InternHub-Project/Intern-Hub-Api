@@ -21,4 +21,4 @@ const connectiondb=async()=>{
 }
 
 
-module.exports.connectiondb = connectiondb;
+module.exports.connectiondb = connectiondb; 
