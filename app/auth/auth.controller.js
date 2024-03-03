@@ -125,7 +125,7 @@ const login = async (req, res, next) => {
     // Set the access token as an HTTP-only cookie
     res.cookie("token", accToken, {
       httpOnly: true,
-      secure: true,
+      secure: false,
     });
     sendResponse(res, constans.RESPONSE_SUCCESS, "Login Succeed", {}, []);
   } catch (error) {
@@ -439,7 +439,7 @@ const companyLogin = async (req, res, next) => {
     // Set the access token as an HTTP-only cookie
     res.cookie("token", accToken, {
       httpOnly: true,
-      secure: true,
+      secure: false,
     });
     sendResponse(res, constans.RESPONSE_SUCCESS, "Login Succeed", {}, []);
   } catch (error) {
