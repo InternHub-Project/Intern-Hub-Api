@@ -113,7 +113,7 @@ const login = async (req, res, next) => {
     if (existingToken) {
       await tokenSchema.updateOne(
         { userId: user.userId },
-        { $set: { accToken } }
+        { $set: {token: accToken } }
       );
     } else {
       newToken = new tokenSchema({
@@ -427,7 +427,7 @@ const companyLogin = async (req, res, next) => {
     if (existingToken) {
       await tokenSchema.updateOne(
         { companyId: company.companyId },
-        { $set: { accToken } }
+        { $set: {token: accToken } }
       );
     } else {
       newToken = new tokenSchema({
