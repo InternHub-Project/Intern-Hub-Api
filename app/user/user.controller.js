@@ -7,7 +7,8 @@ const bcrypt = require("bcryptjs");
 const tokenSchema = require("../auth/token.schema.js");
 const CONFIG = require('../../config/config.js');
 const { imageKit } = require("../utils/imagekit.js");
-
+const applicantModel = require('../DB/models/applicant.schema.js');
+const pagination = require('../utils/pagination.js')
 
 
 
@@ -123,6 +124,25 @@ const signOut=async(req,res,next)=>{
 }
 
 
+const appliedjobs = async (req, res, next)=>{
+    try{
+        const { userId } = req.user;
+        const{skip,limit}=paginate({
+            page:req.query.page,
+            size:req.query.size
+        })
+        const jobs = applicantModel.find({userId}).limit(limit).skip(skip);
+        if(!jobs){
+            sendResponse(res,constans.RESPONSE_NOT_FOUND,"No Job Found!",{},[])
+        }else{
+            sendResponse(res,constans.RESPONSE_SUCCESS,"Done",{jobs},[])
+        }
+    }catch(error){
+        sendResponse(res, constans.RESPONSE_INT_SERVER_ERROR, constans.UNHANDLED_ERROR, '', error.message);
+    }
+}
+
+
 
 
 
@@ -132,5 +152,6 @@ module.exports={
     updateUser,
     deleteUser,
     changePassword,
-    signOut
+    signOut,
+    appliedjobs
 }
