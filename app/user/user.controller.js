@@ -131,7 +131,7 @@ const appliedjobs = async (req, res, next)=>{
             page:req.query.page,
             size:req.query.size
         })
-        const jobs = applicantModel.find({userId}).limit(limit).skip(skip);
+        const jobs = await applicantModel.find({userId}).limit(limit).skip(skip);
         if(!jobs){
             sendResponse(res,constans.RESPONSE_NOT_FOUND,"No Job Found!",{},[])
         }else{
