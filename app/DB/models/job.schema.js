@@ -21,7 +21,10 @@ const jobSchema=new mongoose.Schema({
         enum:["part-time","full-time"]
     },
     internLocation:String,
-    numberOfApplicants:Number,
+    numberOfApplicants:{
+        type:Number,
+        default:0
+    },
     numberOfOpenings:Number,
     skills:[String],
     statusOfIntern:{

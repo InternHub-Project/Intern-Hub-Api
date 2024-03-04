@@ -45,12 +45,11 @@ module.exports = function (passport) {
               LOG.info("logged user :"+decoded.userId)
               return done(null, user);
             }
-           
           });
         }
-     
       })
     );
+
   };
 
 

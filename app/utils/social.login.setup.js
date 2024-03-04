@@ -12,7 +12,6 @@ passport.serializeUser(function(user, done) {
     done(null,user)
  })
 
- 
 passport.use(new GoogleStrategy({
     clientID:CONFIG.GOOGLE_CLIENT_ID,
     clientSecret:CONFIG.GOOGLE_CLIENT_SECRET,
