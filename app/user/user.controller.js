@@ -181,7 +181,106 @@ const applyJob=async(req,res,next)=>{
     }
 }
 
+//****** change job status *******/
+const acceptApplicant = async (req, res, next) => {
+    try{ 
+        const { userId } = req.params;
+        const checkUser=await applicantModel.findOne({userId})
+        if (checkUser){
+            if (checkUser.status === "pending") {
+                const changeStatus = await applicantModel.findOneAndUpdate(
+                  { userId, status: { $eq: "pending" } },
+                  { $set: { status: "accepted" } },
+                  { new: true, runValidators: true }
+                );
+        
+                sendResponse(
+                  res,
+                  constans.RESPONSE_SUCCESS,
+                  "User have been accepted",
+                  { job: changeStatus },
+                  []
+                );
+              } else {
+                sendResponse(
+                  res,
+                  constans.RESPONSE_BAD_REQUEST,
+                  "No change has occurred",
+                  {},
+                  []
+                );
+              }
+    }else{sendResponse(
+        res,
+        constans.RESPONSE_INT_SERVER_ERROR,
+        constans.UNHANDLED_ERROR,
+        {},
+        "User not found"
+      );}}
+   
+    catch (err) {
+        sendResponse(
+          res,
+          constans.RESPONSE_INT_SERVER_ERROR,
+          constans.UNHANDLED_ERROR,
+          "",
+          err.message
+        );
+      }
+    
 
+
+  };
+  
+const rejectApplicant = async(req,res,next)=>{
+    try{ 
+        const { userId } = req.params;
+        const checkUser=await applicantModel.findOne({userId})
+        if (checkUser){
+            if (checkUser.status === "pending") {
+                const changeStatus = await applicantModel.findOneAndUpdate(
+                  { userId, status: { $eq: "pending" } },
+                  { $set: { status: "rejected" } },
+                  { new: true, runValidators: true }
+                );
+        
+                sendResponse(
+                  res,
+                  constans.RESPONSE_SUCCESS,
+                  "User have been rejected",
+                  { job: changeStatus },
+                  []
+                );
+              } else {
+                sendResponse(
+                  res,
+                  constans.RESPONSE_BAD_REQUEST,
+                  "No change has occurred",
+                  {},
+                  []
+                );
+              }
+    }else{sendResponse(
+        res,
+        constans.RESPONSE_INT_SERVER_ERROR,
+        constans.UNHANDLED_ERROR,
+        {},
+        "User not found"
+      );}}
+   
+    catch (err) {
+        sendResponse(
+          res,
+          constans.RESPONSE_INT_SERVER_ERROR,
+          constans.UNHANDLED_ERROR,
+          "",
+          err.message
+        );
+      }
+    
+
+
+}
 
 
 
@@ -193,5 +292,7 @@ module.exports={
     changePassword,
     signOut,
     applyJob,
-    appliedjobs
+    appliedjobs,
+    acceptApplicant,
+    rejectApplicant
 }

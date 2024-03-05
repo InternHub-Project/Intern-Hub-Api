@@ -11,10 +11,12 @@ const authGuard = passport.authenticate("cookie", { session: false });
 router.post("/addskill", authGuard, userCon.addSkills)
 router.put("/updateUserprofile", authGuard, myMullter().fields([{ name: "image", maxCount: 1 }, { name: "file", maxCount: 1 }]), HME, userCon.updateUser);
 router.post('/delete', authGuard, userCon.deleteUser);
-router.put("/changePassword", authGuard, userCon.changePassword);
+router.put("/changePassword",authGuard, userCon.changePassword);
 router.post("/logout", authGuard, userCon.signOut)
 router.post("/apply/:jobId",authGuard,myMullter().single("file"),HME , userCon.applyJob);
-router.get("/appliedjob", authGuard, userCon.appliedjobs)
+router.get("/appliedjob", authGuard, userCon.appliedjobs);
+router.put("/acceptapplicant/:userId",authGuard,userCon.acceptApplicant);
+router.put("/rejectapplicant/:userId",authGuard,userCon.rejectApplicant);
 
 
 module.exports = router;
