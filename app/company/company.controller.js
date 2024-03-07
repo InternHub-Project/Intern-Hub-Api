@@ -6,6 +6,8 @@ const path = require("path");
 const { v4: uuidv4 } = require("uuid");
 const jobModel = require("../DB/models/job.schema.js");
 const paginate = require("../utils/pagination.js");
+const companyModel = require("../DB/models/company.Schema.js");
+const applicantModel = require('../DB/models/applicant.schema.js');
 
 const createIntern = async (req, res, next) => {
   try {
@@ -132,9 +134,42 @@ const companyJobs=async(req,res,next)=>{
   }
 }
 
+
+//****** change applicant status *******/
+
+const applicantStatus = async (req, res, next) => {
+  try {
+    const { userId,status } = req.params;
+    const checkUser = await applicantModel.findOne({ userId });
+
+    if (checkUser) {
+      const jobId = checkUser.jobId;
+      const job = await jobModel.findOne({ jobId });
+     if (job) {
+        const companyId = req.user?.companyId;
+        if (companyId === job.companyId) {
+          const newStatus = status.toLowerCase() === 'accepted' ? 'accepted' : 'rejected';
+          await applicantModel.findOneAndUpdate({ userId }, { status: newStatus });
+          sendResponse(res, constans.RESPONSE_SUCCESS, constans.SUCCESS, {}, `Applicant ${newStatus}`); 
+        } else {
+          sendResponse(res, constans.RESPONSE_BAD_REQUEST, constans.BAD_REQUEST, {}, "Company not matched");
+        }
+      } else {
+        sendResponse(res, constans.RESPONSE_NOT_FOUND, constans.NOT_FOUND, {}, "Job not found");
+      }
+    } else {
+      sendResponse(res, constans.RESPONSE_NOT_FOUND, constans.NOT_FOUND, {}, "User not found");
+    }
+  } catch (err) {
+    sendResponse(res, constans.RESPONSE_INT_SERVER_ERROR, constans.UNHANDLED_ERROR, "", err.message);
+  }
+};
+
+
 module.exports = {
   createIntern,
   updateIntren,
   closeIntern,
-  companyJobs
+  companyJobs,
+  applicantStatus
 };
