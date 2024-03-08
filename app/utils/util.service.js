@@ -17,30 +17,7 @@ const sendResponse = (res, status, message = "", data = any, errors = []) => {
     errList.push({ message: errors, key: null });
   }
 
-
-  /*
-    send an error like this >> instead of sending an error once as a message and once as an error
-    {
-        errors: 
-            {
-                message: "error message", 
-                key: "key"
-            }
-        }
-    }
-  */
-  var handledError = {
-    "message": UNHANDLED_ERROR,
-    "key": null,
-  };
-  if (message !== UNHANDLED_ERROR) {
-    handledError = {
-        "message": message,
-        "key": null,
-    }
-  } else if (errList.length > 0) {
-      handledError = errList[0];
-  }
+  const handledError = handleError(message, errList);
 
   if (status >= 300) {
     return res.status(status).json({
@@ -54,6 +31,22 @@ const sendResponse = (res, status, message = "", data = any, errors = []) => {
     message,
     data,
   });
+};
+
+function handleError(message, errList) {
+    var handledError = {
+        "message": UNHANDLED_ERROR,
+        "key": null,
+    };
+    if (message !== UNHANDLED_ERROR) {
+        handledError = {
+            "message": message,
+            "key": null,
+        }
+    } else if (errList.length > 0) {
+        handledError = errList[0];
+    }
+    return handledError;
 };
 
 module.exports.sendResponse = sendResponse;
