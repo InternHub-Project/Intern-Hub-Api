@@ -85,7 +85,7 @@ const confirmemail = async (req, res, next) => {
 const login = async (req, res, next) => {
   try {
     const { email, password } = req.body;
-    const user = await userModel.findOne({ email }).select('-_id -recoveryCode -recoveryCodeDate');
+    const user = await userModel.findOne({ email });
     //..Check if User Exists..//
     if (!user|| user.isDeleted) {
       return sendResponse(res,constans.RESPONSE_NOT_FOUND,"Email not found!",{},[]);
