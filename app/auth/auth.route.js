@@ -9,7 +9,7 @@ router.post("/user/signup", authCon.signUp);
 router.get("/confirmemail/:token", authCon.confirmemail);
 router.post("/user/login", authCon.login);
 router.post("/user/forgotPasswordEmail", authCon.forgotPasswordEmail);
-router.put("/user/setPassword/:token", authCon.setPassword);
+router.put("/user/setPassword", authCon.setPassword);
 router.post("/reSendcode", rateLimiter, authCon.reSendcode);
 router.get(
   "/google",
@@ -24,10 +24,9 @@ router.get(
 );
 //----------------companyy--------------//
 router.post("/company/signup", authCon.companySignUp);
-
 router.post("/company/login", authCon.companyLogin);
 router.post("/company/forgetPassword", authCon.forgetCompanyPassword);
-router.put("/company/updatePassword/:token",authCon.updateCompanyPassword);
+router.put("/company/updatePassword",authCon.updateCompanyPassword);
 
 
 module.exports = router;
