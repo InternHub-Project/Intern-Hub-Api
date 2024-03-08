@@ -6,6 +6,7 @@ const moment = MomentRange.extendMoment(Moment);
 const path = require("path");
 const pe = require("parse-error");
 const CONFIG = require("../../config/config");
+const { UNHANDLED_ERROR } = require("./constants");
 
 const sendResponse = (res, status, message = "", data = any, errors = []) => {
   let errList = [];
@@ -16,10 +17,32 @@ const sendResponse = (res, status, message = "", data = any, errors = []) => {
     errList.push({ message: errors, key: null });
   }
 
+
+  /*
+    send an error like this >> instead of sending an error once as a message and once as an error
+    {
+        errors: 
+            {
+                message: "error message", 
+                key: "key"
+            }
+        }
+    }
+  */
+  var handledError = UNHANDLED_ERROR;
+  if (message !== UNHANDLED_ERROR) {
+    handledError = {
+        "message": message,
+        "key": null,
+    }
+  } else if (errList.length > 0) {
+      handledError = errList[0];
+  }
+
   if (status >= 300) {
     return res.status(status).json({
       success: false,
-      error: errList.length ? errList[0] : errors,
+      error: handledError,
     });
   }
 
