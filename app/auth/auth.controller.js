@@ -36,9 +36,9 @@ const signUp = async (req, res, next) => {
       } else {
         sendResponse(res,constans.RESPONSE_BAD_REQUEST,constans.UNHANDLED_ERROR,[],"rejected Eamil");
         }
-      }else if(user && user.isDeleted){
-        await userModel.updateOne({email}, {$set:{isDeleted: false}});
-        sendResponse(res,constans.RESPONSE_CREATED,"Done",user.userId,{});
+    }else if(user && user.isDeleted){
+      await userModel.updateOne({email}, {$set:{isDeleted: false}});
+      sendResponse(res,constans.RESPONSE_CREATED,"Done",user.userId,{});
     }else{
       sendResponse(res,constans.RESPONSE_BAD_REQUEST,constans.UNHANDLED_ERROR,"","email already exist");
     }
@@ -93,8 +93,7 @@ const login = async (req, res, next) => {
     //..Check if Email is Activated..//
     if (!user.activateEmail) {
       const confirmLink = "confirm u account";
-      const confirmMessag =
-        "Confirmation Email Send From Intern-Hub Application";
+      const confirmMessag = "Confirmation Email Send From Intern-Hub Application";
       const result = await helper.sendEmail(req,user,"auth/confirmemail",confirmLink,confirmMessag);
       if (result) {
         return sendResponse(res,constans.RESPONSE_BAD_REQUEST,"Confirm your email ... we've sent a message at your email",{},[]);
@@ -184,51 +183,23 @@ const reSendcode = async (req, res, next) => {
   try {
     const { email } = req.body;
     const user = await userModel.findOne({ email: email });
-
     if (!user|| user.isDeleted) {
-      sendResponse(
-        res,
-        constans.RESPONSE_BAD_REQUEST,
-        constans.UNHANDLED_ERROR,
-        {},
-        "This email does not exist"
-      );
+      sendResponse(res, constans.RESPONSE_BAD_REQUEST, constans.UNHANDLED_ERROR, {}, "This email does not exist");
     } else {
       const code = Math.floor(10000 + Math.random() * 90000);
       const setResendCodeLink = `Resend Code`;
       const setResendCodeMessage = "a recovery code from Intern-Hub";
-
-      const info = helper.sendEmail(
-        req,
-        user,
-        "recovery code",
-        setResendCodeLink,
-        setResendCodeMessage,
-        code
-      );
-
+      const info = helper.sendEmail(req, user, "recovery code", setResendCodeLink, setResendCodeMessage, code);
       if (info) {
         await userModel.updateOne(
           { email },
           { $set: { recoveryCode: code, recoveryCodeDate: Date.now() } }
         );
-        sendResponse(
-          res,
-          constans.RESPONSE_SUCCESS,
-          `Recovery code resent to ${email}`,
-          {},
-          []
-        );
+        sendResponse(res, constans.RESPONSE_SUCCESS, `Recovery code resent to ${email}`, {}, [] );
       }
     }
   } catch (error) {
-    sendResponse(
-      res,
-      constans.RESPONSE_INT_SERVER_ERROR,
-      constans.UNHANDLED_ERROR,
-      "",
-      [error.message]
-    );
+    sendResponse(res, constans.RESPONSE_INT_SERVER_ERROR, constans.UNHANDLED_ERROR, "", [error.message]);
   }
 };
 
@@ -237,22 +208,12 @@ const social_google = async (req, res, next) => {
   try {
     const { email, email_verified } = req.user._json;
     if (!email_verified) {
-      sendResponse(
-        res,
-        constans.RESPONSE_BAD_REQUEST,
-        constans.UNHANDLED_ERROR,
-        {},
-        "in_valid google account"
-      );
+      sendResponse(res, constans.RESPONSE_BAD_REQUEST, constans.UNHANDLED_ERROR, {}, "in_valid google account");
     } else {
       const searchUser = await userModel.findOne({ email });
       //.....if findUser then user want to login......//
       if (searchUser) {
-        const accToken = await jwtGenerator(
-          { userId: searchUser.userId },
-          24,
-          "h"
-        );
+        const accToken = await jwtGenerator({ userId: searchUser.userId }, 24, "h");
         const existingToken = await tokenSchema.findOne({
           userId: searchUser.userId,
         });
@@ -289,11 +250,7 @@ const social_google = async (req, res, next) => {
           password:CONFIG.DUMMY_PASSWORD
         });
         const savedUser = await user.save();
-        const signupToken = await jwtGenerator(
-          { userId: savedUser.userId },
-          24,
-          "h"
-        );
+        const signupToken = await jwtGenerator({ userId: savedUser.userId }, 24, "h");
         res.cookie("token", signupToken, {
           httpOnly: true,
           secure: true,
@@ -307,13 +264,7 @@ const social_google = async (req, res, next) => {
       }
     }
   } catch (error) {
-    sendResponse(
-      res,
-      constans.RESPONSE_INT_SERVER_ERROR,
-      constans.UNHANDLED_ERROR,
-      {},
-      [error.message]
-    );
+    sendResponse(res, constans.RESPONSE_INT_SERVER_ERROR, constans.UNHANDLED_ERROR, {}, [error.message]);
   }
 };
 
