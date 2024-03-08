@@ -15,18 +15,11 @@ const sendResponse = (res, status, message = "", data = any, errors = []) => {
   if (typeof errors === "string") {
     errList.push({ message: errors, key: null });
   }
-
-  if (status >= 300) {
-    return res.status(status).json({
-      success: false,
-      error: errList.length ? errList[0] : errors,
-    });
-  }
-
   return res.status(status).json({
-    success: true,
+    success: !(status > 300),
     message,
     data,
+    errors: errList.length ? errList : errors,
   });
 };
 
