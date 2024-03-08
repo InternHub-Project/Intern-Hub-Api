@@ -17,34 +17,21 @@ const sendResponse = (res, status, message = "", data = any, errors = []) => {
     errList.push({ message: errors, key: null });
   }
 
-  const handledError = handleError(message, errList);
-
-  if (status >= 300) {
-    return res.status(status).json({
-      success: false,
-      error: handledError,
-    });
-  }
+  const errorMessage = handleError(message, errList);
 
   return res.status(status).json({
-    success: true,
-    message,
+    success: !(status >= 300),
+    message: errorMessage,
     data,
   });
 };
 
 function handleError(message, errList) {
-    var handledError = {
-        "message": UNHANDLED_ERROR,
-        "key": null,
-    };
+    var handledError = UNHANDLED_ERROR;   // default error message
     if (message !== UNHANDLED_ERROR) {
-        handledError = {
-            "message": message,
-            "key": null,
-        }
+        handledError = message;
     } else if (errList.length > 0) {
-        handledError = errList[0];
+      handledError = errList[0].message;
     }
     return handledError;
 };
