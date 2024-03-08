@@ -29,7 +29,10 @@ const sendResponse = (res, status, message = "", data = any, errors = []) => {
         }
     }
   */
-  var handledError = UNHANDLED_ERROR;
+  var handledError = {
+    "message": UNHANDLED_ERROR,
+    "key": null,
+  };
   if (message !== UNHANDLED_ERROR) {
     handledError = {
         "message": message,
