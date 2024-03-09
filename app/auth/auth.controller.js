@@ -85,7 +85,7 @@ const confirmemail = async (req, res, next) => {
 const login = async (req, res, next) => {
   try {
     const { email, password } = req.body;
-    const user = await userModel.findOne({ email });
+    const user = await userModel.findOne({ email }).select('-_id -recoveryCode -recoveryCodeDate');
     //..Check if User Exists..//
     if (!user|| user.isDeleted) {
       sendResponse(res,constans.RESPONSE_NOT_FOUND,"Email not found!",{},[]);
@@ -125,7 +125,8 @@ const login = async (req, res, next) => {
       httpOnly: true,
       secure: false,
     });
-    sendResponse(res, constans.RESPONSE_SUCCESS, "Login Succeed", {}, []);
+    const { encryptedPassword, __v, ...rest } = user._doc;
+    sendResponse(res, constans.RESPONSE_SUCCESS, "Login Succeed", rest, []);
   } catch (error) {
     sendResponse(res,constans.RESPONSE_INT_SERVER_ERROR,constans.UNHANDLED_ERROR,"",error.message);
   }
