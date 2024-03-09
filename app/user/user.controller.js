@@ -185,7 +185,6 @@ const applyJob=async(req,res,next)=>{
 
 
 
-
 module.exports={
     addSkills,
     updateUser,
@@ -193,5 +192,5 @@ module.exports={
     changePassword,
     signOut,
     applyJob,
-    appliedjobs
+    appliedjobs,
 }
