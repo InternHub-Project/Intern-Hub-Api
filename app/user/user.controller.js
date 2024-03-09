@@ -7,6 +7,9 @@ const bcrypt = require("bcryptjs");
 const tokenSchema = require("../auth/token.schema.js");
 const CONFIG = require('../../config/config.js');
 const { imageKit } = require("../utils/imagekit.js");
+const applicantModel = require('../DB/models/applicant.schema.js');
+const paginate = require('../utils/pagination.js')
+
 
 
 
@@ -87,7 +90,6 @@ const deleteUser = async (req, res, next)=>{
 //****** changePassword *******/
 const changePassword = async (req, res, next) => {
     try {
-
         const { userId } = req.user;
         const user=await userModel.findOne({userId})
         const { currentPassword, newPassword } = req.body;
@@ -101,7 +103,6 @@ const changePassword = async (req, res, next) => {
             const encryptedPassword = bcrypt.hashSync(newPassword, parseInt(CONFIG.BCRYPT_SALT));
             const updatedPassword = await userModel.updateOne({ userId },{ $set: {encryptedPassword} });
             //const updatedPassword = await userModel.updateOne({ userId },{ $set: { password: newPassword } });
-
             sendResponse(res,constans.RESPONSE_SUCCESS,"Password changed successfully",updatedPassword,[]);
         }
     } catch (error) {
@@ -123,6 +124,64 @@ const signOut=async(req,res,next)=>{
 }
 
 
+const appliedjobs = async (req, res, next)=>{
+    try{
+        const { userId } = req.user;
+        const{skip,limit}=paginate({
+            page:req.query.page,
+            size:req.query.size
+        })
+        const jobs = await applicantModel.find({userId}).limit(limit).skip(skip);
+        if(!jobs){
+            sendResponse(res,constans.RESPONSE_NOT_FOUND,"No Job Found!",{},[])
+        }else{
+            sendResponse(res,constans.RESPONSE_SUCCESS,"Done",{jobs},[])
+        }
+    }catch(error){
+        sendResponse(res, constans.RESPONSE_INT_SERVER_ERROR, constans.UNHANDLED_ERROR, '', error.message);
+    }
+}
+//...........Apply to job................//
+const applyJob=async(req,res,next)=>{
+    const {userId}=req.user;
+    const {jobId}=req.params
+    const {coverLetter}=req.body;
+    const checkJob=await applicantModel.findOne({userId, jobId})
+    if(checkJob){
+        sendResponse(res,constans.RESPONSE_BAD_REQUEST,"already apply to this job",{},[])
+    }
+    else{
+        const checkResume=await userModel.findOne({userId}).select("cv")
+        if(!checkResume.cv && !req.file){
+            sendResponse(res,constans.RESPONSE_BAD_REQUEST,"please upload your Cv",{},[])
+        }
+        else{
+            if(req.file){
+                const cv=await imageKit.upload({    
+                    file:req.file.buffer.toString("base64"),
+                    fileName:req.file.originalname,
+                    folder:`internHub/${userId}`,
+                    useUniqueFileName:true
+                })
+                req.body.resume=cv.url;
+            }
+            else{
+                req.body.resume=checkResume.cv
+            }
+            const applyToJob=await applicantModel({
+                userId,
+                jobId,
+                coverLetter,
+                status:"pending",
+                resume:req.body.resume
+            })
+            await applyToJob.save()
+            sendResponse(res,constans.RESPONSE_SUCCESS,"Successful to applying",{},[])
+        }
+    }
+}
+
+
 
 
 
@@ -132,5 +191,7 @@ module.exports={
     updateUser,
     deleteUser,
     changePassword,
-    signOut
+    signOut,
+    applyJob,
+    appliedjobs
 }

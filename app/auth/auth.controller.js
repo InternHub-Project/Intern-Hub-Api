@@ -107,13 +107,12 @@ const login = async (req, res, next) => {
     }
 
     //..Generate Access Token..//
-    const accToken = await jwtGenerator({ userId: user.userId }, 24, "h");
+    const accToken = await jwtGenerator({ userId: user.userId,role:"user" }, 24, "h");
     existingToken = await tokenSchema.findOne({ userId: user.userId });
-
     if (existingToken) {
       await tokenSchema.updateOne(
         { userId: user.userId },
-        { $set: { accToken } }
+        { $set: {token: accToken } }
       );
     } else {
       newToken = new tokenSchema({
@@ -122,10 +121,9 @@ const login = async (req, res, next) => {
       });
       await newToken.save();
     }
-    // Set the access token as an HTTP-only cookie
     res.cookie("token", accToken, {
       httpOnly: true,
-      secure: true,
+      secure: false,
     });
     sendResponse(res, constans.RESPONSE_SUCCESS, "Login Succeed", {}, []);
   } catch (error) {
@@ -419,7 +417,7 @@ const companyLogin = async (req, res, next) => {
     if (!isPasswordCorrect) {
       sendResponse(res, constans.RESPONSE_NOT_FOUND, "Wrong password!", {}, []);
     }
-
+    
     //..Generate Access Token..//
     const accToken = await jwtGenerator({ companyId: company.companyId }, 24, "h");
     existingToken = await tokenSchema.findOne({ companyId: company.companyId });
@@ -427,7 +425,7 @@ const companyLogin = async (req, res, next) => {
     if (existingToken) {
       await tokenSchema.updateOne(
         { companyId: company.companyId },
-        { $set: { accToken } }
+        { $set: {token: accToken } }
       );
     } else {
       newToken = new tokenSchema({
@@ -439,8 +437,9 @@ const companyLogin = async (req, res, next) => {
     // Set the access token as an HTTP-only cookie
     res.cookie("token", accToken, {
       httpOnly: true,
-      secure: true,
+      secure: false,
     });
+  
     sendResponse(res, constans.RESPONSE_SUCCESS, "Login Succeed", {}, []);
   } catch (error) {
     sendResponse(res,constans.RESPONSE_INT_SERVER_ERROR,constans.UNHANDLED_ERROR,"",error.message);

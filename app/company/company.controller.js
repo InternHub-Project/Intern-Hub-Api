@@ -107,7 +107,7 @@ const closeIntern = async (req, res, next) => {
   }
 };
 
-
+///...................i will modify this endpoint  later..............//
 const companyJobs=async(req,res,next)=>{
   try {
     const {companyId}=req.user
