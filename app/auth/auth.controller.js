@@ -36,9 +36,9 @@ const signUp = async (req, res, next) => {
       } else {
         sendResponse(res,constans.RESPONSE_BAD_REQUEST,constans.UNHANDLED_ERROR,[],"rejected Eamil");
         }
-      }else if(user && user.isDeleted){
-        await userModel.updateOne({email}, {$set:{isDeleted: false}});
-        sendResponse(res,constans.RESPONSE_CREATED,"Done",user.userId,{});
+    }else if(user && user.isDeleted){
+      await userModel.updateOne({email}, {$set:{isDeleted: false}});
+      sendResponse(res,constans.RESPONSE_CREATED,"Done",user.userId,{});
     }else{
       sendResponse(res,constans.RESPONSE_BAD_REQUEST,constans.UNHANDLED_ERROR,"","email already exist");
     }
@@ -85,25 +85,24 @@ const confirmemail = async (req, res, next) => {
 const login = async (req, res, next) => {
   try {
     const { email, password } = req.body;
-    const user = await userModel.findOne({ email }).select('-_id -recoveryCode -recoveryCodeDate');
+    const user = await userModel.findOne({ email });
     //..Check if User Exists..//
     if (!user|| user.isDeleted) {
-      sendResponse(res,constans.RESPONSE_NOT_FOUND,"Email not found!",{},[]);
+      return sendResponse(res,constans.RESPONSE_NOT_FOUND,"Email not found!",{},[]);
     }
     //..Check if Email is Activated..//
     if (!user.activateEmail) {
       const confirmLink = "confirm u account";
-      const confirmMessag =
-        "Confirmation Email Send From Intern-Hub Application";
+      const confirmMessag = "Confirmation Email Send From Intern-Hub Application";
       const result = await helper.sendEmail(req,user,"auth/confirmemail",confirmLink,confirmMessag);
       if (result) {
-        sendResponse(res,constans.RESPONSE_BAD_REQUEST,"Confirm your email ... we've sent a message at your email",{},[]);
+        return sendResponse(res,constans.RESPONSE_BAD_REQUEST,"Confirm your email ... we've sent a message at your email",{},[]);
       }
     }
     //..Compare Passwords..//
     const isPasswordCorrect = await bcrypt.compare(password, user.password);
     if (!isPasswordCorrect) {
-      sendResponse(res, constans.RESPONSE_NOT_FOUND, "Wrong password!", {}, []);
+      return sendResponse(res, constans.RESPONSE_NOT_FOUND, "Wrong password!", {}, []);
     }
 
     //..Generate Access Token..//
@@ -125,8 +124,9 @@ const login = async (req, res, next) => {
       httpOnly: true,
       secure: false,
     });
-    const { encryptedPassword, __v, ...rest } = user._doc;
-    sendResponse(res, constans.RESPONSE_SUCCESS, "Login Succeed", rest, []);
+    // this line for exclude encryptedPassword  __v, activateEmail, _id, recoveryCode, recoveryCodeDate from user
+    const { encryptedPassword, __v, activateEmail, _id, recoveryCode, recoveryCodeDate, ...rest } = user._doc;
+    return sendResponse(res, constans.RESPONSE_SUCCESS, "Login Succeed", rest, []);
   } catch (error) {
     sendResponse(res,constans.RESPONSE_INT_SERVER_ERROR,constans.UNHANDLED_ERROR,"",error.message);
   }
@@ -138,19 +138,11 @@ const forgotPasswordEmail = async (req, res, next) => {
     const { email } = req.body;
     const user = await userModel.findOne({ email: email });
     if (!user|| user.isDeleted) {
-      sendResponse(
-        res,
-        constans.RESPONSE_BAD_REQUEST,
-        constans.UNHANDLED_ERROR,
-        {},
-        "this email is not exist"
-      );
+      sendResponse(res, constans.RESPONSE_BAD_REQUEST, constans.UNHANDLED_ERROR, {}, "this email is not exist");
     } else {
       const code = Math.floor(10000 + Math.random() * 90000);
-      const setPasswordLink = `set your password`;
-      const setPasswordMessag =
-        "Set password Email Send From Intern-Hub Application";
-      const info = helper.sendEmail(req,user,"auth/user/setPassword",setPasswordLink,setPasswordMessag,code);
+      const setPasswordMessag = "Set password Email Send From Intern-Hub Application";
+      const info = helper.sendEmail(user,setPasswordMessag,code);
       if (info) {
         await userModel.updateOne(
           { email },
@@ -167,57 +159,21 @@ const forgotPasswordEmail = async (req, res, next) => {
 //----------------set password----------------//
 const setPassword = async (req, res, next) => {
   try {
-    const { token } = req.params;
-    const { password, code } = req.body;
-    const decoded = jwt.verify(token, CONFIG.jwt_encryption);
-    if (!decoded?.userId) {
-      sendResponse(
-        res,
-        constans.UNPROCESSABLE_CONTENT,
-        constans.UNHANDLED_ERROR,
-        {},
-        "invaildToken"
+    const { password, code, email } = req.body;
+    const user = await userModel.findOne({ email });
+    if (
+      user.recoveryCode === code &&validateExpiry(user.recoveryCodeDate) && code) {
+      const encryptedPassword = bcrypt.hashSync(password, parseInt(CONFIG.BCRYPT_SALT));
+      const set = await userModel.updateOne(
+        { userId: user.userId },
+        { $set: { encryptedPassword, recoveryCode: "" } }
       );
+      sendResponse(res, constans.RESPONSE_SUCCESS, "Set new password Succeed", set, []);
     } else {
-      const user = await userModel.findOne({ userId: decoded.userId });
-      if (
-        user.recoveryCode === code &&
-        validateExpiry(user.recoveryCodeDate) &&
-        code
-      ) {
-        const encryptedPassword = bcrypt.hashSync(
-          password,
-          parseInt(CONFIG.BCRYPT_SALT)
-        );
-        const set = await userModel.updateOne(
-          { userId: user.userId },
-          { $set: { encryptedPassword, recoveryCode: "" } }
-        );
-        sendResponse(
-          res,
-          constans.RESPONSE_SUCCESS,
-          "Set new password Succeed",
-          set,
-          []
-        );
-      } else {
-        sendResponse(
-          res,
-          constans.RESPONSE_BAD_REQUEST,
-          "This code is not correct",
-          "",
-          []
-        );
-      }
+      sendResponse(res, constans.RESPONSE_BAD_REQUEST, "This code is not correct", "", []);
     }
   } catch (error) {
-    sendResponse(
-      res,
-      constans.RESPONSE_INT_SERVER_ERROR,
-      constans.UNHANDLED_ERROR,
-      {},
-      [error.message]
-    );
+    sendResponse(res, constans.RESPONSE_INT_SERVER_ERROR, constans.UNHANDLED_ERROR, {}, [error.message]);
   }
 };
 
@@ -227,51 +183,23 @@ const reSendcode = async (req, res, next) => {
   try {
     const { email } = req.body;
     const user = await userModel.findOne({ email: email });
-
     if (!user|| user.isDeleted) {
-      sendResponse(
-        res,
-        constans.RESPONSE_BAD_REQUEST,
-        constans.UNHANDLED_ERROR,
-        {},
-        "This email does not exist"
-      );
+      sendResponse(res, constans.RESPONSE_BAD_REQUEST, constans.UNHANDLED_ERROR, {}, "This email does not exist");
     } else {
       const code = Math.floor(10000 + Math.random() * 90000);
       const setResendCodeLink = `Resend Code`;
       const setResendCodeMessage = "a recovery code from Intern-Hub";
-
-      const info = helper.sendEmail(
-        req,
-        user,
-        "recovery code",
-        setResendCodeLink,
-        setResendCodeMessage,
-        code
-      );
-
+      const info = helper.sendEmail(req, user, "recovery code", setResendCodeLink, setResendCodeMessage, code);
       if (info) {
         await userModel.updateOne(
           { email },
           { $set: { recoveryCode: code, recoveryCodeDate: Date.now() } }
         );
-        sendResponse(
-          res,
-          constans.RESPONSE_SUCCESS,
-          `Recovery code resent to ${email}`,
-          {},
-          []
-        );
+        sendResponse(res, constans.RESPONSE_SUCCESS, `Recovery code resent to ${email}`, {}, [] );
       }
     }
   } catch (error) {
-    sendResponse(
-      res,
-      constans.RESPONSE_INT_SERVER_ERROR,
-      constans.UNHANDLED_ERROR,
-      "",
-      [error.message]
-    );
+    sendResponse(res, constans.RESPONSE_INT_SERVER_ERROR, constans.UNHANDLED_ERROR, "", [error.message]);
   }
 };
 
@@ -280,22 +208,12 @@ const social_google = async (req, res, next) => {
   try {
     const { email, email_verified } = req.user._json;
     if (!email_verified) {
-      sendResponse(
-        res,
-        constans.RESPONSE_BAD_REQUEST,
-        constans.UNHANDLED_ERROR,
-        {},
-        "in_valid google account"
-      );
+      sendResponse(res, constans.RESPONSE_BAD_REQUEST, constans.UNHANDLED_ERROR, {}, "in_valid google account");
     } else {
       const searchUser = await userModel.findOne({ email });
       //.....if findUser then user want to login......//
       if (searchUser) {
-        const accToken = await jwtGenerator(
-          { userId: searchUser.userId },
-          24,
-          "h"
-        );
+        const accToken = await jwtGenerator({ userId: searchUser.userId }, 24, "h");
         const existingToken = await tokenSchema.findOne({
           userId: searchUser.userId,
         });
@@ -332,11 +250,7 @@ const social_google = async (req, res, next) => {
           password:CONFIG.DUMMY_PASSWORD
         });
         const savedUser = await user.save();
-        const signupToken = await jwtGenerator(
-          { userId: savedUser.userId },
-          24,
-          "h"
-        );
+        const signupToken = await jwtGenerator({ userId: savedUser.userId }, 24, "h");
         res.cookie("token", signupToken, {
           httpOnly: true,
           secure: true,
@@ -350,13 +264,7 @@ const social_google = async (req, res, next) => {
       }
     }
   } catch (error) {
-    sendResponse(
-      res,
-      constans.RESPONSE_INT_SERVER_ERROR,
-      constans.UNHANDLED_ERROR,
-      {},
-      [error.message]
-    );
+    sendResponse(res, constans.RESPONSE_INT_SERVER_ERROR, constans.UNHANDLED_ERROR, {}, [error.message]);
   }
 };
 
@@ -401,7 +309,7 @@ const companyLogin = async (req, res, next) => {
     const company = await companyModel.findOne({ email });
     //..Check if company Exists..//
     if (!company) {
-      sendResponse(res,constans.RESPONSE_NOT_FOUND,"Email not found!",{},[]);
+      return sendResponse(res,constans.RESPONSE_NOT_FOUND,"Email not found!",{},[]);
     }
     //..Check if Email is Activated..//
     if (!company.activateEmail) {
@@ -410,19 +318,18 @@ const companyLogin = async (req, res, next) => {
         "Confirmation Email Send From Intern-Hub Application";
       const result = await helper.sendCompanyEmail(req,company,"auth/confirmemail",confirmLink,confirmMessag);
       if (result) {
-        sendResponse(res,constans.RESPONSE_BAD_REQUEST,"Confirm your email ... we've sent a message at your email",{},[]);
+        return sendResponse(res,constans.RESPONSE_BAD_REQUEST,"Confirm your email ... we've sent a message at your email",{},[]);
       }
     }
     //..Compare Passwords..//
     const isPasswordCorrect = await bcrypt.compare(password, company.password);
     if (!isPasswordCorrect) {
-      sendResponse(res, constans.RESPONSE_NOT_FOUND, "Wrong password!", {}, []);
+      return sendResponse(res, constans.RESPONSE_NOT_FOUND, "Wrong password!", {}, []);
     }
     
     //..Generate Access Token..//
     const accToken = await jwtGenerator({ companyId: company.companyId }, 24, "h");
     existingToken = await tokenSchema.findOne({ companyId: company.companyId });
-
     if (existingToken) {
       await tokenSchema.updateOne(
         { companyId: company.companyId },
@@ -440,8 +347,9 @@ const companyLogin = async (req, res, next) => {
       httpOnly: true,
       secure: false,
     });
-  
-    sendResponse(res, constans.RESPONSE_SUCCESS, "Login Succeed", {}, []);
+    // this line for exclude encryptedPassword  __v, activateEmail, _id, recoveryCode, recoveryCodeDate from company
+    const { encryptedPassword, __v, activateEmail, _id, recoveryCode, recoveryCodeDate, ...rest } = company._doc;
+    return sendResponse(res, constans.RESPONSE_SUCCESS, "Login Succeed", rest, []);
   } catch (error) {
     sendResponse(res,constans.RESPONSE_INT_SERVER_ERROR,constans.UNHANDLED_ERROR,"",error.message);
   }
@@ -453,110 +361,41 @@ const forgetCompanyPassword = async (req, res, next) => {
     const { email } = req.body;
     const company = await companyModel.findOne({ email: email });
     if (!company) {
-      sendResponse(
-        res,
-        constans.RESPONSE_BAD_REQUEST,
-        constans.UNHANDLED_ERROR,
-        {},
-        "this email does not exist"
-      );
+      sendResponse(res, constans.RESPONSE_BAD_REQUEST, constans.UNHANDLED_ERROR, {}, "this email does not exist");
     } else {
       const code = Math.floor(10000 + Math.random() * 90000);
-      const setPasswordLink = `set your password`;
-      const setPasswordMessag =
-        "an update password email was sent from Intern-Hub";
-      const info = helper.sendCompanyEmail(        
-        req,
-        company,
-        "auth/company/updatePassword",
-        setPasswordLink,
-        setPasswordMessag,
-        code
-      ); 
+      const setPasswordMessag = "an update password email was sent from Intern-Hub";
+      const info = helper.sendCompanyEmail(company, setPasswordMessag, code); 
       if (info) {
         await companyModel.updateOne(
           { email },
           { $set: { recoveryCode: code, recoveryCodeDate: Date.now() } }
         );
-        sendResponse(
-          res,
-          constans.RESPONSE_SUCCESS,
-          `we sent you an email at ${email}`,
-          {},
-          []
-        );
+        sendResponse(res, constans.RESPONSE_SUCCESS, `we sent you an email at ${email}`, {}, []);
       }
     }
   } catch (error) {
-    sendResponse(
-      res,
-      constans.RESPONSE_INT_SERVER_ERROR,
-      constans.UNHANDLED_ERROR,
-      "",
-      error.message
-    );
+    sendResponse(res, constans.RESPONSE_INT_SERVER_ERROR, constans.UNHANDLED_ERROR, "", error.message);
   }
 };
 
 ///***** update Company Password *****///
 const updateCompanyPassword = async (req, res, next) => {
   try {
-    const { token } = req.params;
-    const { password, code } = req.body;
-    const decoded = jwt.verify(token, CONFIG.jwt_encryption);
-    if (!decoded?.companyId) {
-      sendResponse(
-        res,
-        constans.UNPROCESSABLE_CONTENT,
-        constans.UNHANDLED_ERROR,
-        {},
-        "Invalid token"
+    const { password, code, email } = req.body;
+    const company = await companyModel.findOne({ email });
+    if (company.recoveryCode === code && validateExpiry(company.recoveryCodeDate) && code) {
+      const encryptedPassword = bcrypt.hashSync(password, parseInt(CONFIG.BCRYPT_SALT));
+      const set = await companyModel.updateOne(
+        { companyId: company.companyId },
+        { $set: { encryptedPassword, recoveryCode: "" } }
       );
+      sendResponse(res, constans.RESPONSE_SUCCESS, "Set new password successful", set, []);
     } else {
-      const company = await companyModel.findOne({
-        companyId: decoded.companyId,
-      });
-
-      if (
-        company.recoveryCode === code &&
-        validateExpiry(company.recoveryCodeDate) &&
-        code
-      ) {
-        const encryptedPassword = bcrypt.hashSync(
-          password,
-          parseInt(CONFIG.BCRYPT_SALT)
-        );
-
-        const set = await companyModel.updateOne(
-          { companyId: company.companyId },
-          { $set: { encryptedPassword, recoveryCode: "" } }
-        );
-
-        sendResponse(
-          res,
-          constans.RESPONSE_SUCCESS,
-          "Set new password successful",
-          set,
-          []
-        );
-      } else {
-        sendResponse(
-          res,
-          constans.RESPONSE_BAD_REQUEST,
-          "Invalid or expired code",
-          "",
-          []
-        );
-      }
+      sendResponse( res, constans.RESPONSE_BAD_REQUEST, "Invalid or expired code", "", []);
     }
   } catch (error) {
-    sendResponse(
-      res,
-      constans.RESPONSE_INT_SERVER_ERROR,
-      constans.UNHANDLED_ERROR,
-      {},
-      [error.message]
-    );
+    sendResponse(res, constans.RESPONSE_INT_SERVER_ERROR, constans.UNHANDLED_ERROR, {}, [error.message]);
   }
 };
 

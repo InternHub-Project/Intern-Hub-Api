@@ -42,34 +42,30 @@ const updateUser=async(req,res,next)=>{
     try {
         const {userId}=req.user;
         if(req.files && req.files["image"] && req.files["image"][0]){
-           const image=await imageKit.upload(
+            const image=await imageKit.upload(
                 {
-                  file: req.files["image"][0].buffer.toString('base64'), //required
-                  fileName: req.files["image"][0].originalname, //required,
-                  folder:`internHub/${userId}`,
-                  useUniqueFileName:true
+                    file: req.files["image"][0].buffer.toString('base64'), //required
+                    fileName: req.files["image"][0].originalname, //required,
+                    folder:`internHub/${userId}`,
+                    useUniqueFileName:true
                 },
-              );
-             req.body.profileImage=image.url
+            );
+            req.body.profileImage=image.url
         }
-    
         if(req.files && req.files["file"] && req.files["file"][0]){
-           const cv =await imageKit.upload(
+            const cv =await imageKit.upload(
                 {
-                  file:req.files["file"][0].buffer.toString('base64'), //required
-                  fileName: req.files["file"][0].originalname, //required,
-                  folder:`internHub/${userId}`,
-                  useUniqueFileName:true
+                    file:req.files["file"][0].buffer.toString('base64'), //required
+                    fileName: req.files["file"][0].originalname, //required,
+                    folder:`internHub/${userId}`,
+                    useUniqueFileName:true
                 },
-              );
-              req.body.cv=cv.url
-
+            );
+            req.body.cv=cv.url
         }
         
         const user=await userModel.findOneAndUpdate({userId:userId},{$set:req.body},{runValidators: true})
         sendResponse(res,constans.RESPONSE_SUCCESS,"user updated success",{user:user.userId},[])
-    
-
     } catch (error) {
         sendResponse(res,constans.RESPONSE_INT_SERVER_ERROR,constans.UNHANDLED_ERROR,"",error.message);
     }

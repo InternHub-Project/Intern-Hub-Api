@@ -38,13 +38,7 @@ const createIntern = async (req, res, next) => {
     const jobData = await job.save();
     sendResponse(res, constans.RESPONSE_CREATED, "Done", jobData, []);
   } catch (error) {
-    sendResponse(
-      res,
-      constans.RESPONSE_INT_SERVER_ERROR,
-      constans.UNHANDLED_ERROR,
-      "",
-      error.message
-    );
+    sendResponse(res, constans.RESPONSE_INT_SERVER_ERROR, constans.UNHANDLED_ERROR, "", error.message);
   }
 };
 
@@ -56,21 +50,9 @@ const updateIntren = async (req, res, next) => {
       { $set: req.body },
       { runValidators: true }
     );
-    sendResponse(
-      res,
-      constans.RESPONSE_SUCCESS,
-      "intern updated success",
-      { job },
-      []
-    );
+    sendResponse(res, constans.RESPONSE_SUCCESS, "intern updated success", { job }, []);
   } catch (err) {
-    sendResponse(
-      res,
-      constans.RESPONSE_INT_SERVER_ERROR,
-      constans.UNHANDLED_ERROR,
-      "",
-      err.message
-    );
+    sendResponse(res, constans.RESPONSE_INT_SERVER_ERROR, constans.UNHANDLED_ERROR, "", err.message);
   }
 };
 
@@ -83,29 +65,11 @@ const closeIntern = async (req, res, next) => {
       { new: true, runValidators: true }
     );
     if (!updatedStatus) {
-      return sendResponse(
-        res,
-        constans.RESPONSE_NOT_FOUND,
-        "Job not found or intern status is already closed",
-        {},
-        []
-      );
+      return sendResponse(res, constans.RESPONSE_NOT_FOUND, "Job not found or intern status is already closed", {}, []);
     }
-    sendResponse(
-      res,
-      constans.RESPONSE_SUCCESS,
-      "Intern status closed successfully",
-      { job: updatedStatus },
-      []
-    );
+    sendResponse(res, constans.RESPONSE_SUCCESS, "Intern status closed successfully", { job: updatedStatus }, []);
   } catch (err) {
-    sendResponse(
-      res,
-      constans.RESPONSE_INT_SERVER_ERROR,
-      constans.UNHANDLED_ERROR,
-      "",
-      err.message
-    );
+    sendResponse(res, constans.RESPONSE_INT_SERVER_ERROR, constans.UNHANDLED_ERROR, "", err.message);
   }
 };
 
@@ -127,7 +91,7 @@ const companyJobs=async(req,res,next)=>{
     if(!jobs){
       sendResponse(res,constans.RESPONSE_NOT_FOUND,"No Job Found!",{},[])
     }else{
-    sendResponse(res,constans.RESPONSE_SUCCESS,"Done",{jobs},[])
+      sendResponse(res,constans.RESPONSE_SUCCESS,"Done",{jobs},[])
     }
   } catch (error) {
     sendResponse(res,constans.RESPONSE_INT_SERVER_ERROR,constans.UNHANDLED_ERROR,"",error.message);
