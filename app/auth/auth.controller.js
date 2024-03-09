@@ -29,21 +29,21 @@ const signUp = async (req, res, next) => {
       const confirmLink = "confirm u account";
       const confirmMessag =
         "Confirmation Email Send From Intern-Hub Application";
-      const info = await helper.sendEmail(req,newUser,"auth/confirmemail",confirmLink,confirmMessag);
+      const info = await helper.sendConfirmEmail(req,newUser,"auth/confirmemail",confirmLink,confirmMessag);
       if (info) {
         const savedUser = await newUser.save();
         sendResponse(res,constans.RESPONSE_CREATED,"Done",savedUser.userId,{});
       } else {
-        sendResponse(res,constans.RESPONSE_BAD_REQUEST,constans.UNHANDLED_ERROR,[],"rejected Eamil");
-        }
+        sendResponse(res,constans.RESPONSE_BAD_REQUEST,"rejected Eamil", [], []);
+      }
     }else if(user && user.isDeleted){
       await userModel.updateOne({email}, {$set:{isDeleted: false}});
       sendResponse(res,constans.RESPONSE_CREATED,"Done",user.userId,{});
     }else{
-      sendResponse(res,constans.RESPONSE_BAD_REQUEST,constans.UNHANDLED_ERROR,"","email already exist");
+      sendResponse(res,constans.RESPONSE_BAD_REQUEST,"email already exist", "" , []);
     }
   } catch (error) {
-    sendResponse(res,constans.RESPONSE_BAD_REQUEST,constans.UNHANDLED_ERROR,"",error.message);
+    sendResponse( res,constans.RESPONSE_INT_SERVER_ERROR,error.message,{},constans.UNHANDLED_ERROR);
   }
 };
 
@@ -52,9 +52,8 @@ const confirmemail = async (req, res, next) => {
   try {
     const { token } = req.params;
     const decoded = jwt.verify(token, CONFIG.jwt_encryption);
-    
     if (!decoded?.userId && !decoded?.companyId) {
-      sendResponse(res,constans.RESPONSE_UNAUTHORIZED,constans.UNHANDLED_ERROR,{},"invaildToken");
+      sendResponse(res,constans.RESPONSE_UNAUTHORIZED,"invaildToken",{},[]);
     } else {
       let user = '';
       let company = '';
@@ -62,22 +61,22 @@ const confirmemail = async (req, res, next) => {
         user = await userModel.findOneAndUpdate(
           { userId: decoded.userId, activateEmail: false },
           { activateEmail: true }
-          );
-        }
-        if(decoded.TO === "company"){
+        );
+      }
+      else if(decoded.TO === "company"){
           company = await companyModel.findOneAndUpdate(
             { companyId: decoded.companyId, activateEmail: false },
             { activateEmail: true }
             );
-          }
+        }
       if (!user && !company) {
-        sendResponse(res,constans.RESPONSE_NOT_FOUND,constans.UNHANDLED_ERROR,{},"email already confirmed or in-vaild token");
+        sendResponse(res,constans.RESPONSE_NOT_FOUND,"email already confirmed or in-vaild token",{},[]);
       } else {
         sendResponse(res,constans.RESPONSE_SUCCESS,"Confirmed Succeed",{},[]);
       }
     }
   } catch (error) {
-    sendResponse( res,constans.RESPONSE_INT_SERVER_ERROR,constans.UNHANDLED_ERROR,{},error.message);
+    sendResponse( res,constans.RESPONSE_INT_SERVER_ERROR,error.message,{},constans.UNHANDLED_ERROR);
   }
 };
 
@@ -90,21 +89,20 @@ const login = async (req, res, next) => {
     if (!user|| user.isDeleted) {
       return sendResponse(res,constans.RESPONSE_NOT_FOUND,"Email not found!",{},[]);
     }
-    //..Check if Email is Activated..//
-    if (!user.activateEmail) {
-      const confirmLink = "confirm u account";
-      const confirmMessag = "Confirmation Email Send From Intern-Hub Application";
-      const result = await helper.sendEmail(req,user,"auth/confirmemail",confirmLink,confirmMessag);
-      if (result) {
-        return sendResponse(res,constans.RESPONSE_BAD_REQUEST,"Confirm your email ... we've sent a message at your email",{},[]);
-      }
-    }
     //..Compare Passwords..//
     const isPasswordCorrect = await bcrypt.compare(password, user.password);
     if (!isPasswordCorrect) {
       return sendResponse(res, constans.RESPONSE_NOT_FOUND, "Wrong password!", {}, []);
     }
-
+    //..Check if Email is Activated..//
+    if (!user.activateEmail) {
+      const confirmLink = "confirm u account";
+      const confirmMessag = "Confirmation Email Send From Intern-Hub Application";
+      const result = await helper.sendConfirmEmail(req,user,"auth/confirmemail",confirmLink,confirmMessag);
+      if (result) {
+        return sendResponse(res,constans.RESPONSE_BAD_REQUEST,"Confirm your email ... we've sent a message at your email",{},[]);
+      }
+    }
     //..Generate Access Token..//
     const accToken = await jwtGenerator({ userId: user.userId,role:"user" }, 24, "h");
     existingToken = await tokenSchema.findOne({ userId: user.userId });
@@ -125,10 +123,10 @@ const login = async (req, res, next) => {
       secure: false,
     });
     // this line for exclude encryptedPassword  __v, activateEmail, _id, recoveryCode, recoveryCodeDate from user
-    const { encryptedPassword, __v, activateEmail, _id, recoveryCode, recoveryCodeDate, ...rest } = user._doc;
+    const { encryptedPassword, __v, activateEmail, _id, recoveryCode, recoveryCodeDate, isDeleted,  ...rest } = user._doc;
     return sendResponse(res, constans.RESPONSE_SUCCESS, "Login Succeed", rest, []);
   } catch (error) {
-    sendResponse(res,constans.RESPONSE_INT_SERVER_ERROR,constans.UNHANDLED_ERROR,"",error.message);
+    sendResponse( res,constans.RESPONSE_INT_SERVER_ERROR,error.message,{},constans.UNHANDLED_ERROR);
   }
 };
 
@@ -152,7 +150,7 @@ const forgotPasswordEmail = async (req, res, next) => {
       }
     }
   } catch (error) {
-    sendResponse(res,constans.RESPONSE_INT_SERVER_ERROR,constans.UNHANDLED_ERROR,"",error.message);
+    sendResponse( res,constans.RESPONSE_INT_SERVER_ERROR,error.message,{},constans.UNHANDLED_ERROR);
   }
 };
 
@@ -173,7 +171,7 @@ const setPassword = async (req, res, next) => {
       sendResponse(res, constans.RESPONSE_BAD_REQUEST, "This code is not correct", "", []);
     }
   } catch (error) {
-    sendResponse(res, constans.RESPONSE_INT_SERVER_ERROR, constans.UNHANDLED_ERROR, {}, [error.message]);
+    sendResponse( res,constans.RESPONSE_INT_SERVER_ERROR,error.message,{},constans.UNHANDLED_ERROR);
   }
 };
 
@@ -199,7 +197,7 @@ const reSendcode = async (req, res, next) => {
       }
     }
   } catch (error) {
-    sendResponse(res, constans.RESPONSE_INT_SERVER_ERROR, constans.UNHANDLED_ERROR, "", [error.message]);
+    sendResponse( res,constans.RESPONSE_INT_SERVER_ERROR,error.message,{},constans.UNHANDLED_ERROR);
   }
 };
 
@@ -208,7 +206,7 @@ const social_google = async (req, res, next) => {
   try {
     const { email, email_verified } = req.user._json;
     if (!email_verified) {
-      sendResponse(res, constans.RESPONSE_BAD_REQUEST, constans.UNHANDLED_ERROR, {}, "in_valid google account");
+      sendResponse(res, constans.RESPONSE_BAD_REQUEST, "in_valid google account", {}, []);
     } else {
       const searchUser = await userModel.findOne({ email });
       //.....if findUser then user want to login......//
@@ -264,7 +262,7 @@ const social_google = async (req, res, next) => {
       }
     }
   } catch (error) {
-    sendResponse(res, constans.RESPONSE_INT_SERVER_ERROR, constans.UNHANDLED_ERROR, {}, [error.message]);
+    sendResponse(res, constans.RESPONSE_INT_SERVER_ERROR, error.message, {}, [constans.UNHANDLED_ERROR]);
   }
 };
 
@@ -287,18 +285,18 @@ const companySignUp = async (req, res, next) => {
           });
           const confirmLink = "confirm company account";
           const confirmMessag = "Confirmation Email Send From Intern-Hub Application";
-          const info = await helper.sendCompanyEmail(req, newCompany, "auth/confirmemail", confirmLink, confirmMessag);
+          const info = await helper.sendConfirmEmail(req, newCompany, "auth/confirmemail", confirmLink, confirmMessag);
           if (info) {
             const savedCompany = await newCompany.save();
             sendResponse(res,constans.RESPONSE_CREATED,"Done",savedCompany.companyId,{});
           } else {
-            sendResponse(res,constans.RESPONSE_BAD_REQUEST,constans.UNHANDLED_ERROR,[],"rejected Eamil");
+            sendResponse(res,constans.RESPONSE_BAD_REQUEST,"rejected Eamil",[],[]);
           }
       }else{
-          sendResponse(res,constans.RESPONSE_BAD_REQUEST,constans.UNHANDLED_ERROR,"","email already exist");
+          sendResponse(res,constans.RESPONSE_BAD_REQUEST,"email already exist","",[]);
       }
   } catch (error) {
-      sendResponse(res,constans.RESPONSE_BAD_REQUEST,constans.UNHANDLED_ERROR,"",error.message);
+      sendResponse(res,constans.RESPONSE_BAD_REQUEST,error.message,"",constans.UNHANDLED_ERROR);
   }
 };
 
@@ -311,22 +309,20 @@ const companyLogin = async (req, res, next) => {
     if (!company) {
       return sendResponse(res,constans.RESPONSE_NOT_FOUND,"Email not found!",{},[]);
     }
-    //..Check if Email is Activated..//
-    if (!company.activateEmail) {
-      const confirmLink = "confirm u account";
-      const confirmMessag =
-        "Confirmation Email Send From Intern-Hub Application";
-      const result = await helper.sendCompanyEmail(req,company,"auth/confirmemail",confirmLink,confirmMessag);
-      if (result) {
-        return sendResponse(res,constans.RESPONSE_BAD_REQUEST,"Confirm your email ... we've sent a message at your email",{},[]);
-      }
-    }
     //..Compare Passwords..//
     const isPasswordCorrect = await bcrypt.compare(password, company.password);
     if (!isPasswordCorrect) {
       return sendResponse(res, constans.RESPONSE_NOT_FOUND, "Wrong password!", {}, []);
     }
-    
+    //..Check if Email is Activated..//
+    if (!company.activateEmail) {
+      const confirmLink = "confirm u account";
+      const confirmMessag = "Confirmation Email Send From Intern-Hub Application";
+      const result = await helper.sendConfirmEmail(req,company,"auth/confirmemail",confirmLink,confirmMessag);
+      if (result) {
+        return sendResponse(res,constans.RESPONSE_BAD_REQUEST,"Confirm your email ... we've sent a message at your email",{},[]);
+      }
+    }
     //..Generate Access Token..//
     const accToken = await jwtGenerator({ companyId: company.companyId }, 24, "h");
     existingToken = await tokenSchema.findOne({ companyId: company.companyId });
@@ -349,9 +345,9 @@ const companyLogin = async (req, res, next) => {
     });
     // this line for exclude encryptedPassword  __v, activateEmail, _id, recoveryCode, recoveryCodeDate from company
     const { encryptedPassword, __v, activateEmail, _id, recoveryCode, recoveryCodeDate, ...rest } = company._doc;
-    return sendResponse(res, constans.RESPONSE_SUCCESS, "Login Succeed", rest, []);
+    sendResponse(res, constans.RESPONSE_SUCCESS, "Login Succeed", rest, []);
   } catch (error) {
-    sendResponse(res,constans.RESPONSE_INT_SERVER_ERROR,constans.UNHANDLED_ERROR,"",error.message);
+    sendResponse( res,constans.RESPONSE_INT_SERVER_ERROR,error.message,{},constans.UNHANDLED_ERROR);
   }
 };
 
@@ -361,11 +357,11 @@ const forgetCompanyPassword = async (req, res, next) => {
     const { email } = req.body;
     const company = await companyModel.findOne({ email: email });
     if (!company) {
-      sendResponse(res, constans.RESPONSE_BAD_REQUEST, constans.UNHANDLED_ERROR, {}, "this email does not exist");
+      sendResponse(res, constans.RESPONSE_BAD_REQUEST, "this email does not exist", {}, []);
     } else {
       const code = Math.floor(10000 + Math.random() * 90000);
       const setPasswordMessag = "an update password email was sent from Intern-Hub";
-      const info = helper.sendCompanyEmail(company, setPasswordMessag, code); 
+      const info = helper.sendEmail(company, setPasswordMessag, code); 
       if (info) {
         await companyModel.updateOne(
           { email },
@@ -375,7 +371,7 @@ const forgetCompanyPassword = async (req, res, next) => {
       }
     }
   } catch (error) {
-    sendResponse(res, constans.RESPONSE_INT_SERVER_ERROR, constans.UNHANDLED_ERROR, "", error.message);
+    sendResponse( res,constans.RESPONSE_INT_SERVER_ERROR,error.message,{},constans.UNHANDLED_ERROR);
   }
 };
 
@@ -395,7 +391,7 @@ const updateCompanyPassword = async (req, res, next) => {
       sendResponse( res, constans.RESPONSE_BAD_REQUEST, "Invalid or expired code", "", []);
     }
   } catch (error) {
-    sendResponse(res, constans.RESPONSE_INT_SERVER_ERROR, constans.UNHANDLED_ERROR, {}, [error.message]);
+    sendResponse( res,constans.RESPONSE_INT_SERVER_ERROR,error.message,{},constans.UNHANDLED_ERROR);;
   }
 };
 
