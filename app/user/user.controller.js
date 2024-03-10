@@ -1,5 +1,5 @@
 const userModel = require("../DB/models/user.Schema.js");
-const { sendResponse } = require("../utils/util.service.js");
+const { sendResponse ,paginationWrapper  } = require("../utils/util.service.js");
 const { skillsModel } = require("../utils/utils.schema.js");
 const { v4: uuidv4 } = require("uuid");
 const constans=require("../utils/constants.js");
@@ -123,11 +123,11 @@ const signOut=async(req,res,next)=>{
 const appliedjobs = async (req, res, next)=>{
     try{
         const { userId } = req.user;
-        const{skip,limit}=paginate({
-            page:req.query.page,
-            size:req.query.size
-        })
-        const jobs = await applicantModel.find({userId}).limit(limit).skip(skip);
+      const{limit,offset}=paginationWrapper(
+            page=req.query.page,
+            size=req.query.size
+          )
+        const jobs = await applicantModel.find({userId}).limit(limit).skip(offset);
         if(!jobs){
             sendResponse(res,constans.RESPONSE_NOT_FOUND,"No Job Found!",{},[])
         }else{
