@@ -39,11 +39,20 @@ const jobSchema=new mongoose.Schema({
     timestamps:true
 })
 
+jobSchema.virtual("applicants",{
+    ref:"Applicant",
+    localField:"jobId",
+    foreignField:"jobId"
+})
+
 jobSchema.virtual("company" /* any name you want */, {
     ref:"Company",            //->refer to Company model
     localField:"companyId",   //->specifies the field in the current schema that contains the value to match against the foreignField.
     foreignField:"companyId"  //->specifies the field in  (Company schema) that should match the value of the localField.
 })
+
+
+
 
 
 const jobModel=mongoose.model("Job",jobSchema);
