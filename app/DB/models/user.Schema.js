@@ -42,7 +42,7 @@ const userSchema = new mongoose.Schema(
         accountType:{
             type:String,
             default:"system",
-            enum:["system","google"]
+            enum:["system", "google", "facebook"]
         },
         isDeleted:{
             type:Boolean,
