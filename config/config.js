@@ -13,6 +13,8 @@ CONFIG.db_user = process.env.DB_USER;
 CONFIG.db_password = process.env.DB_PASSWORD;
 CONFIG.db_cluster = process.env.DB_CLUSTER;
 
+CONFIG.PAGINATION_SIZE=5
+
 CONFIG.jwt_encryption =
   process.env.JWT_ENCRYPTION || `${CONFIG.APP_NAME}@ENCRYPTION`;
 CONFIG.jwt_expiration = process.env.JWT_EXPIRATION || 90000;
