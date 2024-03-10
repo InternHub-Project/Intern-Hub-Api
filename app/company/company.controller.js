@@ -1,4 +1,4 @@
-const { sendResponse } = require("../utils/util.service");
+const { sendResponse ,paginationWrapper  } = require("../utils/util.service");
 const CONFIG = require("../../config/config");
 const jwt = require("jsonwebtoken");
 const constans = require("../utils/constants");
@@ -77,17 +77,19 @@ const closeIntern = async (req, res, next) => {
 const companyJobs=async(req,res,next)=>{
   try {
     const {companyId}=req.user
-    const{skip,limit}=paginate({
-      page:req.query.page,
-      size:req.query.size
-    })
+    const{limit,offset}=paginationWrapper(
+      page=req.query.page,
+      size=req.query.size
+    )
     const jobs=await jobModel.find({companyId}).populate([
       {
-        path:"company",
-        select:"name address image"
+        path:"applicants",
+        populate:{
+          path:"user",
+          select:"email firstName lastName"
+        }
       }
-    ],
-    ).limit(limit).skip(skip)
+    ]).skip(offset).limit(limit)
     if(!jobs){
       sendResponse(res,constans.RESPONSE_NOT_FOUND,"No Job Found!",{},[])
     }else{
