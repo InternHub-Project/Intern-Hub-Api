@@ -232,7 +232,8 @@ const social_google = async (req, res, next) => {
           httpOnly: true,
           secure: true,
         });
-        sendResponse(res, constans.RESPONSE_SUCCESS, "Login Succeed", {}, []);
+        const { encryptedPassword, __v, activateEmail, _id, recoveryCode, recoveryCodeDate, isDeleted,  ...rest } = searchUser._doc;
+        sendResponse(res, constans.RESPONSE_SUCCESS, "Login Succeed", rest, []);
       }
       //.....if not user then saved  user in database.........//
       else {
@@ -258,7 +259,8 @@ const social_google = async (req, res, next) => {
           token: signupToken,
         });
         await token.save();
-        sendResponse(res, constans.RESPONSE_CREATED, "Done", {}, []);
+        const { encryptedPassword, __v, activateEmail, _id, recoveryCode, recoveryCodeDate, isDeleted,  ...rest } = user._doc;
+        sendResponse(res, constans.RESPONSE_CREATED, "Done", rest, []);
       }
     }
   } catch (error) {
@@ -296,7 +298,8 @@ const social_facebook = async (req, res, next) => {
           httpOnly: true,
           secure: true,
         });
-        sendResponse(res, constans.RESPONSE_SUCCESS, "Login Succeed", {}, []);
+        const { encryptedPassword, __v, activateEmail, _id, recoveryCode, recoveryCodeDate, isDeleted,  ...rest } = searchUser._doc;
+        sendResponse(res, constans.RESPONSE_SUCCESS, "Login Succeed", rest, []);
       }
       //.....if not user then saved  user in database.........//
       else {
@@ -322,7 +325,8 @@ const social_facebook = async (req, res, next) => {
           token: signupToken,
         });
         await token.save();
-          sendResponse(res, constans.RESPONSE_CREATED, "Done", {}, []);
+        const { encryptedPassword, __v, activateEmail, _id, recoveryCode, recoveryCodeDate, isDeleted,  ...rest } = user._doc;
+          sendResponse(res, constans.RESPONSE_CREATED, "Done", rest, []);
       }
     }
   }catch(error){
