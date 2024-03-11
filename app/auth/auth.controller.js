@@ -232,7 +232,8 @@ const social_google = async (req, res, next) => {
           httpOnly: true,
           secure: true,
         });
-        sendResponse(res, constans.RESPONSE_SUCCESS, "Login Succeed", {}, []);
+        const { encryptedPassword, __v, activateEmail, _id, recoveryCode, recoveryCodeDate, isDeleted,  ...rest } = searchUser._doc;
+        sendResponse(res, constans.RESPONSE_SUCCESS, "Login Succeed", rest, []);
       }
       //.....if not user then saved  user in database.........//
       else {
@@ -258,13 +259,80 @@ const social_google = async (req, res, next) => {
           token: signupToken,
         });
         await token.save();
-        sendResponse(res, constans.RESPONSE_CREATED, "Done", {}, []);
+        const { encryptedPassword, __v, activateEmail, _id, recoveryCode, recoveryCodeDate, isDeleted,  ...rest } = user._doc;
+        sendResponse(res, constans.RESPONSE_CREATED, "Done", rest, []);
       }
     }
   } catch (error) {
     sendResponse(res, constans.RESPONSE_INT_SERVER_ERROR, error.message, {}, [constans.UNHANDLED_ERROR]);
   }
 };
+const social_facebook = async (req, res, next) => {
+  try{
+    //console.log(req.user._json);
+    const { email } = req.user._json;
+    if (!email) {
+      sendResponse(res, constans.RESPONSE_BAD_REQUEST, "in_valid facebook account", {}, []);
+    } else {
+      const searchUser = await userModel.findOne({ email });
+      //.....if findUser then user want to login......//
+      if (searchUser) {
+        const accToken = await jwtGenerator({ userId: searchUser.userId }, 24, "h");
+        const existingToken = await tokenSchema.findOne({
+          userId: searchUser.userId,
+        });
+        if (existingToken) {
+          await tokenSchema.updateOne(
+            { userId: searchUser.userId },
+            { $set: { accToken } }
+          );
+        } else {
+          newToken = new tokenSchema({
+            userId: searchUser.userId,
+            token: accToken,
+          });
+          await newToken.save();
+        }
+        // Set the access token as an HTTP-only cookie
+        res.cookie("token", accToken, {
+          httpOnly: true,
+          secure: true,
+        });
+        const { encryptedPassword, __v, activateEmail, _id, recoveryCode, recoveryCodeDate, isDeleted,  ...rest } = searchUser._doc;
+        sendResponse(res, constans.RESPONSE_SUCCESS, "Login Succeed", rest, []);
+      }
+      //.....if not user then saved  user in database.........//
+      else {
+        const { first_name, last_name } = req.user._json;
+        const { provider } = req.user;
+        const user = await userModel({
+          userId: "user" + uuidv4(),
+          email,
+          accountType: provider,
+          activateEmail: true,
+          firstName: first_name,
+          lastName: last_name,
+          password:CONFIG.DUMMY_PASSWORD
+        });
+        const savedUser = await user.save();
+        const signupToken = await jwtGenerator({ userId: savedUser.userId }, 24, "h");
+        res.cookie("token", signupToken, {
+          httpOnly: true,
+          secure: true,
+        });
+        const token = new tokenSchema({
+          userId: savedUser.userId,
+          token: signupToken,
+        });
+        await token.save();
+        const { encryptedPassword, __v, activateEmail, _id, recoveryCode, recoveryCodeDate, isDeleted,  ...rest } = user._doc;
+          sendResponse(res, constans.RESPONSE_CREATED, "Done", rest, []);
+      }
+    }
+  }catch(error){
+    sendResponse(res, constans.RESPONSE_INT_SERVER_ERROR, error.message, {}, [constans.UNHANDLED_ERROR]);
+  }
+}
 
 
 //------------------------------------company-----------------------------------------//
@@ -403,6 +471,7 @@ module.exports = {
   forgotPasswordEmail,
   setPassword,
   social_google,
+  social_facebook,
   reSendcode,
   companySignUp,
   companyLogin,

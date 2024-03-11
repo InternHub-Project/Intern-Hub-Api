@@ -11,16 +11,19 @@ router.post("/user/login", authCon.login);
 router.post("/user/forgotPasswordEmail", authCon.forgotPasswordEmail);
 router.put("/user/setPassword", authCon.setPassword);
 router.post("/reSendcode", rateLimiter, authCon.reSendcode);
-router.get(
-  "/google",
-  passport.authenticate("google", { scope: ["email", "profile"] })
-);
+router.get("/google", passport.authenticate("google", { scope: ["email", "profile"] }));
 router.get(
   "/google/callback",
   passport.authenticate("google", {
     failureRedirect: "localhost:3003/api/v1/auth/login",
   }),
   authCon.social_google
+);
+
+router.get('/facebook', passport.authenticate('facebook', { scope: ["email"] }));
+router.get('/facebook/callback',
+  passport.authenticate('facebook', { failureRedirect: 'localhost:3003/api/v1/auth/login' }),
+  authCon.social_facebook
 );
 //----------------companyy--------------//
 router.post("/company/signup", authCon.companySignUp);
