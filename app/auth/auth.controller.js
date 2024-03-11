@@ -252,7 +252,7 @@ const social_google = async (req, res, next) => {
         const signupToken = await jwtGenerator({ userId: savedUser.userId }, 24, "h");
         res.cookie("token", signupToken, {
           httpOnly: true,
-          secure: true,
+          secure: false,
         });
         const token = new tokenSchema({
           userId: savedUser.userId,
@@ -296,7 +296,7 @@ const social_facebook = async (req, res, next) => {
         // Set the access token as an HTTP-only cookie
         res.cookie("token", accToken, {
           httpOnly: true,
-          secure: true,
+          secure: false,
         });
         const { encryptedPassword, __v, activateEmail, _id, recoveryCode, recoveryCodeDate, isDeleted,  ...rest } = searchUser._doc;
         sendResponse(res, constans.RESPONSE_SUCCESS, "Login Succeed", rest, []);
