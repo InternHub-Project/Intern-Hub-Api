@@ -1,4 +1,4 @@
-const { sendResponse } = require("../utils/util.service");
+const { sendResponse ,paginationWrapper  } = require("../utils/util.service");
 const CONFIG = require("../../config/config");
 const jwt = require("jsonwebtoken");
 const constans = require("../utils/constants");
@@ -6,6 +6,8 @@ const path = require("path");
 const { v4: uuidv4 } = require("uuid");
 const jobModel = require("../DB/models/job.schema.js");
 const paginate = require("../utils/pagination.js");
+const companyModel = require("../DB/models/company.Schema.js");
+const applicantModel = require('../DB/models/applicant.schema.js');
 
 const createIntern = async (req, res, next) => {
   try {
@@ -36,13 +38,7 @@ const createIntern = async (req, res, next) => {
     const jobData = await job.save();
     sendResponse(res, constans.RESPONSE_CREATED, "Done", jobData, []);
   } catch (error) {
-    sendResponse(
-      res,
-      constans.RESPONSE_INT_SERVER_ERROR,
-      constans.UNHANDLED_ERROR,
-      "",
-      error.message
-    );
+    sendResponse(res, constans.RESPONSE_INT_SERVER_ERROR, constans.UNHANDLED_ERROR, "", error.message);
   }
 };
 
@@ -54,21 +50,9 @@ const updateIntren = async (req, res, next) => {
       { $set: req.body },
       { runValidators: true }
     );
-    sendResponse(
-      res,
-      constans.RESPONSE_SUCCESS,
-      "intern updated success",
-      { job },
-      []
-    );
+    sendResponse(res, constans.RESPONSE_SUCCESS, "intern updated success", { job }, []);
   } catch (err) {
-    sendResponse(
-      res,
-      constans.RESPONSE_INT_SERVER_ERROR,
-      constans.UNHANDLED_ERROR,
-      "",
-      err.message
-    );
+    sendResponse(res, constans.RESPONSE_INT_SERVER_ERROR, constans.UNHANDLED_ERROR, "", err.message);
   }
 };
 
@@ -81,60 +65,77 @@ const closeIntern = async (req, res, next) => {
       { new: true, runValidators: true }
     );
     if (!updatedStatus) {
-      return sendResponse(
-        res,
-        constans.RESPONSE_NOT_FOUND,
-        "Job not found or intern status is already closed",
-        {},
-        []
-      );
+      return sendResponse(res, constans.RESPONSE_NOT_FOUND, "Job not found or intern status is already closed", {}, []);
     }
-    sendResponse(
-      res,
-      constans.RESPONSE_SUCCESS,
-      "Intern status closed successfully",
-      { job: updatedStatus },
-      []
-    );
+    sendResponse(res, constans.RESPONSE_SUCCESS, "Intern status closed successfully", { job: updatedStatus }, []);
   } catch (err) {
-    sendResponse(
-      res,
-      constans.RESPONSE_INT_SERVER_ERROR,
-      constans.UNHANDLED_ERROR,
-      "",
-      err.message
-    );
+    sendResponse(res, constans.RESPONSE_INT_SERVER_ERROR, constans.UNHANDLED_ERROR, "", err.message);
   }
 };
 
-
+///...................i will modify this endpoint  later..............//
 const companyJobs=async(req,res,next)=>{
   try {
     const {companyId}=req.user
-    const{skip,limit}=paginate({
-      page:req.query.page,
-      size:req.query.size
-    })
+    const{limit,offset}=paginationWrapper(
+      page=req.query.page,
+      size=req.query.size
+    )
     const jobs=await jobModel.find({companyId}).populate([
       {
-        path:"company",
-        select:"name address image"
+        path:"applicants",
+        populate:{
+          path:"user",
+          select:"email firstName lastName"
+        }
       }
-    ],
-    ).limit(limit).skip(skip)
+    ]).skip(offset).limit(limit)
     if(!jobs){
       sendResponse(res,constans.RESPONSE_NOT_FOUND,"No Job Found!",{},[])
     }else{
-    sendResponse(res,constans.RESPONSE_SUCCESS,"Done",{jobs},[])
+      sendResponse(res,constans.RESPONSE_SUCCESS,"Done",{jobs},[])
     }
   } catch (error) {
     sendResponse(res,constans.RESPONSE_INT_SERVER_ERROR,constans.UNHANDLED_ERROR,"",error.message);
   }
 }
 
+
+//****** change applicant status *******/
+
+const applicantStatus = async (req, res, next) => {
+  try {
+    const { userId,status } = req.params;
+    const checkUser = await applicantModel.findOne({ userId });
+
+    if (checkUser) {
+      const jobId = checkUser.jobId;
+      const job = await jobModel.findOne({ jobId });
+     if (job) {
+        const companyId = req.user?.companyId;
+        if (companyId === job.companyId) {
+          const newStatus = status.toLowerCase() === 'accepted' ? 'accepted' : 'rejected';
+          await applicantModel.findOneAndUpdate({ userId }, { status: newStatus });
+          sendResponse(res, constans.RESPONSE_SUCCESS, constans.SUCCESS, {}, `Applicant ${newStatus}`); 
+        } else {
+          sendResponse(res, constans.RESPONSE_BAD_REQUEST, constans.BAD_REQUEST, {}, "Company not matched");
+        }
+      } else {
+        sendResponse(res, constans.RESPONSE_NOT_FOUND, constans.NOT_FOUND, {}, "Job not found");
+      }
+    } else {
+      sendResponse(res, constans.RESPONSE_NOT_FOUND, constans.NOT_FOUND, {}, "User not found");
+    }
+  } catch (err) {
+    sendResponse(res, constans.RESPONSE_INT_SERVER_ERROR, constans.UNHANDLED_ERROR, "", err.message);
+  }
+};
+
+
 module.exports = {
   createIntern,
   updateIntren,
   closeIntern,
-  companyJobs
+  companyJobs,
+  applicantStatus
 };

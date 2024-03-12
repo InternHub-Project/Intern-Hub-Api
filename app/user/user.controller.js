@@ -1,5 +1,5 @@
 const userModel = require("../DB/models/user.Schema.js");
-const { sendResponse } = require("../utils/util.service.js");
+const { sendResponse ,paginationWrapper  } = require("../utils/util.service.js");
 const { skillsModel } = require("../utils/utils.schema.js");
 const { v4: uuidv4 } = require("uuid");
 const constans=require("../utils/constants.js");
@@ -7,6 +7,9 @@ const bcrypt = require("bcryptjs");
 const tokenSchema = require("../auth/token.schema.js");
 const CONFIG = require('../../config/config.js');
 const { imageKit } = require("../utils/imagekit.js");
+const applicantModel = require('../DB/models/applicant.schema.js');
+const paginate = require('../utils/pagination.js')
+
 
 
 
@@ -17,7 +20,7 @@ const addSkills=async(req,res,next)=>{
         const {skillName}=req.body;
         const checkSkill=await skillsModel.findOne({skillName:skillName.toLowerCase()})
         if(checkSkill){
-            sendResponse(res,constans.RESPONSE_BAD_REQUEST,constans.UNHANDLED_ERROR,'',"Skill already exist")
+            sendResponse(res,constans.RESPONSE_BAD_REQUEST,"Skill already exist",'',[])
         }
         else{
             const {userId}=req.user;
@@ -29,7 +32,8 @@ const addSkills=async(req,res,next)=>{
             sendResponse(res,constans.RESPONSE_CREATED,"Done",{},[])
         }
     } catch (error) {
-        sendResponse(res,constans.RESPONSE_INT_SERVER_ERROR,constans.UNHANDLED_ERROR,"",error.message);
+        sendResponse(res,constans.RESPONSE_INT_SERVER_ERROR,error.message,"", constans.UNHANDLED_ERROR);
+       
     }
 }
 
@@ -39,36 +43,32 @@ const updateUser=async(req,res,next)=>{
     try {
         const {userId}=req.user;
         if(req.files && req.files["image"] && req.files["image"][0]){
-           const image=await imageKit.upload(
+            const image=await imageKit.upload(
                 {
-                  file: req.files["image"][0].buffer.toString('base64'), //required
-                  fileName: req.files["image"][0].originalname, //required,
-                  folder:`internHub/${userId}`,
-                  useUniqueFileName:true
+                    file: req.files["image"][0].buffer.toString('base64'), //required
+                    fileName: req.files["image"][0].originalname, //required,
+                    folder:`internHub/${userId}`,
+                    useUniqueFileName:true
                 },
-              );
-             req.body.profileImage=image.url
+            );
+            req.body.profileImage=image.url
         }
-    
         if(req.files && req.files["file"] && req.files["file"][0]){
-           const cv =await imageKit.upload(
+            const cv =await imageKit.upload(
                 {
-                  file:req.files["file"][0].buffer.toString('base64'), //required
-                  fileName: req.files["file"][0].originalname, //required,
-                  folder:`internHub/${userId}`,
-                  useUniqueFileName:true
+                    file:req.files["file"][0].buffer.toString('base64'), //required
+                    fileName: req.files["file"][0].originalname, //required,
+                    folder:`internHub/${userId}`,
+                    useUniqueFileName:true
                 },
-              );
-              req.body.cv=cv.url
-
+            );
+            req.body.cv=cv.url
         }
         
         const user=await userModel.findOneAndUpdate({userId:userId},{$set:req.body},{runValidators: true})
         sendResponse(res,constans.RESPONSE_SUCCESS,"user updated success",{user:user.userId},[])
-    
-
     } catch (error) {
-        sendResponse(res,constans.RESPONSE_INT_SERVER_ERROR,constans.UNHANDLED_ERROR,"",error.message);
+        sendResponse(res,constans.RESPONSE_INT_SERVER_ERROR,error.message,"", constans.UNHANDLED_ERROR);
     }
 }
 
@@ -79,7 +79,7 @@ const deleteUser = async (req, res, next)=>{
         await userModel.updateOne({userId}, {$set:{isDeleted: true}})
         sendResponse(res, constans.RESPONSE_SUCCESS, "user deleted", '', [] );
     }catch(error){
-        sendResponse(res,constans.RESPONSE_INT_SERVER_ERROR,constans.UNHANDLED_ERROR,"",error.message);
+           sendResponse(res,constans.RESPONSE_INT_SERVER_ERROR,error.message,"", constans.UNHANDLED_ERROR);
     }
 }
 
@@ -87,7 +87,6 @@ const deleteUser = async (req, res, next)=>{
 //****** changePassword *******/
 const changePassword = async (req, res, next) => {
     try {
-
         const { userId } = req.user;
         const user=await userModel.findOne({userId})
         const { currentPassword, newPassword } = req.body;
@@ -101,11 +100,10 @@ const changePassword = async (req, res, next) => {
             const encryptedPassword = bcrypt.hashSync(newPassword, parseInt(CONFIG.BCRYPT_SALT));
             const updatedPassword = await userModel.updateOne({ userId },{ $set: {encryptedPassword} });
             //const updatedPassword = await userModel.updateOne({ userId },{ $set: { password: newPassword } });
-
             sendResponse(res,constans.RESPONSE_SUCCESS,"Password changed successfully",updatedPassword,[]);
         }
     } catch (error) {
-        sendResponse(res,constans.RESPONSE_INT_SERVER_ERROR,constans.UNHANDLED_ERROR,{},[error.message]);
+            sendResponse(res,constans.RESPONSE_INT_SERVER_ERROR,error.message,"", constans.UNHANDLED_ERROR);
     }
 };
 
@@ -117,11 +115,73 @@ const signOut=async(req,res,next)=>{
         await tokenSchema.findOneAndDelete({token:req.cookies.token})
         sendResponse(res,constans.RESPONSE_SUCCESS, "Sign-Out successfully", '', []);
     } catch (error) {
-        sendResponse(res, constans.RESPONSE_INT_SERVER_ERROR, constans.UNHANDLED_ERROR, '', error.message);
+           sendResponse(res,constans.RESPONSE_INT_SERVER_ERROR,error.message,"", constans.UNHANDLED_ERROR);
     }
 
 }
 
+
+const appliedjobs = async (req, res, next)=>{
+    try{
+        const { userId } = req.user;
+      const{limit,offset}=paginationWrapper(
+            page=req.query.page,
+            size=req.query.size
+          )
+        const jobs = await applicantModel.find({userId}).limit(limit).skip(offset);
+        if(!jobs){
+            sendResponse(res,constans.RESPONSE_NOT_FOUND,"No Job Found!",{},[])
+        }else{
+            sendResponse(res,constans.RESPONSE_SUCCESS,"Done",{jobs},[])
+        }
+    }catch(error){
+           sendResponse(res,constans.RESPONSE_INT_SERVER_ERROR,error.message,"", constans.UNHANDLED_ERROR);
+    }
+}
+//...........Apply to job................//
+const applyJob=async(req,res,next)=>{
+    try{
+          const {userId}=req.user;
+    const {jobId}=req.params
+    const {coverLetter}=req.body;
+    const checkJob=await applicantModel.findOne({userId, jobId})
+    if(checkJob){
+        sendResponse(res,constans.RESPONSE_BAD_REQUEST,"already apply to this job",{},[])
+    }
+    else{
+        const checkResume=await userModel.findOne({userId}).select("cv")
+        if(!checkResume.cv && !req.file){
+            sendResponse(res,constans.RESPONSE_BAD_REQUEST,"please upload your Cv",{},[])
+        }
+        else{
+            if(req.file){
+                const cv=await imageKit.upload({    
+                    file:req.file.buffer.toString("base64"),
+                    fileName:req.file.originalname,
+                    folder:`internHub/${userId}`,
+                    useUniqueFileName:true
+                })
+                req.body.resume=cv.url;
+            }
+            else{
+                req.body.resume=checkResume.cv
+            }
+            const applyToJob=await applicantModel({
+                userId,
+                jobId,
+                coverLetter,
+                status:"pending",
+                resume:req.body.resume
+            })
+            await applyToJob.save()
+            sendResponse(res,constans.RESPONSE_SUCCESS,"Successful to applying",{},[])
+        }
+    }
+    }catch(error){
+        sendResponse(res,constans.RESPONSE_INT_SERVER_ERROR,error.message,"", constans.UNHANDLED_ERROR);
+    }
+  
+}
 
 
 
@@ -132,5 +192,7 @@ module.exports={
     updateUser,
     deleteUser,
     changePassword,
-    signOut
+    signOut,
+    applyJob,
+    appliedjobs,
 }

@@ -13,6 +13,8 @@ CONFIG.db_user = process.env.DB_USER;
 CONFIG.db_password = process.env.DB_PASSWORD;
 CONFIG.db_cluster = process.env.DB_CLUSTER;
 
+CONFIG.PAGINATION_SIZE=5
+
 CONFIG.jwt_encryption =
   process.env.JWT_ENCRYPTION || `${CONFIG.APP_NAME}@ENCRYPTION`;
 CONFIG.jwt_expiration = process.env.JWT_EXPIRATION || 90000;
@@ -27,6 +29,11 @@ CONFIG.DUMMY_PASSWORD = `${CONFIG.APP_NAME}$#ord`;
 CONFIG.GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
 CONFIG.GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET;
 CONFIG.CALL_BACK_URL = process.env.CALL_BACK_URL;
+
+//signup with facebook Configuration
+CONFIG.FACEBOOK_CLINT_ID = process.env.FACEBOOK_CLINT_ID
+CONFIG.FACEBOOK_CLINT_SECRET = process.env.FACEBOOK_CLINT_SECRET
+CONFIG.FACEBOOK_CALLBACK_URL = process.env.FACEBOOK_CALLBACK_URL
 
 //Cloudnairy Configuration
 // CONFIG.CLOUD_NAME=process.env.CLOUD_NAME
