@@ -2,6 +2,7 @@ const passport = require('passport');
 const CONFIG = require('../../config/config.js');
 const GoogleStrategy = require('passport-google-oauth20').Strategy;
 const FacebookStrategy = require('passport-facebook').Strategy;
+const GitHubStrategy = require('passport-github2').Strategy
 
 
 passport.serializeUser(function(user, done) {
@@ -32,6 +33,20 @@ passport.use(new FacebookStrategy({
     profileFields: ['id', 'emails', 'name'] //This
   },
   (request,accessToken, refreshToken, profile, done) =>{
+    console.log(profile);
+    done(null,profile)
+  }
+));
+
+
+
+passport.use(new GitHubStrategy({
+    clientID: CONFIG.GITHUB_CLINT_ID,
+    clientSecret: CONFIG.GITHUB_CLINT_SECRET,
+    callbackURL: CONFIG.GITHUB_CALLBACK_URL,
+  },
+  (request,accessToken, refreshToken, profile, done) =>{
+    console.log(profile);
     done(null,profile)
   }
 ));

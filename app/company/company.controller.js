@@ -5,7 +5,6 @@ const constans = require("../utils/constants");
 const path = require("path");
 const { v4: uuidv4 } = require("uuid");
 const jobModel = require("../DB/models/job.schema.js");
-const paginate = require("../utils/pagination.js");
 const companyModel = require("../DB/models/company.Schema.js");
 const applicantModel = require('../DB/models/applicant.schema.js');
 
@@ -16,6 +15,7 @@ const createIntern = async (req, res, next) => {
       startDate,
       duration,
       Salary,
+      salaryType,
       internType,
       internLocation,
       numberOfOpenings,
@@ -29,6 +29,7 @@ const createIntern = async (req, res, next) => {
       startDate,
       duration,
       Salary,
+      salaryType,
       internType,
       internLocation,
       numberOfOpenings,
