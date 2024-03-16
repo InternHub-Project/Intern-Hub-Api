@@ -87,12 +87,12 @@ const login = async (req, res, next) => {
     const user = await userModel.findOne({ email });
     //..Check if User Exists..//
     if (!user|| user.isDeleted) {
-      return sendResponse(res,constans.RESPONSE_NOT_FOUND,"Email not found!",{},[]);
+      return sendResponse(res,constans.RESPONSE_BAD_REQUEST,"Email not found!",{},[]);
     }
     //..Compare Passwords..//
     const isPasswordCorrect = await bcrypt.compare(password, user.password);
     if (!isPasswordCorrect) {
-      return sendResponse(res, constans.RESPONSE_NOT_FOUND, "Wrong password!", {}, []);
+      return sendResponse(res, constans.RESPONSE_BAD_REQUEST, "Wrong password!", {}, []);
     }
     //..Check if Email is Activated..//
     if (!user.activateEmail) {
@@ -124,6 +124,7 @@ const login = async (req, res, next) => {
     });
     // this line for exclude encryptedPassword  __v, activateEmail, _id, recoveryCode, recoveryCodeDate from user
     const { encryptedPassword, __v, activateEmail, _id, recoveryCode, recoveryCodeDate, isDeleted,  ...rest } = user._doc;
+    rest.token = accToken;
     return sendResponse(res, constans.RESPONSE_SUCCESS, "Login Succeed", rest, []);
   } catch (error) {
     sendResponse( res,constans.RESPONSE_INT_SERVER_ERROR,error.message,{},constans.UNHANDLED_ERROR);
@@ -233,6 +234,7 @@ const social_google = async (req, res, next) => {
           secure: true,
         });
         const { encryptedPassword, __v, activateEmail, _id, recoveryCode, recoveryCodeDate, isDeleted,  ...rest } = searchUser._doc;
+        rest.token = accToken;
         sendResponse(res, constans.RESPONSE_SUCCESS, "Login Succeed", rest, []);
       }
       //.....if not user then saved  user in database.........//
@@ -260,6 +262,7 @@ const social_google = async (req, res, next) => {
         });
         await token.save();
         const { encryptedPassword, __v, activateEmail, _id, recoveryCode, recoveryCodeDate, isDeleted,  ...rest } = user._doc;
+        rest.token = signupToken;
         sendResponse(res, constans.RESPONSE_CREATED, "Done", rest, []);
       }
     }
@@ -299,6 +302,7 @@ const social_facebook = async (req, res, next) => {
           secure: false,
         });
         const { encryptedPassword, __v, activateEmail, _id, recoveryCode, recoveryCodeDate, isDeleted,  ...rest } = searchUser._doc;
+        rest.token = accToken;
         sendResponse(res, constans.RESPONSE_SUCCESS, "Login Succeed", rest, []);
       }
       //.....if not user then saved  user in database.........//
@@ -326,7 +330,8 @@ const social_facebook = async (req, res, next) => {
         });
         await token.save();
         const { encryptedPassword, __v, activateEmail, _id, recoveryCode, recoveryCodeDate, isDeleted,  ...rest } = user._doc;
-          sendResponse(res, constans.RESPONSE_CREATED, "Done", rest, []);
+        rest.token = signupToken;
+        sendResponse(res, constans.RESPONSE_CREATED, "Done", rest, []);
       }
     }
   }catch(error){
@@ -375,12 +380,12 @@ const companyLogin = async (req, res, next) => {
     const company = await companyModel.findOne({ email });
     //..Check if company Exists..//
     if (!company) {
-      return sendResponse(res,constans.RESPONSE_NOT_FOUND,"Email not found!",{},[]);
+      return sendResponse(res,constans.RESPONSE_BAD_REQUEST,"Email not found!",{},[]);
     }
     //..Compare Passwords..//
     const isPasswordCorrect = await bcrypt.compare(password, company.password);
     if (!isPasswordCorrect) {
-      return sendResponse(res, constans.RESPONSE_NOT_FOUND, "Wrong password!", {}, []);
+      return sendResponse(res, constans.RESPONSE_BAD_REQUEST, "Wrong password!", {}, []);
     }
     //..Check if Email is Activated..//
     if (!company.activateEmail) {
@@ -413,6 +418,7 @@ const companyLogin = async (req, res, next) => {
     });
     // this line for exclude encryptedPassword  __v, activateEmail, _id, recoveryCode, recoveryCodeDate from company
     const { encryptedPassword, __v, activateEmail, _id, recoveryCode, recoveryCodeDate, ...rest } = company._doc;
+    rest.token = accToken;
     sendResponse(res, constans.RESPONSE_SUCCESS, "Login Succeed", rest, []);
   } catch (error) {
     sendResponse( res,constans.RESPONSE_INT_SERVER_ERROR,error.message,{},constans.UNHANDLED_ERROR);
