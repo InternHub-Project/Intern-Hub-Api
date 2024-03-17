@@ -137,7 +137,7 @@ const forgotPasswordEmail = async (req, res, next) => {
     const { email } = req.body;
     const user = await userModel.findOne({ email: email });
     if (!user|| user.isDeleted) {
-      sendResponse(res, constans.RESPONSE_BAD_REQUEST, constans.UNHANDLED_ERROR, {}, "this email is not exist");
+      sendResponse(res, constans.RESPONSE_BAD_REQUEST, "this email is not exist", {},[] );
     } else {
       const code = Math.floor(10000 + Math.random() * 90000);
       const setPasswordMessag = "Set password Email Send From Intern-Hub Application";
@@ -183,7 +183,7 @@ const reSendcode = async (req, res, next) => {
     const { email } = req.body;
     const user = await userModel.findOne({ email: email });
     if (!user|| user.isDeleted) {
-      sendResponse(res, constans.RESPONSE_BAD_REQUEST, constans.UNHANDLED_ERROR, {}, "This email does not exist");
+      sendResponse(res, constans.RESPONSE_BAD_REQUEST, "This email does not exist", {}, []);
     } else {
       const code = Math.floor(10000 + Math.random() * 90000);
       const setResendCodeLink = `Resend Code`;
