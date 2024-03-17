@@ -8,7 +8,7 @@ const tokenSchema = require("../auth/token.schema.js");
 const CONFIG = require('../../config/config.js');
 const { imageKit } = require("../utils/imagekit.js");
 const applicantModel = require('../DB/models/applicant.schema.js');
-const paginate = require('../utils/pagination.js')
+const jobModel = require("../DB/models/job.schema.js");
 
 
 
@@ -135,7 +135,9 @@ const appliedjobs = async (req, res, next)=>{
             sendResponse(res,constans.RESPONSE_SUCCESS,"Done",{jobs},[])
         }
     }catch(error){
-           sendResponse(res,constans.RESPONSE_INT_SERVER_ERROR,error.message,"", constans.UNHANDLED_ERROR);
+
+        sendResponse(res, constans.RESPONSE_INT_SERVER_ERROR, error.message, '',[]);
+
     }
 }
 //...........Apply to job................//
@@ -184,6 +186,46 @@ const applyJob=async(req,res,next)=>{
 }
 
 
+const getAllJobs=async (req,res,next)=>{
+    try {
+        const{limit,offset}=paginationWrapper(
+            page=req.query.page,
+            size=req.query.size
+          )
+            const query={
+                statusOfIntern:"active"
+            }
+        const {title,salary,type,location,duration} =req.query;
+        if(title){
+            query.title = title;
+        }
+        if(type){
+            query.internType=type
+        }
+        if(location){
+            query.internLocation=location
+        }
+        if(duration) {
+            query.duration=duration
+        }
+        if(salary){
+            query.Salary=salary.toString()
+        }
+        const filteredData  = await jobModel.find(query).populate([
+            {
+                path:"company",
+                select:"name image"
+            }
+        ]).skip(offset).limit(limit)
+        console.log(filteredData);
+       filteredData.length?sendResponse(res,constans.RESPONSE_SUCCESS,"Done",{filteredData },[]):sendResponse(res,constans.RESPONSE_SUCCESS,"No Job found",{} ,[])
+    } catch (error) {
+        sendResponse(res, constans.RESPONSE_INT_SERVER_ERROR, error.message, '',[]);
+    }
+   
+}
+
+
 
 
 
@@ -195,4 +237,5 @@ module.exports={
     signOut,
     applyJob,
     appliedjobs,
+    getAllJobs
 }

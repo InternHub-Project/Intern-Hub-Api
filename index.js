@@ -18,7 +18,6 @@ const passportSetup=require("./app/utils/social.login.setup");
 const cookieParser = require('cookie-parser');
 
 
-
 globalThis.fetch = fetch;
 
 //app.use(i18n.init);
