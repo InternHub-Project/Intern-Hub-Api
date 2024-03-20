@@ -133,10 +133,21 @@ const applicantStatus = async (req, res, next) => {
 };
 
 
+const companyData=async(req,res,next)=>{
+  try {
+      const {companyId}=req.user
+      const companyData=await companyModel.findOne({companyId}).select("-encryptedPassword -activateEmail")
+      sendResponse(res,constans.RESPONSE_SUCCESS,"Done",{companyData},[])
+  } catch (error) {
+      sendResponse(res, constans.RESPONSE_INT_SERVER_ERROR, error.message, '',[]);
+  }
+}
+
 module.exports = {
   createIntern,
   updateIntren,
   closeIntern,
   companyJobs,
-  applicantStatus
+  applicantStatus,
+  companyData
 };

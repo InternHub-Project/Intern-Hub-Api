@@ -53,13 +53,10 @@ app.use(function(req, res, next) {
       next();
     }
 });
-const csrf = require('csurf');
 
 
-app.use(cookieParser("abdullah"));
-const csrfProtection = csrf({ cookie: true }); // Store token in cookie
+app.use(cookieParser());
 
-module.exports = csrfProtection;
 connectiondb()
 
 routes.v1routes(app)

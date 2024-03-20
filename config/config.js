@@ -18,6 +18,7 @@ CONFIG.PAGINATION_SIZE=5
 CONFIG.jwt_encryption =
   process.env.JWT_ENCRYPTION || `${CONFIG.APP_NAME}@ENCRYPTION`;
 CONFIG.jwt_expiration = process.env.JWT_EXPIRATION || 90000;
+CONFIG.authKey=process.env.SECRET_HEADER_KEY
 
 CONFIG.log_file_location = process.env.LOG_FILE_LOCATION;
 
