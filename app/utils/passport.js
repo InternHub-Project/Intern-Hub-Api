@@ -7,7 +7,6 @@ const tokenSchema = require('../auth/token.schema.js');
 const userModel = require('../DB/models/user.Schema.js');
 const CONFIG = require('../../config/config.js');
 const companyModel = require('../DB/models/company.Schema.js');
-// const passport = require('passport');
 
 
 

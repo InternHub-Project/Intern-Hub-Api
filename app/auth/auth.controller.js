@@ -10,6 +10,7 @@ const tokenSchema = require("./token.schema.js");
 const bcrypt = require("bcryptjs");
 const userModel = require("../DB/models/user.Schema.js");
 const companyModel = require("../DB/models/company.Schema.js");
+const { trusted } = require("mongoose");
 
 
 
@@ -118,14 +119,14 @@ const login = async (req, res, next) => {
       });
       await newToken.save();
     }
-    res.cookie("token", accToken, {
-      httpOnly: true,
-      secure: false,
-    });
+      res.cookie("token", accToken, {
+        httpOnly: true,
+        secure:false ,
+      });
     // this line for exclude encryptedPassword  __v, activateEmail, _id, recoveryCode, recoveryCodeDate from user
     const { encryptedPassword, __v, activateEmail, _id, recoveryCode, recoveryCodeDate, isDeleted,  ...rest } = user._doc;
-    rest.token = accToken;
-    return sendResponse(res, constans.RESPONSE_SUCCESS, "Login Succeed", rest, []);
+      rest.token = accToken;
+      return sendResponse(res, constans.RESPONSE_SUCCESS, "Login Succeed", rest, []);
   } catch (error) {
     sendResponse( res,constans.RESPONSE_INT_SERVER_ERROR,error.message,{},constans.UNHANDLED_ERROR);
   }
@@ -412,14 +413,16 @@ const companyLogin = async (req, res, next) => {
       await newToken.save();
     }
     // Set the access token as an HTTP-only cookie
-    res.cookie("token", accToken, {
-      httpOnly: true,
-      secure: false,
-    });
-    // this line for exclude encryptedPassword  __v, activateEmail, _id, recoveryCode, recoveryCodeDate from company
-    const { encryptedPassword, __v, activateEmail, _id, recoveryCode, recoveryCodeDate, ...rest } = company._doc;
-    rest.token = accToken;
-    sendResponse(res, constans.RESPONSE_SUCCESS, "Login Succeed", rest, []);
+      res.cookie("token", accToken, {
+        httpOnly: true,
+        secure: false,
+      });
+   
+      // this line for exclude encryptedPassword  __v, activateEmail, _id, recoveryCode, recoveryCodeDate from company
+      const { encryptedPassword, __v, activateEmail, _id, recoveryCode, recoveryCodeDate, ...rest } = company._doc;
+      rest.token = accToken;
+      sendResponse(res, constans.RESPONSE_SUCCESS, "Login Succeed", rest, []);
+    
   } catch (error) {
     sendResponse( res,constans.RESPONSE_INT_SERVER_ERROR,error.message,{},constans.UNHANDLED_ERROR);
   }

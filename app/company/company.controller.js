@@ -119,13 +119,13 @@ const applicantStatus = async (req, res, next) => {
           await applicantModel.findOneAndUpdate({ userId }, { status: newStatus });
           sendResponse(res, constans.RESPONSE_SUCCESS, constans.SUCCESS, {}, `Applicant ${newStatus}`); 
         } else {
-          sendResponse(res, constans.RESPONSE_BAD_REQUEST, constans.BAD_REQUEST, {}, "Company not matched");
+          sendResponse(res, constans.RESPONSE_BAD_REQUEST,"Company not matched", {}, []);
         }
       } else {
-        sendResponse(res, constans.RESPONSE_NOT_FOUND, constans.NOT_FOUND, {}, "Job not found");
+        sendResponse(res, constans.RESPONSE_NOT_FOUND,"Job not found", {}, []);
       }
     } else {
-      sendResponse(res, constans.RESPONSE_NOT_FOUND, constans.NOT_FOUND, {}, "User not found");
+      sendResponse(res, constans.RESPONSE_NOT_FOUND,"User not found" , {}, []);
     }
   } catch (err) {
     sendResponse(res, constans.RESPONSE_INT_SERVER_ERROR, constans.UNHANDLED_ERROR, "", err.message);

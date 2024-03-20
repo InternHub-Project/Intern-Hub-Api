@@ -16,6 +16,8 @@ router.post("/logout", verifyToken, userCon.signOut)
 router.post("/apply/:jobId",verifyToken,myMullter().single("file"),HME , userCon.applyJob);
 router.get("/appliedjob", verifyToken, userCon.appliedjobs);
 router.get("/jobs",userCon.getAllJobs)
+router.get("/userdata/:userId",userCon.userData)
+
 
 
 module.exports = router;
