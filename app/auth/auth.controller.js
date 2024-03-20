@@ -377,7 +377,7 @@ const companySignUp = async (req, res, next) => {
 //-------------------companyLogin---------------------//
 const companyLogin = async (req, res, next) => {
   try {
-    const { email, password ,platform} = req.body;
+    const { email, password } = req.body;
     const company = await companyModel.findOne({ email });
     //..Check if company Exists..//
     if (!company) {
@@ -413,21 +413,16 @@ const companyLogin = async (req, res, next) => {
       await newToken.save();
     }
     // Set the access token as an HTTP-only cookie
-    if(platform=="website"){
       res.cookie("token", accToken, {
         httpOnly: true,
         secure: false,
       });
-      // this line for exclude encryptedPassword  __v, activateEmail, _id, recoveryCode, recoveryCodeDate from company
-      const { encryptedPassword, __v, activateEmail, _id, recoveryCode, recoveryCodeDate, ...rest } = company._doc;
-      sendResponse(res, constans.RESPONSE_SUCCESS, "Login Succeed", rest, []);
-    }
-    else{
+   
       // this line for exclude encryptedPassword  __v, activateEmail, _id, recoveryCode, recoveryCodeDate from company
       const { encryptedPassword, __v, activateEmail, _id, recoveryCode, recoveryCodeDate, ...rest } = company._doc;
       rest.token = accToken;
       sendResponse(res, constans.RESPONSE_SUCCESS, "Login Succeed", rest, []);
-    }
+    
   } catch (error) {
     sendResponse( res,constans.RESPONSE_INT_SERVER_ERROR,error.message,{},constans.UNHANDLED_ERROR);
   }
