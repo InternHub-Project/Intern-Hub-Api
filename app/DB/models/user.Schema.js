@@ -47,12 +47,23 @@ const userSchema = new mongoose.Schema(
         isDeleted:{
             type:Boolean,
             default:false
+        },
+        platform:{
+            type:String,
+            enum:["website","mobileApp"]
         }
+     
     },
     {
         timestamps: true
     }
 );
+
+userSchema.virtual("userJobs" /* any name you want */, {
+    ref:"Applicant",            //->refer to Company model
+    localField:"userId",   //->specifies the field in the current schema that contains the value to match against the foreignField.
+    foreignField:"userId"  //->specifies the field in  (Company schema) that should match the value of the localField.
+})
 
 userSchema.virtual("password").set(function(password){
     this.encryptedPassword=bcrypt.hashSync(password,parseInt(CONFIG.BCRYPT_SALT))

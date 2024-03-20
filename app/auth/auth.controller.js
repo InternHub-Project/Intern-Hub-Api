@@ -119,12 +119,14 @@ const login = async (req, res, next) => {
       });
       await newToken.save();
     }
+
     setTokenWithCookies(res, accToken);
     const data = {
       userId: user.userId,
       token: accToken,
     }
     return sendResponse(res, constans.RESPONSE_SUCCESS, "Login Succeed", data, []);
+
   } catch (error) {
     sendResponse( res,constans.RESPONSE_INT_SERVER_ERROR,error.message,{},constans.UNHANDLED_ERROR);
   }
@@ -136,7 +138,7 @@ const forgotPasswordEmail = async (req, res, next) => {
     const { email } = req.body;
     const user = await userModel.findOne({ email: email });
     if (!user|| user.isDeleted) {
-      sendResponse(res, constans.RESPONSE_BAD_REQUEST, constans.UNHANDLED_ERROR, {}, "this email is not exist");
+      sendResponse(res, constans.RESPONSE_BAD_REQUEST, "this email is not exist", {},[] );
     } else {
       const code = Math.floor(10000 + Math.random() * 90000);
       const setPasswordMessag = "Set password Email Send From Intern-Hub Application";
@@ -182,7 +184,7 @@ const reSendcode = async (req, res, next) => {
     const { email } = req.body;
     const user = await userModel.findOne({ email: email });
     if (!user|| user.isDeleted) {
-      sendResponse(res, constans.RESPONSE_BAD_REQUEST, constans.UNHANDLED_ERROR, {}, "This email does not exist");
+      sendResponse(res, constans.RESPONSE_BAD_REQUEST, "This email does not exist", {}, []);
     } else {
       const code = Math.floor(10000 + Math.random() * 90000);
       const setResendCodeLink = `Resend Code`;
@@ -407,12 +409,14 @@ const companyLogin = async (req, res, next) => {
       await newToken.save();
     }
     // Set the access token as an HTTP-only cookie
+
     setTokenWithCookies(res, accToken);
     const data = {
       companyId: company.companyId,
       token: accToken,
     }
     sendResponse(res, constans.RESPONSE_SUCCESS, "Login Succeed", data, []);
+
   } catch (error) {
     sendResponse( res,constans.RESPONSE_INT_SERVER_ERROR,error.message,{},constans.UNHANDLED_ERROR);
   }

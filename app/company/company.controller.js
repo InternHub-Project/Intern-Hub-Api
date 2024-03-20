@@ -119,13 +119,13 @@ const applicantStatus = async (req, res, next) => {
           await applicantModel.findOneAndUpdate({ userId }, { status: newStatus });
           sendResponse(res, constans.RESPONSE_SUCCESS, constans.SUCCESS, {}, `Applicant ${newStatus}`); 
         } else {
-          sendResponse(res, constans.RESPONSE_BAD_REQUEST, constans.BAD_REQUEST, {}, "Company not matched");
+          sendResponse(res, constans.RESPONSE_BAD_REQUEST,"Company not matched", {}, []);
         }
       } else {
-        sendResponse(res, constans.RESPONSE_NOT_FOUND, constans.NOT_FOUND, {}, "Job not found");
+        sendResponse(res, constans.RESPONSE_NOT_FOUND,"Job not found", {}, []);
       }
     } else {
-      sendResponse(res, constans.RESPONSE_NOT_FOUND, constans.NOT_FOUND, {}, "User not found");
+      sendResponse(res, constans.RESPONSE_NOT_FOUND,"User not found" , {}, []);
     }
   } catch (err) {
     sendResponse(res, constans.RESPONSE_INT_SERVER_ERROR, constans.UNHANDLED_ERROR, "", err.message);
@@ -133,10 +133,21 @@ const applicantStatus = async (req, res, next) => {
 };
 
 
+const companyData=async(req,res,next)=>{
+  try {
+      const {companyId}=req.user
+      const companyData=await companyModel.findOne({companyId}).select("-encryptedPassword -activateEmail")
+      sendResponse(res,constans.RESPONSE_SUCCESS,"Done",{companyData},[])
+  } catch (error) {
+      sendResponse(res, constans.RESPONSE_INT_SERVER_ERROR, error.message, '',[]);
+  }
+}
+
 module.exports = {
   createIntern,
   updateIntren,
   closeIntern,
   companyJobs,
-  applicantStatus
+  applicantStatus,
+  companyData
 };

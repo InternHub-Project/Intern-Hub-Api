@@ -20,7 +20,7 @@ const addSkills=async(req,res,next)=>{
         const {skillName}=req.body;
         const checkSkill=await skillsModel.findOne({skillName:skillName.toLowerCase()})
         if(checkSkill){
-            sendResponse(res,constans.RESPONSE_BAD_REQUEST,constans.UNHANDLED_ERROR,'',"Skill already exist")
+            sendResponse(res,constans.RESPONSE_BAD_REQUEST,"Skill already exist",'',[])
         }
         else{
             const {userId}=req.user;
@@ -32,7 +32,8 @@ const addSkills=async(req,res,next)=>{
             sendResponse(res,constans.RESPONSE_CREATED,"Done",{},[])
         }
     } catch (error) {
-        sendResponse(res,constans.RESPONSE_INT_SERVER_ERROR,constans.UNHANDLED_ERROR,"",error.message);
+        sendResponse(res,constans.RESPONSE_INT_SERVER_ERROR,error.message,"", constans.UNHANDLED_ERROR);
+       
     }
 }
 
@@ -67,7 +68,7 @@ const updateUser=async(req,res,next)=>{
         const user=await userModel.findOneAndUpdate({userId:userId},{$set:req.body},{runValidators: true})
         sendResponse(res,constans.RESPONSE_SUCCESS,"user updated success",{user:user.userId},[])
     } catch (error) {
-        sendResponse(res,constans.RESPONSE_INT_SERVER_ERROR,constans.UNHANDLED_ERROR,"",error.message);
+        sendResponse(res,constans.RESPONSE_INT_SERVER_ERROR,error.message,"", constans.UNHANDLED_ERROR);
     }
 }
 
@@ -78,7 +79,7 @@ const deleteUser = async (req, res, next)=>{
         await userModel.updateOne({userId}, {$set:{isDeleted: true}})
         sendResponse(res, constans.RESPONSE_SUCCESS, "user deleted", '', [] );
     }catch(error){
-        sendResponse(res,constans.RESPONSE_INT_SERVER_ERROR,constans.UNHANDLED_ERROR,"",error.message);
+           sendResponse(res,constans.RESPONSE_INT_SERVER_ERROR,error.message,"", constans.UNHANDLED_ERROR);
     }
 }
 
@@ -102,19 +103,22 @@ const changePassword = async (req, res, next) => {
             sendResponse(res,constans.RESPONSE_SUCCESS,"Password changed successfully",updatedPassword,[]);
         }
     } catch (error) {
-        sendResponse(res,constans.RESPONSE_INT_SERVER_ERROR,constans.UNHANDLED_ERROR,{},[error.message]);
+            sendResponse(res,constans.RESPONSE_INT_SERVER_ERROR,error.message,"", constans.UNHANDLED_ERROR);
     }
 };
 
 
 //............SignOut.................//
 const signOut=async(req,res,next)=>{
+    console.log(req);
+    console.log(res);
+
     try {
-        res.clearCookie("token");   //.....this line for test only, frontend will remove token from cookie, we will remove it later
         await tokenSchema.findOneAndDelete({token:req.cookies.token})
+        res.clearCookie();   //.....this line for test only, frontend will remove token from cookie, we will remove it later
         sendResponse(res,constans.RESPONSE_SUCCESS, "Sign-Out successfully", '', []);
     } catch (error) {
-        sendResponse(res, constans.RESPONSE_INT_SERVER_ERROR, constans.UNHANDLED_ERROR, '', error.message);
+           sendResponse(res,constans.RESPONSE_INT_SERVER_ERROR,error.message,"", constans.UNHANDLED_ERROR);
     }
 
 }
@@ -134,12 +138,15 @@ const appliedjobs = async (req, res, next)=>{
             sendResponse(res,constans.RESPONSE_SUCCESS,"Done",{jobs},[])
         }
     }catch(error){
+
         sendResponse(res, constans.RESPONSE_INT_SERVER_ERROR, error.message, '',[]);
+
     }
 }
 //...........Apply to job................//
 const applyJob=async(req,res,next)=>{
-    const {userId}=req.user;
+    try{
+          const {userId}=req.user;
     const {jobId}=req.params
     const {coverLetter}=req.body;
     const checkJob=await applicantModel.findOne({userId, jobId})
@@ -175,6 +182,10 @@ const applyJob=async(req,res,next)=>{
             sendResponse(res,constans.RESPONSE_SUCCESS,"Successful to applying",{},[])
         }
     }
+    }catch(error){
+        sendResponse(res,constans.RESPONSE_INT_SERVER_ERROR,error.message,"", constans.UNHANDLED_ERROR);
+    }
+  
 }
 
 
@@ -218,6 +229,18 @@ const getAllJobs=async (req,res,next)=>{
 }
 
 
+const userData=async(req,res,next)=>{
+    try {
+        console.log(req.user);
+        const {userId}=req.user
+        const userData=await userModel.findOne({userId}).select("-encryptedPassword -isDeleted")
+        sendResponse(res,constans.RESPONSE_SUCCESS,"Done",{userData},[])
+    } catch (error) {
+        sendResponse(res, constans.RESPONSE_INT_SERVER_ERROR, error.message, '',[]);
+    }
+}
+
+
 
 
 
@@ -229,5 +252,6 @@ module.exports={
     signOut,
     applyJob,
     appliedjobs,
-    getAllJobs
+    getAllJobs,
+    userData
 }
