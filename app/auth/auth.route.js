@@ -4,7 +4,6 @@ const authCon = require("./auth.controller.js");
 const passport = require("passport");
 require("../utils/passport")(passport);
 const rateLimiter = require("../utils/rate.limit.js"); //ADDED A RATE-LIMITER USE ((( npm install express-rate-limit )))
-const CircularJSON = require("circular-json");
 
 router.post("/user/signup", authCon.signUp);
 router.get("/confirmemail/:token", authCon.confirmemail);

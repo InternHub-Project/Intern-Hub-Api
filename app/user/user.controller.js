@@ -231,18 +231,13 @@ const getAllJobs=async (req,res,next)=>{
 
 const userData=async(req,res,next)=>{
     try {
-        const {userId}=req.params
-        const user=await userModel.findOne({userId}).select("-encryptedPassword -activateEmail -isDeleted") 
-        if(!user){
-            sendResponse(res,constans.RESPONSE_BAD_REQUEST,"user Not Found or userId  is wrong ", "",[]);
-        }
-        else{
-        sendResponse(res,constans.RESPONSE_SUCCESS,"Done",user,[])
-        }
+        console.log(req.user);
+        const {userId}=req.user
+        const userData=await userModel.findOne({userId}).select("-encryptedPassword -isDeleted")
+        sendResponse(res,constans.RESPONSE_SUCCESS,"Done",{userData},[])
     } catch (error) {
         sendResponse(res, constans.RESPONSE_INT_SERVER_ERROR, error.message, '',[]);
     }
-
 }
 
 

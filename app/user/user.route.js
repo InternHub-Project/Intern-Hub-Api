@@ -5,7 +5,6 @@ const { myMullter, HME } = require('../utils/multer.js');
 const passport = require('passport');
 require('../utils/passport')(passport);
 const verifyToken = require('../middlewares/verifyToken.js');
-const authGuard = passport.authenticate("cookie", { session: false });
 
 
 router.post("/addskill", verifyToken, userCon.addSkills)
@@ -16,7 +15,7 @@ router.post("/logout", verifyToken, userCon.signOut)
 router.post("/apply/:jobId",verifyToken,myMullter().single("file"),HME , userCon.applyJob);
 router.get("/appliedjob", verifyToken, userCon.appliedjobs);
 router.get("/jobs",userCon.getAllJobs)
-router.get("/userdata/:userId",userCon.userData)
+router.get("/userdata",verifyToken,userCon.userData)
 
 
 

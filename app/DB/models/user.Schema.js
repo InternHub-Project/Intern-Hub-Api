@@ -47,6 +47,10 @@ const userSchema = new mongoose.Schema(
         isDeleted:{
             type:Boolean,
             default:false
+        },
+        platform:{
+            type:String,
+            enum:["website","mobileApp"]
         }
      
     },
