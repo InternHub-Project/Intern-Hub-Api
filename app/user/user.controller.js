@@ -110,9 +110,12 @@ const changePassword = async (req, res, next) => {
 
 //............SignOut.................//
 const signOut=async(req,res,next)=>{
+    console.log(req);
+    console.log(res);
+
     try {
-        res.clearCookie("token");   //.....this line for test only, frontend will remove token from cookie, we will remove it later
         await tokenSchema.findOneAndDelete({token:req.cookies.token})
+        res.clearCookie();   //.....this line for test only, frontend will remove token from cookie, we will remove it later
         sendResponse(res,constans.RESPONSE_SUCCESS, "Sign-Out successfully", '', []);
     } catch (error) {
            sendResponse(res,constans.RESPONSE_INT_SERVER_ERROR,error.message,"", constans.UNHANDLED_ERROR);
@@ -226,6 +229,23 @@ const getAllJobs=async (req,res,next)=>{
 }
 
 
+const userData=async(req,res,next)=>{
+    try {
+        const {userId}=req.params
+        const user=await userModel.findOne({userId}).select("-encryptedPassword -activateEmail -isDeleted") 
+        if(!user){
+            sendResponse(res,constans.RESPONSE_BAD_REQUEST,"user Not Found or userId  is wrong ", "",[]);
+        }
+        else{
+        sendResponse(res,constans.RESPONSE_SUCCESS,"Done",user,[])
+        }
+    } catch (error) {
+        sendResponse(res, constans.RESPONSE_INT_SERVER_ERROR, error.message, '',[]);
+    }
+
+}
+
+
 
 
 
@@ -237,5 +257,6 @@ module.exports={
     signOut,
     applyJob,
     appliedjobs,
-    getAllJobs
+    getAllJobs,
+    userData
 }
