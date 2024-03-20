@@ -10,7 +10,7 @@ const tokenSchema = require("./token.schema.js");
 const bcrypt = require("bcryptjs");
 const userModel = require("../DB/models/user.Schema.js");
 const companyModel = require("../DB/models/company.Schema.js");
-const { trusted } = require("mongoose");
+const setTokenWithCookies = require('../utils/setcookies.js');
 
 
 
@@ -119,15 +119,14 @@ const login = async (req, res, next) => {
       });
       await newToken.save();
     }
-      res.cookie("token", accToken, {
-        httpOnly: true,
-        secure:false ,
-      });
-    const userData={
-      "userId":user.userId,
-      "token":accToken,
+
+    setTokenWithCookies(res, accToken);
+    const data = {
+      userId: user.userId,
+      token: accToken,
     }
-      return sendResponse(res, constans.RESPONSE_SUCCESS, "Login Succeed", userData, []);
+    return sendResponse(res, constans.RESPONSE_SUCCESS, "Login Succeed", data, []);
+
   } catch (error) {
     sendResponse( res,constans.RESPONSE_INT_SERVER_ERROR,error.message,{},constans.UNHANDLED_ERROR);
   }
@@ -231,13 +230,12 @@ const social_google = async (req, res, next) => {
           await newToken.save();
         }
         // Set the access token as an HTTP-only cookie
-        res.cookie("token", accToken, {
-          httpOnly: true,
-          secure: true,
-        });
-        const { encryptedPassword, __v, activateEmail, _id, recoveryCode, recoveryCodeDate, isDeleted,  ...rest } = searchUser._doc;
-        rest.token = accToken;
-        sendResponse(res, constans.RESPONSE_SUCCESS, "Login Succeed", rest, []);
+        setTokenWithCookies(res, accToken);
+        const data = {
+          userId: searchUser.userId,
+          token: accToken,
+        }
+        sendResponse(res, constans.RESPONSE_SUCCESS, "Login Succeed", data, []);
       }
       //.....if not user then saved  user in database.........//
       else {
@@ -254,18 +252,17 @@ const social_google = async (req, res, next) => {
         });
         const savedUser = await user.save();
         const signupToken = await jwtGenerator({ userId: savedUser.userId }, 24, "h");
-        res.cookie("token", signupToken, {
-          httpOnly: true,
-          secure: false,
-        });
+        setTokenWithCookies(res, signupToken);
         const token = new tokenSchema({
           userId: savedUser.userId,
           token: signupToken,
         });
         await token.save();
-        const { encryptedPassword, __v, activateEmail, _id, recoveryCode, recoveryCodeDate, isDeleted,  ...rest } = user._doc;
-        rest.token = signupToken;
-        sendResponse(res, constans.RESPONSE_CREATED, "Done", rest, []);
+        const data = {
+          userId: user.userId,
+          token: signupToken,
+        }
+        sendResponse(res, constans.RESPONSE_CREATED, "Done", data, []);
       }
     }
   } catch (error) {
@@ -299,13 +296,12 @@ const social_facebook = async (req, res, next) => {
           await newToken.save();
         }
         // Set the access token as an HTTP-only cookie
-        res.cookie("token", accToken, {
-          httpOnly: true,
-          secure: false,
-        });
-        const { encryptedPassword, __v, activateEmail, _id, recoveryCode, recoveryCodeDate, isDeleted,  ...rest } = searchUser._doc;
-        rest.token = accToken;
-        sendResponse(res, constans.RESPONSE_SUCCESS, "Login Succeed", rest, []);
+        setTokenWithCookies(res, accToken);
+        const data = {
+          userId: searchUser.userId,
+          token: accToken,
+        }
+        sendResponse(res, constans.RESPONSE_SUCCESS, "Login Succeed", data, []);
       }
       //.....if not user then saved  user in database.........//
       else {
@@ -322,18 +318,17 @@ const social_facebook = async (req, res, next) => {
         });
         const savedUser = await user.save();
         const signupToken = await jwtGenerator({ userId: savedUser.userId }, 24, "h");
-        res.cookie("token", signupToken, {
-          httpOnly: true,
-          secure: true,
-        });
+        setTokenWithCookies(res, signupToken);
         const token = new tokenSchema({
           userId: savedUser.userId,
           token: signupToken,
         });
         await token.save();
-        const { encryptedPassword, __v, activateEmail, _id, recoveryCode, recoveryCodeDate, isDeleted,  ...rest } = user._doc;
-        rest.token = signupToken;
-        sendResponse(res, constans.RESPONSE_CREATED, "Done", rest, []);
+        const data = {
+          userId: user.userId,
+          token: signupToken,
+        }
+        sendResponse(res, constans.RESPONSE_CREATED, "Done", data, []);
       }
     }
   }catch(error){
@@ -414,17 +409,14 @@ const companyLogin = async (req, res, next) => {
       await newToken.save();
     }
     // Set the access token as an HTTP-only cookie
-      res.cookie("token", accToken, {
-        httpOnly: true,
-        secure: false,
-      });
-   
-      const companyData={
-        "companyId":company.companyId,
-        "token":accToken,
-      }
-      sendResponse(res, constans.RESPONSE_SUCCESS, "Login Succeed", companyData, []);
-    
+
+    setTokenWithCookies(res, accToken);
+    const data = {
+      companyId: company.companyId,
+      token: accToken,
+    }
+    sendResponse(res, constans.RESPONSE_SUCCESS, "Login Succeed", data, []);
+
   } catch (error) {
     sendResponse( res,constans.RESPONSE_INT_SERVER_ERROR,error.message,{},constans.UNHANDLED_ERROR);
   }

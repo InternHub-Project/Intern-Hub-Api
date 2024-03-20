@@ -33,7 +33,10 @@ console.log("Environment:", CONFIG.app)
 
 
 // CORS 
-app.use(cors());
+app.use(cors({
+  origin: ['http://localhost:5173', 'http://54.159.209.90'],
+  credentials: true,
+}));
 
 app.use(function(req, res, next) {
     var originalUrl = req.originalUrl;
