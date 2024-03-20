@@ -7,7 +7,7 @@ const { sendResponse } = require("../utils/util.service");
 
 const verifyToken = (req, res, next) => {
     try {
-        console.log(req.headers);
+   
         const authHeader = req.headers['Authorization'] || req.headers['authorization'];
         if (!authHeader) {
             const authGuard = passport.authenticate("cookie", { session: false });
