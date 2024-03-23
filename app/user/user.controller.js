@@ -5,6 +5,7 @@ const { v4: uuidv4 } = require("uuid");
 const constans=require("../utils/constants.js");
 const bcrypt = require("bcryptjs");
 const tokenSchema = require("../auth/token.schema.js");
+const jwt = require('jsonwebtoken');
 const CONFIG = require('../../config/config.js');
 const { imageKit } = require("../utils/imagekit.js");
 const applicantModel = require('../DB/models/applicant.schema.js');
@@ -66,7 +67,7 @@ const updateUser=async(req,res,next)=>{
         }
         
         const user=await userModel.findOneAndUpdate({userId:userId},{$set:req.body},{runValidators: true})
-        sendResponse(res,constans.RESPONSE_SUCCESS,"user updated success",{user:user.userId},[])
+        sendResponse(res,constans.RESPONSE_SUCCESS,"user updated success",user.userId,[])
     } catch (error) {
         sendResponse(res,constans.RESPONSE_INT_SERVER_ERROR,error.message,"", constans.UNHANDLED_ERROR);
     }
@@ -109,16 +110,26 @@ const changePassword = async (req, res, next) => {
 
 
 //............SignOut.................//
-const signOut=async(req,res,next)=>{
-    console.log(req);
-    console.log(res);
-
+const signOut=async(req,res,next)=>{ 
     try {
-        await tokenSchema.findOneAndDelete({token:req.cookies.token})
-        res.clearCookie();   //.....this line for test only, frontend will remove token from cookie, we will remove it later
-        sendResponse(res,constans.RESPONSE_SUCCESS, "Sign-Out successfully", '', []);
+        if(req.headers["Authorization"]||req.headers["authorization"]){
+            const token =req.headers["Authorization"] || req.headers["authorization"].split("internHub__")[1];
+            const deletetoken=await tokenSchema.findOneAndDelete({token:token})
+        if(deletetoken){
+            delete req.headers['Authorization']||req.headers['authorization']
+            sendResponse(res,constans.RESPONSE_SUCCESS, "Sign-Out successfully", '', []);
+        }
+        else{
+            sendResponse(res,constans.RESPONSE_UNAUTHORIZED, "Unauthorized", '', []);
+        }
+        }
+        else{
+            await tokenSchema.findOneAndDelete({token:req.cookies.token})
+            res.clearCookie("token");   //.....this line for test only, frontend will remove token from cookie, we will remove it later
+            sendResponse(res,constans.RESPONSE_SUCCESS, "Sign-Out successfully", '', []);
+        }
     } catch (error) {
-           sendResponse(res,constans.RESPONSE_INT_SERVER_ERROR,error.message,"", constans.UNHANDLED_ERROR);
+        sendResponse(res,constans.RESPONSE_INT_SERVER_ERROR,error.message,"", constans.UNHANDLED_ERROR);
     }
 
 }
@@ -135,7 +146,7 @@ const appliedjobs = async (req, res, next)=>{
         if(!jobs){
             sendResponse(res,constans.RESPONSE_NOT_FOUND,"No Job Found!",{},[])
         }else{
-            sendResponse(res,constans.RESPONSE_SUCCESS,"Done",{jobs},[])
+            sendResponse(res,constans.RESPONSE_SUCCESS,"Done",jobs,[])
         }
     }catch(error){
 
@@ -143,6 +154,7 @@ const appliedjobs = async (req, res, next)=>{
 
     }
 }
+
 //...........Apply to job................//
 const applyJob=async(req,res,next)=>{
     try{
@@ -220,8 +232,7 @@ const getAllJobs=async (req,res,next)=>{
                 select:"name image"
             }
         ]).skip(offset).limit(limit)
-        console.log(filteredData);
-       filteredData.length?sendResponse(res,constans.RESPONSE_SUCCESS,"Done",{filteredData },[]):sendResponse(res,constans.RESPONSE_SUCCESS,"No Job found",{} ,[])
+       filteredData.length?sendResponse(res,constans.RESPONSE_SUCCESS,"Done",filteredData ,[]):sendResponse(res,constans.RESPONSE_SUCCESS,"No Job found",{} ,[])
     } catch (error) {
         sendResponse(res, constans.RESPONSE_INT_SERVER_ERROR, error.message, '',[]);
     }
@@ -234,9 +245,26 @@ const userData=async(req,res,next)=>{
         console.log(req.user);
         const {userId}=req.user
         const userData=await userModel.findOne({userId}).select("-encryptedPassword -isDeleted")
-        sendResponse(res,constans.RESPONSE_SUCCESS,"Done",{userData},[])
+        sendResponse(res,constans.RESPONSE_SUCCESS,"Done",userData,[])
     } catch (error) {
         sendResponse(res, constans.RESPONSE_INT_SERVER_ERROR, error.message, '',[]);
+    }
+}
+
+const checkToken=async(req,res,next)=>{
+    try {
+        const authHeader= req.headers['token']
+        const token=authHeader.split("internHub__")[1]
+        // Decode the JWT token (does not verify the signature)
+        const decoded = jwt.decode(token, { complete: true });
+        if (decoded.payload.exp < Date.now() / 1000) {
+            sendResponse(res,constans.RESPONSE_SUCCESS,true,{},[])
+        }
+        else{
+            sendResponse(res,constans.RESPONSE_SUCCESS,false,{},[])
+        }
+    } catch (error) {
+        sendResponse(res, constans.RESPONSE_INT_SERVER_ERROR, 'Failed to verify token: ' + error.message, '',[]);
     }
 }
 
@@ -253,5 +281,6 @@ module.exports={
     applyJob,
     appliedjobs,
     getAllJobs,
-    userData
+    userData,
+    checkToken
 }
