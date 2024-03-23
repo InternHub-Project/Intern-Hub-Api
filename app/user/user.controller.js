@@ -1,5 +1,5 @@
 const userModel = require("../DB/models/user.Schema.js");
-const { sendResponse ,paginationWrapper, currentDate, validateExpiry  } = require("../utils/util.service.js");
+const { sendResponse ,paginationWrapper  } = require("../utils/util.service.js");
 const { skillsModel } = require("../utils/utils.schema.js");
 const { v4: uuidv4 } = require("uuid");
 const constans=require("../utils/constants.js");

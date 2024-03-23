@@ -143,11 +143,36 @@ const companyData=async(req,res,next)=>{
   }
 }
 
+const signOut=async(req,res,next)=>{ 
+  try {
+      if(req.headers["Authorization"]||req.headers["authorization"]){
+          const token =req.headers["Authorization"] || req.headers["authorization"].split("internHub__")[1];
+          const deletetoken=await tokenSchema.findOneAndDelete({token:token})
+      if(deletetoken){
+          delete req.headers['Authorization']||req.headers['authorization']
+          sendResponse(res,constans.RESPONSE_SUCCESS, "Sign-Out successfully", '', []);
+      }
+      else{
+          sendResponse(res,constans.RESPONSE_UNAUTHORIZED, "Unauthorized", '', []);
+      }
+      }
+      else{
+          await tokenSchema.findOneAndDelete({token:req.cookies.token})
+          res.clearCookie("token");   //.....this line for test only, frontend will remove token from cookie, we will remove it later
+          sendResponse(res,constans.RESPONSE_SUCCESS, "Sign-Out successfully", '', []);
+      }
+  } catch (error) {
+      sendResponse(res,constans.RESPONSE_INT_SERVER_ERROR,error.message,"", constans.UNHANDLED_ERROR);
+  }
+
+}
+
 module.exports = {
   createIntern,
   updateIntren,
   closeIntern,
   companyJobs,
   applicantStatus,
-  companyData
+  companyData,
+  signOut
 };
