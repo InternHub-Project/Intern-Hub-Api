@@ -89,8 +89,11 @@ const randomString = (length, chars) => {
 module.exports.randomString = randomString;
 
 const validateExpiry = (inputDate) => {
+    console.log(inputDate*1000);
     let diffHours = moment().diff(moment(inputDate), 'hours', true);
-    return diffHours <= 2;
+    console.log(diffHours);
+    console.log(diffHours<1);
+    return diffHours <= 1;
 }
 module.exports.validateExpiry = validateExpiry;
 

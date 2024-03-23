@@ -266,7 +266,7 @@ const social_google = async (req, res, next) => {
       }
     }
   } catch (error) {
-    sendResponse(res, constans.RESPONSE_INT_SERVER_ERROR, error.message, {}, [constans.UNHANDLED_ERROR]);
+    sendResponse(res, constans.RESPONSE_INT_SERVER_ERROR, error.message, {}, constans.UNHANDLED_ERROR);
   }
 };
 const social_facebook = async (req, res, next) => {
@@ -332,7 +332,7 @@ const social_facebook = async (req, res, next) => {
       }
     }
   }catch(error){
-    sendResponse(res, constans.RESPONSE_INT_SERVER_ERROR, error.message, {}, [constans.UNHANDLED_ERROR]);
+    sendResponse(res, constans.RESPONSE_INT_SERVER_ERROR, error.message, {}, constans.UNHANDLED_ERROR);
   }
 }
 

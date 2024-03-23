@@ -16,6 +16,7 @@ router.post("/apply/:jobId",verifyToken,myMullter().single("file"),HME , userCon
 router.get("/appliedjob", verifyToken, userCon.appliedjobs);
 router.get("/jobs",userCon.getAllJobs)
 router.get("/userdata",verifyToken,userCon.userData)
+router.post("/istokenexpired",userCon.checkToken)
 
 
 
