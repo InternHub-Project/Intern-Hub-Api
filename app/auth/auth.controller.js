@@ -13,6 +13,14 @@ const companyModel = require("../DB/models/company.Schema.js");
 const setTokenWithCookies = require('../utils/setcookies.js');
 
 
+const checktype=(type)=>{
+  if(type=="user"){
+   return  userModel
+  }
+  if(type=="company"){
+    return companyModel
+   }
+}
 
 //...........SignUp.................//
 const signUp = async (req, res, next) => {
@@ -132,50 +140,8 @@ const login = async (req, res, next) => {
   }
 };
 
-//----------------forgot Password----------------//
-const forgotPasswordEmail = async (req, res, next) => {
-  try {
-    const { email } = req.body;
-    const user = await userModel.findOne({ email: email });
-    if (!user|| user.isDeleted) {
-      sendResponse(res, constans.RESPONSE_BAD_REQUEST, "this email is not exist", {},[] );
-    } else {
-      const code = Math.floor(10000 + Math.random() * 90000);
-      const setPasswordMessag = "Set password Email Send From Intern-Hub Application";
-      const info = helper.sendEmail(user,setPasswordMessag,code);
-      if (info) {
-        await userModel.updateOne(
-          { email },
-          { $set: { recoveryCode: code, recoveryCodeDate: Date.now() } }
-        );
-        sendResponse(res,constans.RESPONSE_SUCCESS,`we send you an email at ${email}`,{},[]);
-      }
-    }
-  } catch (error) {
-    sendResponse( res,constans.RESPONSE_INT_SERVER_ERROR,error.message,{},constans.UNHANDLED_ERROR);
-  }
-};
 
-//----------------set password----------------//
-const setPassword = async (req, res, next) => {
-  try {
-    const { password, code, email } = req.body;
-    const user = await userModel.findOne({ email });
-    if (
-      user.recoveryCode === code &&validateExpiry(user.recoveryCodeDate) && code) {
-      const encryptedPassword = bcrypt.hashSync(password, parseInt(CONFIG.BCRYPT_SALT));
-      const set = await userModel.updateOne(
-        { userId: user.userId },
-        { $set: { encryptedPassword, recoveryCode: "" } }
-      );
-      sendResponse(res, constans.RESPONSE_SUCCESS, "Set new password Succeed", set, []);
-    } else {
-      sendResponse(res, constans.RESPONSE_BAD_REQUEST, "This code is not correct", "", []);
-    }
-  } catch (error) {
-    sendResponse( res,constans.RESPONSE_INT_SERVER_ERROR,error.message,{},constans.UNHANDLED_ERROR);
-  }
-};
+
 
 ///***** reSendcode *****///
 
@@ -187,9 +153,7 @@ const reSendcode = async (req, res, next) => {
       sendResponse(res, constans.RESPONSE_BAD_REQUEST, "This email does not exist", {}, []);
     } else {
       const code = Math.floor(10000 + Math.random() * 90000);
-      const setResendCodeLink = `Resend Code`;
-      const setResendCodeMessage = "a recovery code from Intern-Hub";
-      const info = helper.sendEmail(req, user, "recovery code", setResendCodeLink, setResendCodeMessage, code);
+      const info = helper.sendEmail( user, "recovery code", code);
       if (info) {
         await userModel.updateOne(
           { email },
@@ -200,6 +164,64 @@ const reSendcode = async (req, res, next) => {
     }
   } catch (error) {
     sendResponse( res,constans.RESPONSE_INT_SERVER_ERROR,error.message,{},constans.UNHANDLED_ERROR);
+  }
+};
+
+//..............forgetPassword for user and company...................//
+const forgetPassword = async (req, res, next) => {
+  try {
+    const { email,type} = req.body;
+   let userOrcompamy;
+   const model=checktype(type)
+   if(!model){
+     return sendResponse(res,constans.RESPONSE_BAD_REQUEST,"Invalid account type",{},[])
+   }
+        userOrcompamy = await model.findOne({ email: email });
+        if(userOrcompamy.accountType!="system"){
+          return sendResponse(res,constans.RESPONSE_BAD_REQUEST,"google auth",{},[])
+        }
+    if (!userOrcompamy || userOrcompamy.isDeleted) {
+      sendResponse(res, constans.RESPONSE_BAD_REQUEST, "this email does not exist", {}, []);
+    } else {
+      const code = Math.floor(10000 + Math.random() * 90000);
+      const setPasswordMessag = "an update password email was sent from Intern-Hub";
+      const info = helper.sendEmail(userOrcompamy, setPasswordMessag, code); 
+      if (info) {
+        await model.updateOne(
+          { email },
+          { $set: { recoveryCode: code, recoveryCodeDate: Date.now() } }
+        );
+        sendResponse(res, constans.RESPONSE_SUCCESS, `we sent you an email at ${email}`, {}, []);
+      }
+    }
+  } catch (error) {
+    sendResponse( res,constans.RESPONSE_INT_SERVER_ERROR,error.message,{},constans.UNHANDLED_ERROR);
+  }
+};
+
+
+//..............updatePassword for user and company...................//
+const setPassword = async (req, res, next) => {
+  try {
+  const { password, code, email,type } = req.body;
+    let model=checktype(type)
+   if(!model){
+     return sendResponse(res,constans.RESPONSE_BAD_REQUEST,"Invalid account type",{},[])
+   }
+   let userOrcompamyId = (model === userModel) ? "userId" : "companyId";
+    const  userOrcompamy = await userModel.findOne({ email });
+    if (userOrcompamy.recoveryCode === code && validateExpiry(userOrcompamy.recoveryCodeDate) && code) {
+      const encryptedPassword = bcrypt.hashSync(password, parseInt(CONFIG.BCRYPT_SALT));
+          await model.updateOne(
+        { [userOrcompamyId]: userOrcompamy[userOrcompamyId] },
+        { $set: { recoveryCode: "",encryptedPassword } }
+      );
+      sendResponse(res, constans.RESPONSE_SUCCESS, "Set new password successful", {}, []);
+    } else {
+      sendResponse( res, constans.RESPONSE_BAD_REQUEST, "Invalid or expired code", "", []);
+    }
+  } catch (error) {
+    sendResponse( res,constans.RESPONSE_INT_SERVER_ERROR,error.message,{},constans.UNHANDLED_ERROR);;
   }
 };
 
@@ -422,62 +444,24 @@ const companyLogin = async (req, res, next) => {
   }
 };
 
-///***** forget Company Password *****///
-const forgetCompanyPassword = async (req, res, next) => {
-  try {
-    const { email } = req.body;
-    const company = await companyModel.findOne({ email: email });
-    if (!company) {
-      sendResponse(res, constans.RESPONSE_BAD_REQUEST, "this email does not exist", {}, []);
-    } else {
-      const code = Math.floor(10000 + Math.random() * 90000);
-      const setPasswordMessag = "an update password email was sent from Intern-Hub";
-      const info = helper.sendEmail(company, setPasswordMessag, code); 
-      if (info) {
-        await companyModel.updateOne(
-          { email },
-          { $set: { recoveryCode: code, recoveryCodeDate: Date.now() } }
-        );
-        sendResponse(res, constans.RESPONSE_SUCCESS, `we sent you an email at ${email}`, {}, []);
-      }
-    }
-  } catch (error) {
-    sendResponse( res,constans.RESPONSE_INT_SERVER_ERROR,error.message,{},constans.UNHANDLED_ERROR);
-  }
-};
 
-///***** update Company Password *****///
-const updateCompanyPassword = async (req, res, next) => {
-  try {
-    const { password, code, email } = req.body;
-    const company = await companyModel.findOne({ email });
-    if (company.recoveryCode === code && validateExpiry(company.recoveryCodeDate) && code) {
-      const encryptedPassword = bcrypt.hashSync(password, parseInt(CONFIG.BCRYPT_SALT));
-      const set = await companyModel.updateOne(
-        { companyId: company.companyId },
-        { $set: { encryptedPassword, recoveryCode: "" } }
-      );
-      sendResponse(res, constans.RESPONSE_SUCCESS, "Set new password successful", set, []);
-    } else {
-      sendResponse( res, constans.RESPONSE_BAD_REQUEST, "Invalid or expired code", "", []);
-    }
-  } catch (error) {
-    sendResponse( res,constans.RESPONSE_INT_SERVER_ERROR,error.message,{},constans.UNHANDLED_ERROR);;
-  }
-};
+
+
 
 
 module.exports = {
   signUp,
   confirmemail,
   login,
-  forgotPasswordEmail,
   setPassword,
+  forgetPassword,
   social_google,
   social_facebook,
   reSendcode,
   companySignUp,
   companyLogin,
-  forgetCompanyPassword,
-  updateCompanyPassword
-}; 
+};
+
+
+
+

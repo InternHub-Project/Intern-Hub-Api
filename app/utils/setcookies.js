@@ -3,7 +3,8 @@ const CONFIG = require('../../config/config');
 
 const setTokenWithCookies = (res, token)=>{
     const options = {
-        domain: 'localhost',
+        domain: '.codesplus.online',
+        path:"/",
         // sameSite: 'none',
         httpOnly: true,
         secure: false

@@ -6,11 +6,18 @@ require("../utils/passport")(passport);
 const rateLimiter = require("../utils/rate.limit.js"); //ADDED A RATE-LIMITER USE ((( npm install express-rate-limit )))
 
 router.post("/user/signup", authCon.signUp);
-router.get("/confirmemail/:token", authCon.confirmemail);
 router.post("/user/login", authCon.login);
-router.post("/user/forgotPasswordEmail", authCon.forgotPasswordEmail);
-router.put("/user/setPassword", authCon.setPassword);
 router.post("/reSendcode", rateLimiter, authCon.reSendcode);
+
+//----------------companyy--------------//
+router.post("/company/signup", authCon.companySignUp);
+router.post("/company/login", authCon.companyLogin);
+
+//.................user And Company................//
+router.get("/confirmemail/:token", authCon.confirmemail);
+router.put("/setPassword", authCon.setPassword);
+router.post("/forgetPassword", authCon.forgetPassword);
+
 router.get("/google", passport.authenticate("google", { scope: ["email", "profile"] }));
 router.get(
   "/google/callback",
@@ -37,11 +44,8 @@ router.get("/github/success",(req,res,next)=>{
   }
   res.render("success",{user:userinfo})
 })
-//----------------companyy--------------//
-router.post("/company/signup", authCon.companySignUp);
-router.post("/company/login", authCon.companyLogin);
-router.post("/company/forgetPassword", authCon.forgetCompanyPassword);
-router.put("/company/updatePassword",authCon.updateCompanyPassword);
+
+
 
 
 module.exports = router;
