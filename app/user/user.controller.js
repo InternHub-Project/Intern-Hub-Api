@@ -10,6 +10,7 @@ const CONFIG = require('../../config/config.js');
 const { imageKit } = require("../utils/imagekit.js");
 const applicantModel = require('../DB/models/applicant.schema.js');
 const jobModel = require("../DB/models/job.schema.js");
+const companyModel = require("../DB/models/company.Schema.js");
 
 
 
@@ -255,16 +256,16 @@ const checkToken=async(req,res,next)=>{
     try {
         const authHeader= req.headers['token']
         const token=authHeader.split("internHub__")[1]
-        // Decode the JWT token (does not verify the signature)
-        const decoded = jwt.decode(token, { complete: true });
-        if (decoded.payload.exp < Date.now() / 1000) {
-            sendResponse(res,constans.RESPONSE_SUCCESS,true,{},[])
-        }
-        else{
-            sendResponse(res,constans.RESPONSE_SUCCESS,false,{},[])
-        }
+        const decoded= jwt.verify(token,CONFIG.jwt_encryption)
+        console.log(decoded);
+            if (decoded.exp < Date.now() / 1000) {
+                sendResponse(res,constans.RESPONSE_SUCCESS,"Done",true,[])
+            }
+            else{
+                sendResponse(res,constans.RESPONSE_SUCCESS,"Done",false,[])
+            }
     } catch (error) {
-        sendResponse(res, constans.RESPONSE_INT_SERVER_ERROR, 'Failed to verify token: ' + error.message, '',[]);
+        sendResponse(res, constans.RESPONSE_INT_SERVER_ERROR, error.message, '',[]);
     }
 }
 
