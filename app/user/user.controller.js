@@ -110,30 +110,7 @@ const changePassword = async (req, res, next) => {
 };
 
 
-//............SignOut.................//
-const signOut=async(req,res,next)=>{ 
-    try {
-        if(req.headers["Authorization"]||req.headers["authorization"]){
-            const token =req.headers["Authorization"] || req.headers["authorization"].split("internHub__")[1];
-            const deletetoken=await tokenSchema.findOneAndDelete({token:token})
-        if(deletetoken){
-            delete req.headers['Authorization']||req.headers['authorization']
-            sendResponse(res,constans.RESPONSE_SUCCESS, "Sign-Out successfully", '', []);
-        }
-        else{
-            sendResponse(res,constans.RESPONSE_UNAUTHORIZED, "Unauthorized", '', []);
-        }
-        }
-        else{
-            await tokenSchema.findOneAndDelete({token:req.cookies.token})
-            res.clearCookie("token");   //.....this line for test only, frontend will remove token from cookie, we will remove it later
-            sendResponse(res,constans.RESPONSE_SUCCESS, "Sign-Out successfully", '', []);
-        }
-    } catch (error) {
-        sendResponse(res,constans.RESPONSE_INT_SERVER_ERROR,error.message,"", constans.UNHANDLED_ERROR);
-    }
 
-}
 
 
 const appliedjobs = async (req, res, next)=>{
@@ -252,22 +229,6 @@ const userData=async(req,res,next)=>{
     }
 }
 
-const checkToken=async(req,res,next)=>{
-    try {
-        const authHeader= req.headers['token']
-        const token=authHeader.split("internHub__")[1]
-        const decoded= jwt.verify(token,CONFIG.jwt_encryption)
-        console.log(decoded);
-            if (decoded.exp < Date.now() / 1000) {
-                sendResponse(res,constans.RESPONSE_SUCCESS,"Done",true,[])
-            }
-            else{
-                sendResponse(res,constans.RESPONSE_SUCCESS,"Done",false,[])
-            }
-    } catch (error) {
-        sendResponse(res, constans.RESPONSE_INT_SERVER_ERROR, error.message, '',[]);
-    }
-}
 
 
 
@@ -278,10 +239,9 @@ module.exports={
     updateUser,
     deleteUser,
     changePassword,
-    signOut,
     applyJob,
     appliedjobs,
     getAllJobs,
     userData,
-    checkToken
+    
 }

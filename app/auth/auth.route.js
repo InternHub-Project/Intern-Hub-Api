@@ -5,18 +5,25 @@ const passport = require("passport");
 require("../utils/passport")(passport);
 const rateLimiter = require("../utils/rate.limit.js"); //ADDED A RATE-LIMITER USE ((( npm install express-rate-limit )))
 
+//----------------User--------------//
 router.post("/user/signup", authCon.signUp);
 router.post("/user/login", authCon.login);
-router.post("/reSendcode", rateLimiter, authCon.reSendcode);
 
-//----------------companyy--------------//
+//----------------company--------------//
 router.post("/company/signup", authCon.companySignUp);
 router.post("/company/login", authCon.companyLogin);
+
 
 //.................user And Company................//
 router.get("/confirmemail/:token", authCon.confirmemail);
 router.put("/setPassword", authCon.setPassword);
 router.post("/forgetPassword", authCon.forgetPassword);
+router.post("/istokenexpired",authCon.checkToken)
+router.post("/reSendcode", rateLimiter, authCon.reSendcode);
+router.post("/logout", authCon.signOut)
+
+
+
 
 router.get("/google", passport.authenticate("google", { scope: ["email", "profile"] }));
 router.get(
@@ -33,17 +40,7 @@ router.get('/facebook/callback',
   authCon.social_facebook
 );
 
-router.get("/github",passport.authenticate('github',{ scope: [ 'user:email' ] }))
-router.get("/github/callback",(req,res,next)=>{
- res.redirect("/api/v1/auth/github/success")
-})
-router.get("/github/success",(req,res,next)=>{
-  console.log(req.session);
-  const userinfo={
-    id:req.session.id,
-  }
-  res.render("success",{user:userinfo})
-})
+
 
 
 
