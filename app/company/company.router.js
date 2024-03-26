@@ -13,7 +13,6 @@ router.put("/closeJob/:jobId", verifyToken, companyCon.closeIntern);
 router.get("/companyjobs",verifyToken,companyCon.companyJobs)
 router.put("/applicantStatus/:userId/:status",verifyToken,companyCon.applicantStatus);
 router.get("/companydata",verifyToken,companyCon.companyData)
-router.post("/logout", verifyToken, companyCon.signOut)
 
 
 

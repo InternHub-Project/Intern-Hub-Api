@@ -13,14 +13,7 @@ const companyModel = require("../DB/models/company.Schema.js");
 const setTokenWithCookies = require('../utils/setcookies.js');
 
 
-const checktype=(type)=>{
-  if(type=="user"){
-   return  userModel
-  }
-  if(type=="company"){
-    return companyModel
-   }
-}
+
 
 //...........SignUp.................//
 const signUp = async (req, res, next) => {
@@ -141,19 +134,22 @@ const login = async (req, res, next) => {
 };
 
 
-
-
 ///***** reSendcode *****///
 
 const reSendcode = async (req, res, next) => {
   try {
-    const { email } = req.body;
-    const user = await userModel.findOne({ email: email });
-    if (!user|| user.isDeleted) {
+    const { email,type } = req.body;
+    let userOrcompamy;
+    const model=helper.checktype(type)
+    if(!model){
+      return sendResponse(res,constans.RESPONSE_BAD_REQUEST,"Invalid account type",{},[])
+    }
+    userOrcompamy = await model.findOne({ email: email });
+    if (!userOrcompamy|| userOrcompamy.isDeleted) {
       sendResponse(res, constans.RESPONSE_BAD_REQUEST, "This email does not exist", {}, []);
     } else {
       const code = Math.floor(10000 + Math.random() * 90000);
-      const info = helper.sendEmail( user, "recovery code", code);
+      const info = helper.sendEmail( userOrcompamy, "recovery code", code);
       if (info) {
         await userModel.updateOne(
           { email },
@@ -170,19 +166,19 @@ const reSendcode = async (req, res, next) => {
 //..............forgetPassword for user and company...................//
 const forgetPassword = async (req, res, next) => {
   try {
-    const { email,type} = req.body;
+    const {email,type} = req.body;
    let userOrcompamy;
-   const model=checktype(type)
+   const model=helper.checktype(type)
    if(!model){
      return sendResponse(res,constans.RESPONSE_BAD_REQUEST,"Invalid account type",{},[])
    }
         userOrcompamy = await model.findOne({ email: email });
-        if(userOrcompamy.accountType!="system"){
+    if (!userOrcompamy || userOrcompamy.isDeleted) {
+      sendResponse(res, constans.RESPONSE_BAD_REQUEST, "This email does not exist", {}, []);
+    } else {
+              if(userOrcompamy.accountType!="system"){
           return sendResponse(res,constans.RESPONSE_BAD_REQUEST,"google auth",{},[])
         }
-    if (!userOrcompamy || userOrcompamy.isDeleted) {
-      sendResponse(res, constans.RESPONSE_BAD_REQUEST, "this email does not exist", {}, []);
-    } else {
       const code = Math.floor(10000 + Math.random() * 90000);
       const setPasswordMessag = "an update password email was sent from Intern-Hub";
       const info = helper.sendEmail(userOrcompamy, setPasswordMessag, code); 
@@ -199,12 +195,11 @@ const forgetPassword = async (req, res, next) => {
   }
 };
 
-
 //..............updatePassword for user and company...................//
 const setPassword = async (req, res, next) => {
   try {
   const { password, code, email,type } = req.body;
-    let model=checktype(type)
+    let model=helper.checktype(type)
    if(!model){
      return sendResponse(res,constans.RESPONSE_BAD_REQUEST,"Invalid account type",{},[])
    }
@@ -291,6 +286,8 @@ const social_google = async (req, res, next) => {
     sendResponse(res, constans.RESPONSE_INT_SERVER_ERROR, error.message, {}, constans.UNHANDLED_ERROR);
   }
 };
+
+
 const social_facebook = async (req, res, next) => {
   try{
     //console.log(req.user._json);
@@ -445,6 +442,55 @@ const companyLogin = async (req, res, next) => {
 };
 
 
+//..................IS token valid....................//
+const checkToken=async(req,res,next)=>{
+  try {
+      const authHeader= req.headers['token']
+      const token=authHeader.split("internHub__")[1]
+      const decoded= jwt.verify(token,CONFIG.jwt_encryption)
+      const searchToken=await tokenSchema.findOne({token})
+      if(searchToken){
+          if (decoded.exp < Date.now() / 1000) {
+              sendResponse(res,constans.RESPONSE_SUCCESS,"Done",true,[])
+          }
+          else{
+              sendResponse(res,constans.RESPONSE_SUCCESS,"Done",false,[])
+          }
+      }
+      else{
+          sendResponse(res,constans.RESPONSE_BAD_REQUEST,"Token does not exist or Removed",{},[])
+      }
+        
+  } catch (error) {
+      sendResponse(res, constans.RESPONSE_INT_SERVER_ERROR, error.message, '',[]);
+  }
+}
+
+//..................logout............................//
+const signOut=async(req,res,next)=>{ 
+  try {
+      if(req.headers["Authorization"]||req.headers["authorization"]){
+          const token =req.headers["Authorization"] || req.headers["authorization"].split("internHub__")[1];
+          const deletetoken=await tokenSchema.findOneAndDelete({token:token})
+      if(deletetoken){
+          delete req.headers['Authorization']||req.headers['authorization']
+          sendResponse(res,constans.RESPONSE_SUCCESS, "Sign-Out successfully", '', []);
+      }
+      else{
+          sendResponse(res,constans.RESPONSE_UNAUTHORIZED, "Unauthorized", '', []);
+      }
+      }
+      else{
+          await tokenSchema.findOneAndDelete({token:req.cookies.token})
+          res.clearCookie("token");   
+          sendResponse(res,constans.RESPONSE_SUCCESS, "Sign-Out successfully", '', []);
+      }
+  } catch (error) {
+      sendResponse(res,constans.RESPONSE_INT_SERVER_ERROR,error.message,"", constans.UNHANDLED_ERROR);
+  }
+
+}
+
 
 
 
@@ -460,6 +506,8 @@ module.exports = {
   reSendcode,
   companySignUp,
   companyLogin,
+  checkToken,
+  signOut
 };
 
 
