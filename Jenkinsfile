@@ -14,9 +14,8 @@ pipeline{
 
     stages{
 
-
-        // Stage to create .env once (If It Doesn't Exist)
-        stage('Create .env file') {
+        // Create Or Update ENV File
+        stage('Create Or Update .env File') {
             steps {
                 script {
                     if (!fileExists('.env')) {
@@ -40,29 +39,29 @@ pipeline{
         }
 
 
-        // Installing Dependancies With NPM
-        // stage('NPM Install'){
-        //     steps {
-        //             sh 'npm install'
-                    
-        //             // install pm2
-        //     }
-        // }
+        // Installing Dependancies And PM2 With NPM
+        stage('NPM Install'){
+            steps {
+                    sh 'npm install'
+                    sh 'npm install pm2 -g'
+                    // install pm2
+            }
+        }
 
-        // restrating pm2
-        // stage('Restart') {
-        //     steps {
-        //         script {
-        //         def pm2ListOutput = sh(script: 'pm2 list', returnStdout: true).trim()
-        //         if (pm2ListOutput.contains('your-app-name')) {
-        //             sh 'pm2 restart your-app-name'
-        //         } else {
-        //             echo 'Application is not running, starting it...'
-        //             sh 'pm2 start ecosystem.config.js'
-        //         }
-        //         }
-        //     }
-        // }
+        // Restrating The Server When An Update Happens 
+        stage('Restart') {
+            steps {
+                script {
+                    def pm2ListOutput = sh(script: 'pm2 list', returnStdout: true).trim()
+                    if (pm2ListOutput.contains('npm')) {
+                        sh 'pm2 restart npm'
+                    } else {
+                        echo 'Application is not running, starting it...'
+                        sh 'pm2 start npm -- start'
+                    }
+                }
+            }
+        }
 
         
     }
