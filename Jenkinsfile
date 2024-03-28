@@ -25,7 +25,7 @@ pipeline{
                         }
                     } else {
                         withCredentials([file(credentialsId: 'ENV', variable: 'NEW_FILE')]) {
-                            def secretContent = '$NEW_FILE'
+                            def secretContent = $NEW_FILE
                             def envContent = readFile('.env').trim()
                             if (secretContent != envContent) {
                                 writeFile file: '.env', text: secretContent, encoding: 'UTF-8'
