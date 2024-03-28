@@ -19,16 +19,20 @@ pipeline{
         stage('Create .env file') {
             steps {
                 script {
-                    withCredentials([file(credentialsId: 'ENV', variable: 'SECRET_FILE')]) 
                     if (!fileExists('.env')) {
+                        withCredentials([file(credentialsId: 'ENV', variable: 'SECRET_FILE')]) {
                             sh 'cp $SECRET_FILE .env'
+                        }
                     } else {
-                        def envContent = readFile('.env').trim()
-                        if (secretContent != envContent) {
-                            writeFile file: '.env', text: secretContent, encoding: 'UTF-8'
-                            echo '.env file updated'
-                        } else {
-                            echo '.env file is up to date'
+                        withCredentials([file(credentialsId: 'ENV', variable: 'NEW_FILE')]) {
+                            def secretContent = '$NEW_FILE'
+                            def envContent = readFile('.env').trim()
+                            if (secretContent != envContent) {
+                                writeFile file: '.env', text: secretContent, encoding: 'UTF-8'
+                                echo '.env file updated'
+                            } else {
+                                echo '.env file is up to date'
+                            }
                         }
                     }
                 }
