@@ -24,7 +24,14 @@ pipeline{
                             sh 'cp $SECRET_FILE .env'
                         }
                     } else {
-                        echo '.env file already exists'
+                        def secretContent = readFile(credentialsId: 'ENV').trim()
+                        def envContent = readFile('.env').trim()
+                        if (secretContent != envContent) {
+                            writeFile file: '.env', text: secretContent, encoding: 'UTF-8'
+                            echo '.env file updated'
+                        } else {
+                            echo '.env file is up to date'
+                        }
                     }
                 }
             }
@@ -32,12 +39,13 @@ pipeline{
 
 
         // Installing Dependancies With NPM
-        stage('NPM Install'){
-            steps {
-                    sh 'npm install'
-                    // install pm2
-            }
-        }
+        // stage('NPM Install'){
+        //     steps {
+        //             sh 'npm install'
+                    
+        //             // install pm2
+        //     }
+        // }
 
         // restrating pm2
         // stage('Restart') {
