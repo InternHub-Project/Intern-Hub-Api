@@ -8,7 +8,7 @@ pipeline{
     agent {label 'BACK'}
 
     tools {
-        nodejs 'NODE18'
+        nodejs 'NODE20'
     }
 
 
