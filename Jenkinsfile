@@ -9,7 +9,7 @@ pipeline{
 
 
     tools {
-        nodejs 'NODE18'
+        nodejs 'NODE21'
     }
 
     stages{
@@ -44,7 +44,7 @@ pipeline{
             steps {
 
                 script{
-                    sh 'npm install'
+                    sh 'sudo /root/.nvm/versions/node/v21.7.1/bin/npm install'
                 }
                     
             }
@@ -55,7 +55,7 @@ pipeline{
         stage('PM2') {
             steps {
 
-                sh 'sudo /root/.nvm/versions/node/v20.12.0/bin/pm2 start npm -- start'
+                sh 'sudo /root/.nvm/versions/node/v21.7.1/bin/pm2 start npm -- start'
                 //script {
 
                     // def pm2ListOutput = sh(script: 'pm2 list', returnStdout: true).trim()
