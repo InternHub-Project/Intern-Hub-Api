@@ -14,6 +14,8 @@ pipeline{
 
     environment {
         NPM_CONFIG_CACHE = "${WORKSPACE}/.npm"
+        NODE_HOME = '/root/.nvm/versions/node/v20.12.0/bin/node'
+        PATH = "$NODE_HOME/bin:${env.PATH}"
     }
 
     stages{
