@@ -55,6 +55,7 @@ pipeline{
                     def pm2ListOutput = sh(script: 'pm2 list', returnStdout: true).trim()
                     echo "PM2 List Output:\n${pm2ListOutput}"
                     sh 'pm2 start npm -- start'
+                    sh 'pm2 save'
                     echo "PM2 List Output:\n${pm2ListOutput}"
                     // if (pm2ListOutput.contains('npm')) {
                     //     sh 'pm2 restart 0'
