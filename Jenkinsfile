@@ -43,10 +43,8 @@ pipeline{
         stage('Installing Dependencies And Starting PM2') {
             steps {
                 script {
-                    withCredentials([string(credentialsId: 'Back-IP', variable: 'SERVER_IP')]) {
-                        sshagent(['Back-IP']) {
-                            sh "npm install pm2 -g && pm2 start npm -- start'"
-                        }
+                    withCredentials([sshUserPrivateKey(credentialsId: 'Back-IP', keyFileVariable: 'SSH_KEY'), string(credentialsId: 'Back-IP', variable: 'SERVER_IP')]) {
+                        sh "ssh -i $SSH_KEY ubuntu@$SERVER_IP 'sudo npm install pm2 -g && pm2 start npm -- start'"
                     }
                 }
             }
