@@ -57,7 +57,7 @@ pipeline{
 
                 script {
 
-                    sh 'sudo /root/.nvm/versions/node/v20.12.0/bin/pm2 start npm -- start'
+                    sh 'sudo /root/.nvm/versions/node/v20.12.0/bin/pm2 start /srv/workspace/Backend-CICD_newUpdate/npm -- start'
                     // def pm2ListOutput = sh(script: 'pm2 list', returnStdout: true).trim()
                     // if (pm2ListOutput.contains('npm')) {
                     //     sh 'pm2 restart 0'
