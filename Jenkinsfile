@@ -52,7 +52,7 @@ pipeline{
         // Installing Dependancies And PM2 With NPM
         stage('Installing Dependencies') {
             steps {
-                    sh 'sudo /root/.nvm/versions/node/v21.7.1/lib/node_modules/npm install'
+                    sh 'npm install'
 
                     
             }
@@ -63,7 +63,7 @@ pipeline{
         stage('PM2') {
             steps {
 
-                sh 'sudo pm2 start npm -- start'
+                sh 'pm2 start npm -- start'
                 //script {
 
                     // def pm2ListOutput = sh(script: 'pm2 list', returnStdout: true).trim()
