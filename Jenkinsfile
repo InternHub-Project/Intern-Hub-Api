@@ -7,6 +7,9 @@ pipeline{
 
     agent {label 'BACK'}
 
+     environment {
+        PATH = "/root/.nvm/versions/node/v21.7.1/bin/npm:${env.PATH}"
+    }
 
     tools {
         nodejs 'NODE21'
