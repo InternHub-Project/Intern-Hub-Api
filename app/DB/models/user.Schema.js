@@ -22,7 +22,8 @@ const userSchema = new mongoose.Schema(
             enum: ['male', 'female']
         },
         address: AddressSchema,
-        skillIDs:[{type:Schema.Types.ObjectId,ref:"Skill"}],
+        // skillIDs:[{type:Schema.Types.ObjectId,ref:"Skill"}],
+        skillIDs:[String],
         cv:String,
         phone: [String],
         profileImage: String,
@@ -37,7 +38,6 @@ const userSchema = new mongoose.Schema(
             default: false,
         },
         recoveryCode: String,
-
         recoveryCodeDate: Date,
         accountType:{
             type:String,
@@ -64,6 +64,12 @@ userSchema.virtual("userJobs" /* any name you want */, {
     localField:"userId",   //->specifies the field in the current schema that contains the value to match against the foreignField.
     foreignField:"userId"  //->specifies the field in  (Company schema) that should match the value of the localField.
 })
+userSchema.virtual("skillsdata",{
+    ref:"Skill",
+    localField:"skillIDs",
+    foreignField:"skillId"
+})
+
 
 userSchema.virtual("password").set(function(password){
     this.encryptedPassword=bcrypt.hashSync(password,parseInt(CONFIG.BCRYPT_SALT))

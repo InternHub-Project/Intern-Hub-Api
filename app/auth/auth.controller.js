@@ -413,7 +413,7 @@ const companyLogin = async (req, res, next) => {
       }
     }
     //..Generate Access Token..//
-    const accToken = await jwtGenerator({ companyId: company.companyId }, 24, "h");
+    const accToken = await jwtGenerator({ companyId: company.companyId,role:"company" }, 24, "h");
     existingToken = await tokenSchema.findOne({ companyId: company.companyId });
     if (existingToken) {
       await tokenSchema.updateOne(

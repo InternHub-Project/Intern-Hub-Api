@@ -74,42 +74,6 @@ const updateUser=async(req,res,next)=>{
     }
 }
 
-//..............soft Delete User .............//
-const deleteUser = async (req, res, next)=>{
-    try{
-        const {userId}=req.user;
-        await userModel.updateOne({userId}, {$set:{isDeleted: true}})
-        sendResponse(res, constans.RESPONSE_SUCCESS, "user deleted", '', [] );
-    }catch(error){
-           sendResponse(res,constans.RESPONSE_INT_SERVER_ERROR,error.message,"", constans.UNHANDLED_ERROR);
-    }
-}
-
-
-//****** changePassword *******/
-const changePassword = async (req, res, next) => {
-    try {
-        const { userId } = req.user;
-        const user=await userModel.findOne({userId})
-        const { currentPassword, newPassword } = req.body;
-        const isPasswordValid = bcrypt.compareSync(currentPassword,user.encryptedPassword);
-        if (!isPasswordValid) {
-            sendResponse(res,constans.RESPONSE_UNAUTHORIZED,"Current password is invalid",'',[]);
-        } else {
-            if (currentPassword === newPassword) {
-                sendResponse(res,constans.RESPONSE_BAD_REQUEST,"New password must be different from the old password.",'', []);
-            }
-            const encryptedPassword = bcrypt.hashSync(newPassword, parseInt(CONFIG.BCRYPT_SALT));
-            const updatedPassword = await userModel.updateOne({ userId },{ $set: {encryptedPassword} });
-            //const updatedPassword = await userModel.updateOne({ userId },{ $set: { password: newPassword } });
-            sendResponse(res,constans.RESPONSE_SUCCESS,"Password changed successfully",updatedPassword,[]);
-        }
-    } catch (error) {
-            sendResponse(res,constans.RESPONSE_INT_SERVER_ERROR,error.message,"", constans.UNHANDLED_ERROR);
-    }
-};
-
-
 
 
 
@@ -136,7 +100,7 @@ const appliedjobs = async (req, res, next)=>{
 //...........Apply to job................//
 const applyJob=async(req,res,next)=>{
     try{
-          const {userId}=req.user;
+        const {userId}=req.user;
     const {jobId}=req.params
     const {coverLetter}=req.body;
     const checkJob=await applicantModel.findOne({userId, jobId})
@@ -220,10 +184,19 @@ const getAllJobs=async (req,res,next)=>{
 
 const userData=async(req,res,next)=>{
     try {
-        console.log(req.user);
         const {userId}=req.user
-        const userData=await userModel.findOne({userId}).select("-encryptedPassword -isDeleted")
-        sendResponse(res,constans.RESPONSE_SUCCESS,"Done",userData,[])
+        const userData=await userModel.findOne({userId}).populate([
+            {
+                path:"skillsdata",
+                select:"skillName skillId -_id"
+            }
+        ])
+        const { encryptedPassword, isDeleted,skillIDs,activateEmail,recoveryCodeDate,recoveryCode,__v,createdAt,updatedAt, ...filteredUserData } = userData.toObject();
+        const  data ={
+            ...filteredUserData,
+            skillsData:userData.skillsdata
+        }
+        sendResponse(res,constans.RESPONSE_SUCCESS,"Done",data,[])
     } catch (error) {
         sendResponse(res, constans.RESPONSE_INT_SERVER_ERROR, error.message, '',[]);
     }
@@ -237,11 +210,8 @@ const userData=async(req,res,next)=>{
 module.exports={
     addSkills,
     updateUser,
-    deleteUser,
-    changePassword,
     applyJob,
     appliedjobs,
     getAllJobs,
     userData,
-    
 }
