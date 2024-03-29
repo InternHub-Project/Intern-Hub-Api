@@ -42,7 +42,7 @@ pipeline{
             steps {
                 script {
                     sh 'export NVM_DIR="$HOME/.nvm"'
-                    sh "[ -s '$NVM_DIR/nvm.sh' ] && \. '$NVM_DIR/nvm.sh' && nvm use 21.7.1"
+                    sh '[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh" && nvm use 21.7.1'
                 }
             }
         }
