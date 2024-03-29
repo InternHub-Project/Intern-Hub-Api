@@ -41,8 +41,8 @@ pipeline{
         stage('Set up environment') {
             steps {
                 script {
-                    // Source NVM to use the correct Node.js version
-                    sh '. /root/.nvm/nvm.sh && nvm use 21.7.1'
+                    sh 'export NVM_DIR="$HOME/.nvm"'
+                    sh "[ -s '$NVM_DIR/nvm.sh' ] && \. '$NVM_DIR/nvm.sh' && nvm use 21.7.1"
                 }
             }
         }
