@@ -38,7 +38,15 @@ pipeline{
             // }
         //}
 
-
+        stage('Set up environment') {
+            steps {
+                script {
+                    // Source NVM to use the correct Node.js version
+                    sh 'source /root/.nvm/nvm.sh && nvm use 21.7.1'
+                }
+            }
+        }
+        
         // Installing Dependancies And PM2 With NPM
         stage('Installing Dependencies And Starting PM2') {
             steps {
