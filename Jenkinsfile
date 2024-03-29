@@ -55,9 +55,9 @@ pipeline{
         stage('PM2') {
             steps {
 
-                script {
+                sh 'sudo /root/.nvm/versions/node/v20.12.0/bin/pm2 start /srv/workspace/Backend-CICD_newUpdate/npm -- start'
+                //script {
 
-                    sh 'sudo /root/.nvm/versions/node/v20.12.0/bin/pm2 start /srv/workspace/Backend-CICD_newUpdate/npm -- start'
                     // def pm2ListOutput = sh(script: 'pm2 list', returnStdout: true).trim()
                     // if (pm2ListOutput.contains('npm')) {
                     //     sh 'pm2 restart 0'
@@ -65,7 +65,7 @@ pipeline{
                     //     echo 'Application is not running, starting it...'
                     //     sh 'pm2 start npm -- start'
                     // }
-                }
+                //}
             }
         }
         
