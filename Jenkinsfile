@@ -9,8 +9,8 @@ pipeline{
 
 
     environment {
-        NODE_HOME = '/root/.nvm/versions/node/v20.12.0/bin/node'
-        PATH = "$NODE_HOME/bin:${env.PATH}"
+        NVM_HOME = '/home/ubuntu/.nvm'
+        PATH = "$NVM_HOME:$NVM_HOME/versions/node/v14.17.0/bin:${env.PATH}"
     }
 
     stages{
@@ -43,7 +43,8 @@ pipeline{
         // Installing Dependancies And PM2 With NPM
         stage('NPM Install'){
             steps {
-                    sh '/root/.nvm/versions/node/v20.12.0/bin/npm install'
+                    sh 'nvm use v14.17.0'
+                    sh 'npm install'            
             }
         }
 
