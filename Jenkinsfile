@@ -52,7 +52,8 @@ pipeline{
         // Installing Dependancies And PM2 With NPM
         stage('Installing Dependencies') {
             steps {
-                    sh 'npm install'
+                    sh 'npx npm install'
+
                     
             }
         }
