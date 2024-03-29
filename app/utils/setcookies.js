@@ -4,7 +4,8 @@ const CONFIG = require('../../config/config');
 const setTokenWithCookies = (res, token)=>{
     const options = {
         domain: 'localhost',
-        // sameSite: 'none',
+        sameSite: 'none',
+        path: '/',
         httpOnly: true,
         secure: false
     }
