@@ -39,27 +39,30 @@ pipeline{
         //}
 
 
-        // Installing Dependancies And PM2 With NPM
-        // stage('Installing Dependencies And Starting PM2') {
-        //     steps {
-        //             sh 'npm install'
-        //             sh 'npm install pm2 -g'
-        //     }
-        // }
+        Installing Dependancies And PM2 With NPM
+        stage('Installing Dependencies And Starting PM2') {
+            steps {
+                script{
+                    sh 'npm install'
+                    sh 'npm run start'
+                }
+                    
+            }
+        }
         
 
         // Restrating The Server When An Update Happens 
         stage('PM2') {
             steps {
-                script {
-                    def pm2ListOutput = sh(script: 'pm2 list', returnStdout: true).trim()
-                    sh 'pm2 list && pm2 start npm -- start && pm2 list'
-                    // if (pm2ListOutput.contains('npm')) {
-                    //     sh 'pm2 restart 0'
-                    // } else {
-                    //     echo 'Application is not running, starting it...'
-                    // }
-                }
+                // script {
+                //     def pm2ListOutput = sh(script: 'pm2 list', returnStdout: true).trim()
+                //     if (pm2ListOutput.contains('npm')) {
+                //         sh 'pm2 restart 0'
+                //     } else {
+                //         echo 'Application is not running, starting it...'
+                //         sh 'pm2 start npm -- start'
+                //     }
+                // }
             }
         }
         
