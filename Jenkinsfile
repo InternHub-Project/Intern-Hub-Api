@@ -16,40 +16,40 @@ pipeline{
 
         // Create Or Update ENV File
         stage('Create Or Update .env File') {
-            steps {
-                script {
-                    if (!fileExists('.env')) {
-                        withCredentials([file(credentialsId: 'ENV', variable: 'SECRET_FILE')]) {
-                            sh 'cp $SECRET_FILE .env'
-                        }
-                    } else {
-                        withCredentials([file(credentialsId: 'ENV', variable: 'NEW_FILE')]) {
-                            def secretContent = readFile(env.NEW_FILE).trim()
-                            def envContent = readFile('.env').trim()
-                            if (secretContent != envContent) {
-                                writeFile file: '.env', text: secretContent, encoding: 'UTF-8'
-                                echo '.env file updated'
-                            } else {
-                                echo '.env file is up to date'
-                            }
-                        }
-                    }
-                }
-            }
+            // steps {
+            //     script {
+            //         if (!fileExists('.env')) {
+            //             withCredentials([file(credentialsId: 'ENV', variable: 'SECRET_FILE')]) {
+            //                 sh 'cp $SECRET_FILE .env'
+            //             }
+            //         } else {
+            //             withCredentials([file(credentialsId: 'ENV', variable: 'NEW_FILE')]) {
+            //                 def secretContent = readFile(env.NEW_FILE).trim()
+            //                 def envContent = readFile('.env').trim()
+            //                 if (secretContent != envContent) {
+            //                     writeFile file: '.env', text: secretContent, encoding: 'UTF-8'
+            //                     echo '.env file updated'
+            //                 } else {
+            //                     echo '.env file is up to date'
+            //                 }
+            //             }
+            //         }
+            //     }
+            // }
         }
 
 
         // Installing Dependancies And PM2 With NPM
-        stage('Installing Dependencies And Starting PM2') {
-            steps {
-                    sh 'npm install'
-                    sh 'npm install pm2 -g'
-            }
-        }
+        // stage('Installing Dependencies And Starting PM2') {
+        //     steps {
+        //             sh 'npm install'
+        //             sh 'npm install pm2 -g'
+        //     }
+        // }
         
 
         // Restrating The Server When An Update Happens 
-        stage('Restart') {
+        stage('PM2') {
             steps {
                 script {
                     def pm2ListOutput = sh(script: 'pm2 list', returnStdout: true).trim()
