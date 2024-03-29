@@ -12,6 +12,9 @@ pipeline{
         nodejs 'NODE18'
     }
 
+    environment {
+        NPM_CONFIG_CACHE = "${WORKSPACE}/.npm"
+    }
 
     stages{
 
