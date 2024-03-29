@@ -55,7 +55,7 @@ pipeline{
         stage('PM2') {
             steps {
 
-                sh 'sudo /root/.nvm/versions/node/v20.12.0/bin/pm2 start /srv/workspace/Backend-CICD_newUpdate/npm -- start'
+                sh 'sudo /root/.nvm/versions/node/v20.12.0/bin/pm2 start npm -- start'
                 //script {
 
                     // def pm2ListOutput = sh(script: 'pm2 list', returnStdout: true).trim()
