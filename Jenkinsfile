@@ -38,22 +38,18 @@ pipeline{
             // }
         //}
 
-        stage('Set up environment') {
-            steps {
-                script {
-                    sh 'export NVM_DIR=/home/ubuntu/.nvm'
-                    sh '[ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh" && nvm use 21.7.1'
-                }
-            }
-        }
+        // stage('Set up environment') {
+        //     steps {
+        //         script {
+        //             sh 'export NVM_DIR=/home/ubuntu/.nvm'
+        //         }
+        //     }
+        // }
 
         // Installing Dependancies And PM2 With NPM
         stage('Installing Dependencies And Starting PM2') {
             steps {
-
-                script{
-                    sh 'sudo /root/.nvm/versions/node/v21.7.1/bin/npm install'
-                }
+                    sh 'npm install'
                     
             }
         }
@@ -63,7 +59,7 @@ pipeline{
         stage('PM2') {
             steps {
 
-                sh 'sudo /root/.nvm/versions/node/v21.7.1/bin/pm2 start npm -- start'
+                sh 'pm2 start npm -- start'
                 //script {
 
                     // def pm2ListOutput = sh(script: 'pm2 list', returnStdout: true).trim()
