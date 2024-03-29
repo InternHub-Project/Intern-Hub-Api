@@ -45,7 +45,6 @@ pipeline{
 
                 script{
                     sh 'npm install'
-                    sh 'npm run start'
                 }
                     
             }
@@ -53,19 +52,22 @@ pipeline{
         
 
         // Restrating The Server When An Update Happens 
-        // stage('PM2') {
-        //     steps {
-        //         // script {
-        //         //     def pm2ListOutput = sh(script: 'pm2 list', returnStdout: true).trim()
-        //         //     if (pm2ListOutput.contains('npm')) {
-        //         //         sh 'pm2 restart 0'
-        //         //     } else {
-        //         //         echo 'Application is not running, starting it...'
-        //         //         sh 'pm2 start npm -- start'
-        //         //     }
-        //         // }
-        //     }
-        // }
+        stage('PM2') {
+            steps {
+
+                script {
+
+                    sh 'sudo /root/.nvm/versions/node/v20.12.0/bin/pm2 start npm -- start'
+                    // def pm2ListOutput = sh(script: 'pm2 list', returnStdout: true).trim()
+                    // if (pm2ListOutput.contains('npm')) {
+                    //     sh 'pm2 restart 0'
+                    // } else {
+                    //     echo 'Application is not running, starting it...'
+                    //     sh 'pm2 start npm -- start'
+                    // }
+                }
+            }
+        }
         
     }
 
