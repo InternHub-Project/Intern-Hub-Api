@@ -41,7 +41,7 @@ pipeline{
         stage('Set up environment') {
             steps {
                 script {
-                    sh 'export NVM_DIR="$HOME/.nvm"'
+                    sh 'export NVM_DIR=/home/ubuntu/.nvm'
                     sh '[ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh" && nvm use 21.7.1'
                 }
             }
