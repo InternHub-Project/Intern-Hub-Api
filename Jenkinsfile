@@ -51,15 +51,15 @@ pipeline{
         // Restrating The Server When An Update Happens 
         stage('Restart') {
             steps {
-                // script {
-                //     def pm2ListOutput = sh(script: 'pm2 list', returnStdout: true).trim()
-                //     if (pm2ListOutput.contains('npm')) {
-                //         sh 'pm2 restart npm'
-                //     } else {
-                //         echo 'Application is not running, starting it...'
-                //     }
-                // }
+                script {
+                    def pm2ListOutput = sh(script: 'pm2 list', returnStdout: true).trim()
+                    if (pm2ListOutput.contains('npm')) {
+                        sh 'pm2 restart npm'
+                    } else {
+                        echo 'Application is not running, starting it...'
                         sh 'pm2 start npm -- start'
+                    }
+                }
             }
         }
         
