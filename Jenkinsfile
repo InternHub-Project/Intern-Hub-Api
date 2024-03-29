@@ -7,8 +7,9 @@ pipeline{
 
     agent {label 'BACK'}
 
-    tools {
-        nodejs 'NODE20'
+     environment {
+        NODE_HOME = tool 'NODE20'
+        PATH = "$NODE_HOME/bin:${env.PATH}"
     }
 
 
@@ -43,7 +44,6 @@ pipeline{
         stage('NPM Install'){
             steps {
                     sh 'npm install'
-                    sh 'npm install pm2 -g'
                     // install pm2
             }
         }
