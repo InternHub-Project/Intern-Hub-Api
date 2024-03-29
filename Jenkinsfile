@@ -42,28 +42,25 @@ pipeline{
         // Installing Dependancies And PM2 With NPM
         stage('Installing Dependencies And Starting PM2') {
             steps {
+                    sh 'npm install'
+            }
+        }
+        
+
+        // Restrating The Server When An Update Happens 
+        stage('Restart') {
+            steps {
                 script {
-                    withCredentials([sshUserPrivateKey(credentialsId: 'Back-IP', keyFileVariable: 'SSH_KEY'), string(credentialsId: 'Back-IP', variable: 'SERVER_IP')]) {
-                        sh "ssh -i $SSH_KEY ubuntu@$SERVER_IP 'sudo npm install pm2 -g && pm2 start npm -- start'"
+                    def pm2ListOutput = sh(script: 'pm2 list', returnStdout: true).trim()
+                    if (pm2ListOutput.contains('npm')) {
+                        sh '/root/.nvm/versions/node/v20.12.0/bin/pm2 restart npm'
+                    } else {
+                        echo 'Application is not running, starting it...'
+                        sh '/root/.nvm/versions/node/v20.12.0/bin/pm2 start npm -- start'
                     }
                 }
             }
         }
-
-        // Restrating The Server When An Update Happens 
-        // stage('Restart') {
-        //     steps {
-        //         script {
-        //             def pm2ListOutput = sh(script: 'pm2 list', returnStdout: true).trim()
-        //             if (pm2ListOutput.contains('npm')) {
-        //                 sh 'pm2 restart npm'
-        //             } else {
-        //                 echo 'Application is not running, starting it...'
-        //                 sh 'pm2 start npm -- start'
-        //             }
-        //         }
-        //     }
-        // }
         
     }
 
