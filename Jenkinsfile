@@ -39,7 +39,7 @@ pipeline{
         //}
 
 
-        Installing Dependancies And PM2 With NPM
+        // Installing Dependancies And PM2 With NPM
         stage('Installing Dependencies And Starting PM2') {
             steps {
                 script{
