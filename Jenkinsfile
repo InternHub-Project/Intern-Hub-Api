@@ -8,9 +8,8 @@ pipeline{
     agent {label 'BACK'}
 
 
-    environment {
-        NVM_HOME = '/home/ubuntu/.nvm'
-        PATH = "$NVM_HOME:$NVM_HOME/versions/node/v20.12.0/bin:${env.PATH}"
+    tools {
+        nodejs 'NODE18'
     }
 
     stages{
@@ -41,10 +40,15 @@ pipeline{
 
 
         // Installing Dependancies And PM2 With NPM
-        stage('NPM Install'){
+        stage('Installing Dependencies And Starting PM2') {
             steps {
-                    sh 'nvm use vv20.12.0'
-                    sh 'npm install'            
+                script {
+                    withCredentials([string(credentialsId: 'Back-IP', variable: 'SERVER_IP')]) {
+                        sshagent(['Back-IP']) {
+                            sh "npm install pm2 -g && pm2 start npm -- start'"
+                        }
+                    }
+                }
             }
         }
 
