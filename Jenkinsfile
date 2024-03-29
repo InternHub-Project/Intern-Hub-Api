@@ -15,7 +15,7 @@ pipeline{
     stages{
 
         // Create Or Update ENV File
-        stage('Create Or Update .env File') {
+        //stage('Create Or Update .env File') {
             // steps {
             //     script {
             //         if (!fileExists('.env')) {
@@ -36,7 +36,7 @@ pipeline{
             //         }
             //     }
             // }
-        }
+        //}
 
 
         // Installing Dependancies And PM2 With NPM
