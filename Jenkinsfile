@@ -7,9 +7,9 @@ pipeline{
 
     agent {label 'BACK'}
 
-     environment {
-        NODE_HOME = tool 'NODE20'
-        PATH = "$NODE_HOME/bin:${env.PATH}"
+    tools {
+
+        nodejs 'NODE18'
     }
 
 
@@ -43,25 +43,24 @@ pipeline{
         // Installing Dependancies And PM2 With NPM
         stage('NPM Install'){
             steps {
-                    sh 'npm install'
-                    // install pm2
+                    sh '/root/.nvm/versions/node/v20.12.0/bin/npm install'
             }
         }
 
         // Restrating The Server When An Update Happens 
-        stage('Restart') {
-            steps {
-                script {
-                    def pm2ListOutput = sh(script: 'pm2 list', returnStdout: true).trim()
-                    if (pm2ListOutput.contains('npm')) {
-                        sh 'pm2 restart npm'
-                    } else {
-                        echo 'Application is not running, starting it...'
-                        sh 'pm2 start npm -- start'
-                    }
-                }
-            }
-        }
+        // stage('Restart') {
+        //     steps {
+        //         script {
+        //             def pm2ListOutput = sh(script: 'pm2 list', returnStdout: true).trim()
+        //             if (pm2ListOutput.contains('npm')) {
+        //                 sh 'pm2 restart npm'
+        //             } else {
+        //                 echo 'Application is not running, starting it...'
+        //                 sh 'pm2 start npm -- start'
+        //             }
+        //         }
+        //     }
+        // }
         
     }
 
