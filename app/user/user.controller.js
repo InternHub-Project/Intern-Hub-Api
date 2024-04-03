@@ -11,6 +11,7 @@ const { imageKit } = require("../utils/imagekit.js");
 const applicantModel = require('../DB/models/applicant.schema.js');
 const jobModel = require("../DB/models/job.schema.js");
 const companyModel = require("../DB/models/company.Schema.js");
+const userSkills = require("../DB/skills.js");
 
 
 
@@ -43,7 +44,10 @@ const addSkills=async(req,res,next)=>{
 //.............Update user profile.................//
 const updateUser=async(req,res,next)=>{
     try {
-        const {userId}=req.user;
+        const {userId}=req.user; 
+        if(req.body.email){
+            return sendResponse(res,constans.RESPONSE_BAD_REQUEST,"Not Allow to change Email","",[])
+        }
         if(req.files && req.files["image"] && req.files["image"][0]){
             const image=await imageKit.upload(
                 {
@@ -70,7 +74,15 @@ const updateUser=async(req,res,next)=>{
         const user=await userModel.findOneAndUpdate({userId:userId},{$set:req.body},{runValidators: true})
         sendResponse(res,constans.RESPONSE_SUCCESS,"user updated success",user.userId,[])
     } catch (error) {
-        sendResponse(res,constans.RESPONSE_INT_SERVER_ERROR,error.message,"", constans.UNHANDLED_ERROR);
+        if (error.name === 'ValidationError') {
+            let errors = [];
+            for (field in error.errors) {
+                errors.push({ message: error.errors[field].message, key: field });
+            }
+            sendResponse(res,constans.RESPONSE_BAD_REQUEST,error.message,{},[])
+        } else {
+            sendResponse(res,constans.RESPONSE_INT_SERVER_ERROR,error.message,"", constans.UNHANDLED_ERROR);
+        }
     }
 }
 
@@ -185,22 +197,19 @@ const getAllJobs=async (req,res,next)=>{
 const userData=async(req,res,next)=>{
     try {
         const {userId}=req.user
-        const userData=await userModel.findOne({userId}).populate([
-            {
-                path:"skillsdata",
-                select:"skillName skillId -_id"
-            }
-        ])
-        const { encryptedPassword, isDeleted,skillIDs,activateEmail,recoveryCodeDate,recoveryCode,__v,createdAt,updatedAt, ...filteredUserData } = userData.toObject();
-        const  data ={
-            ...filteredUserData,
-            skillsData:userData.skillsdata
-        }
-        sendResponse(res,constans.RESPONSE_SUCCESS,"Done",data,[])
+        const userData=await userModel.findOne({userId}).select("-encryptedPassword -activateEmail -isDeleted -recoveryCodeDate -recoveryCode -__v  -createdAt  -updatedAt -accountType")
+        sendResponse(res,constans.RESPONSE_SUCCESS,"Done",userData,[])
     } catch (error) {
         sendResponse(res, constans.RESPONSE_INT_SERVER_ERROR, error.message, '',[]);
     }
 }
+
+
+const test=async(req,res,next)=>{
+    const sk=userSkills;
+    console.log(sk);
+}
+
 
 
 
