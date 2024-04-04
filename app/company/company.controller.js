@@ -149,6 +149,22 @@ const companyProfile=async(req,res,next)=>{
   if(req.body.email){
       return sendResponse(res,constans.RESPONSE_BAD_REQUEST,"Not Allow to change Email","",[])
   }
+  let address={}
+  if(req.body.address){
+      address.address=req.body.address
+  }
+  if(req.body.city){
+      address.city=req.body.city
+  }
+  if(req.body.country){
+      address.country=req.body.country
+  }
+  if(req.body.state){
+      address.state=req.body.state
+  }
+  if(Object.keys(address).length>0){
+      req.body.address=address
+  }
   if(req.files && req.files["image"] && req.files["image"][0]){
       const image=await imageKit.upload(
           {

@@ -171,45 +171,6 @@ const applyJob=async(req,res,next)=>{
 }
 
 
-const getAllJobs=async (req,res,next)=>{
-    try {
-        const{limit,offset}=paginationWrapper(
-            page=req.query.page,
-            size=req.query.size
-          )
-            const query={
-                statusOfIntern:"active"
-            }
-        const {title,salary,type,location,duration} =req.query;
-        if(title){
-            query.title = title;
-        }
-        if(type){
-            query.internType=type
-        }
-        if(location){
-            query.internLocation=location
-        }
-        if(duration) {
-            query.duration=duration
-        }
-        if(salary){
-            query.Salary=salary.toString()
-        }
-        const filteredData  = await jobModel.find(query).populate([
-            {
-                path:"company",
-                select:"name image"
-            }
-        ]).skip(offset).limit(limit)
-       filteredData.length?sendResponse(res,constans.RESPONSE_SUCCESS,"Done",filteredData ,[]):sendResponse(res,constans.RESPONSE_SUCCESS,"No Job found",{} ,[])
-    } catch (error) {
-        sendResponse(res, constans.RESPONSE_INT_SERVER_ERROR, error.message, '',[]);
-    }
-   
-}
-
-
 const userData=async(req,res,next)=>{
     try {
         const {userId}=req.user
@@ -221,10 +182,7 @@ const userData=async(req,res,next)=>{
 }
 
 
-const test=async(req,res,next)=>{
-    const sk=userSkills;
-    console.log(sk);
-}
+
 
 
 
@@ -237,6 +195,5 @@ module.exports={
     updateUser,
     applyJob,
     appliedjobs,
-    getAllJobs,
     userData,
 }
