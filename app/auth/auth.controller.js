@@ -361,15 +361,21 @@ const social_facebook = async (req, res, next) => {
 //...........company SignUp.................//
 const companySignUp = async (req, res, next) => {
   try {
-      const { email, name, password, address, field } = req.body;
+      const { email, name, password, address,city,country,state, field } = req.body;
       const company = await companyModel.findOne({ email: email });
       if (!company) {
+
           const newCompany = await companyModel({
               email,
               name,
               companyId: "Company" + uuidv4(),
               password,
-              address, 
+              address:{
+                address:address,
+                city:city,
+                country:country,
+                state:state,
+              },
               field 
           });
           const confirmLink = "confirm company account";
@@ -377,9 +383,9 @@ const companySignUp = async (req, res, next) => {
           const info = await helper.sendConfirmEmail(req, newCompany, "auth/confirmemail", confirmLink, confirmMessag);
           if (info) {
             const savedCompany = await newCompany.save();
-            sendResponse(res,constans.RESPONSE_CREATED,"Done",savedCompany.companyId,{});
+            sendResponse(res,constans.RESPONSE_CREATED,"Done",savedCompany.companyId,[]);
           } else {
-            sendResponse(res,constans.RESPONSE_BAD_REQUEST,"rejected Eamil",[],[]);
+            sendResponse(res,constans.RESPONSE_BAD_REQUEST,"rejected Eamil","",[]);
           }
       }else{
           sendResponse(res,constans.RESPONSE_BAD_REQUEST,"email already exist","",[]);
@@ -413,7 +419,7 @@ const companyLogin = async (req, res, next) => {
       }
     }
     //..Generate Access Token..//
-    const accToken = await jwtGenerator({ companyId: company.companyId }, 24, "h");
+    const accToken = await jwtGenerator({ companyId: company.companyId,role:"company" }, 24, "h");
     existingToken = await tokenSchema.findOne({ companyId: company.companyId });
     if (existingToken) {
       await tokenSchema.updateOne(
