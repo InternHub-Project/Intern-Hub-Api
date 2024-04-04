@@ -47,13 +47,29 @@ const updateUser=async(req,res,next)=>{
         const {userId}=req.user; 
         if(req.body.email){
             return sendResponse(res,constans.RESPONSE_BAD_REQUEST,"Not Allow to change Email","",[])
+        } 
+        let address={}
+        if(req.body.address){
+            address.address=req.body.address
+        }
+        if(req.body.city){
+            address.city=req.body.city
+        }
+        if(req.body.country){
+            address.country=req.body.country
+        }
+        if(req.body.state){
+            address.state=req.body.state
+        }
+        if(Object.keys(address).length>0){
+            req.body.address=address
         }
         if(req.files && req.files["image"] && req.files["image"][0]){
             const image=await imageKit.upload(
                 {
                     file: req.files["image"][0].buffer.toString('base64'), //required
                     fileName: req.files["image"][0].originalname, //required,
-                    folder:`internHub/${userId}`,
+                    folder:`internHub/users/${userId}`,
                     useUniqueFileName:true
                 },
             );
@@ -64,7 +80,7 @@ const updateUser=async(req,res,next)=>{
                 {
                     file:req.files["file"][0].buffer.toString('base64'), //required
                     fileName: req.files["file"][0].originalname, //required,
-                    folder:`internHub/${userId}`,
+                    folder:`internHub/users/${userId}`,
                     useUniqueFileName:true
                 },
             );

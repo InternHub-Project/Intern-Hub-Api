@@ -19,7 +19,8 @@ const userSchema = new mongoose.Schema(
         birthdate: Date,
         gender:{
             type: String,
-            enum: ['male', 'female']
+            enum: ['male', 'female',"none"],
+            defult:"none"
         },
         address: AddressSchema,
         // skillIDs:[{type:Schema.Types.ObjectId,ref:"Skill"}],
@@ -28,7 +29,7 @@ const userSchema = new mongoose.Schema(
             validate: [arrayLimit, 'MaxNumber of skills: 30'], // Custom error message
         },
         cv:String,
-        phone: [String],
+        phone: String,
         profileImage: String,
         experienceYears: Number,
         educationLevel: String,

@@ -17,7 +17,7 @@ const verifyToken =async (req, res, next) => {
             const token = authHeader.split(`${CONFIG.authKey}`)[1];
             const checktoken=await tokenSchema.findOne({token})
             if(!checktoken){{
-                return sendResponse(res,constans.RESPONSE_BAD_REQUEST,"token in not defined",{},[])
+                return sendResponse(res,constans.RESPONSE_BAD_REQUEST,"please login",{},[])
             }
             }
             jwt.verify(token, CONFIG.jwt_encryption, (err, decoded) => {
