@@ -18,7 +18,7 @@ router.post("/company/login", authCon.companyLogin);
 router.get("/confirmemail/:token", authCon.confirmemail);
 router.put("/setPassword", authCon.setPassword);
 router.post("/forgetPassword", authCon.forgetPassword);
-router.post("/istokenexpired",authCon.checkToken)
+router.post("/istokenvalid",authCon.checkToken)
 router.post("/reSendcode", rateLimiter, authCon.reSendcode);
 router.post("/logout", authCon.signOut)
 

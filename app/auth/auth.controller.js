@@ -449,27 +449,33 @@ const companyLogin = async (req, res, next) => {
 
 
 //..................IS token valid....................//
-const checkToken=async(req,res,next)=>{
-  try {
-      const authHeader= req.headers['token']
-      const token=authHeader.split("internHub__")[1]
-      const decoded= jwt.verify(token,CONFIG.jwt_encryption)
-      const searchToken=await tokenSchema.findOne({token})
-      if(searchToken){
-          if (decoded.exp < Date.now() / 1000) {
-              sendResponse(res,constans.RESPONSE_SUCCESS,"Done",true,[])
-          }
-          else{
-              sendResponse(res,constans.RESPONSE_SUCCESS,"Done",false,[])
-          }
-      }
-      else{
-          sendResponse(res,constans.RESPONSE_BAD_REQUEST,"Token does not exist or Removed",{},[])
-      }
-        
-  } catch (error) {
-      sendResponse(res, constans.RESPONSE_INT_SERVER_ERROR, error.message, '',[]);
-  }
+const checkToken = async (req, res, next) => {
+    console.log(req.headers);
+
+    function extractToken() {
+        const token = req.headers['Authorization'] ?? req.headers['authorization'];
+        if (token) {
+            return token.split("internHub__")[1];
+        }
+    }
+
+    const token = extractToken();
+
+    if (!token) {
+        return sendResponse(res, constans.RESPONSE_BAD_REQUEST, "Token is required", false, []);
+    }
+
+    try {
+        jwt.verify(token, CONFIG.jwt_encryption);
+    } catch (error) {
+        return sendResponse(res, constans.RESPONSE_SUCCESS, "Token is invalid", false, []);
+    }
+
+    if (!await tokenSchema.findOne({ token })) {
+        return sendResponse(res, constans.RESPONSE_BAD_REQUEST, "Token does not exist or Removed", false, []);
+    }
+
+    sendResponse(res, constans.RESPONSE_SUCCESS, "Done", true, []);
 }
 
 //..................logout............................//
