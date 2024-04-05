@@ -31,10 +31,10 @@ app.use(compression())
 //Log Env
 console.log("Environment:", CONFIG.app)
 
-app.set('trust proxy', 1)
+
 // CORS 
 app.use(cors({
-  origin: ['http://localhost:5173'],
+  origin: ['http://localhost:5173', 'http://54.159.209.90'],
   credentials: true,
 }));
 

@@ -16,4 +16,5 @@ router.get("/companydata",verifyToken,companyCon.companyData)
 
 
 
+
 module.exports = router;
