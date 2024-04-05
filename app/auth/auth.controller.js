@@ -450,8 +450,6 @@ const companyLogin = async (req, res, next) => {
 
 //..................IS token valid....................//
 const checkToken = async (req, res, next) => {
-    console.log(req.headers);
-
     function extractToken() {
         const token = req.headers['Authorization'] ?? req.headers['authorization'];
         if (token) {
