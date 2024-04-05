@@ -450,19 +450,16 @@ const companyLogin = async (req, res, next) => {
 
 //..................IS token valid....................//
 const checkToken = async (req, res, next) => {
-    function extractToken() {
+      function extractToken() {
         const token = req.headers['Authorization'] ?? req.headers['authorization'];
         if (token) {
             return token.split("internHub__")[1];
         }
     }
-
     const token = extractToken();
-
     if (!token) {
         return sendResponse(res, constans.RESPONSE_BAD_REQUEST, "Token is required", false, []);
     }
-
     try {
         jwt.verify(token, CONFIG.jwt_encryption);
     } catch (error) {

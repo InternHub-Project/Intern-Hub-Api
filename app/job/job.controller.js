@@ -5,35 +5,25 @@ const constans=require("../utils/constants.js");
 
 const getAllJobs=async (req,res,next)=>{
     try {
-        const{limit,offset}=paginationWrapper(
-            page=req.query.page,
-            size=req.query.size
-          )
+        const skip = parseInt(req.query.skip, 10) || 0; 
+        const size = parseInt(req.query.size, 10) || 10;
             const query={
                 statusOfIntern:"active"
             }
-        const {title,salary,type,location,duration} =req.query;
-        if(title){
-            query.title = title;
+        if(req.query.search){
+            query.search=req.query.search
         }
-        if(type){
-            query.internType=type
-        }
-        if(location){
-            query.internLocation=location
-        }
-        if(duration) {
-            query.duration=duration
-        }
-        if(salary){
-            query.Salary=salary.toString()
-        }
-        const filteredData  = await jobModel.find(query).populate([
+        console.log(query.search);
+        const filteredData  = await jobModel.find({$and:[{statusOfIntern:query.statusOfIntern},{$or:[
+            { skills: { $regex: new RegExp(query.search, 'i') } },
+            {title: { $regex: new RegExp(query.search, 'i') }},
+            {description:{ $regex: new RegExp(query.search, 'i') }}
+        ]}]}).populate([
             {
                 path:"company",
                 select:"name image"
             }
-        ]).skip(offset).limit(limit)
+        ]).skip(skip).sort({createdAt:-1})
         const updatedFilteredData = filteredData.map(document => {
             // Convert the Mongoose document to a plain JavaScript object
             const job = document.toObject();
@@ -48,7 +38,6 @@ const getAllJobs=async (req,res,next)=>{
     } catch (error) {
         sendResponse(res, constans.RESPONSE_INT_SERVER_ERROR, error.message, '',[]);
     }
-   
 }
 
 
