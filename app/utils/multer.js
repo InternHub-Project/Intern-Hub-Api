@@ -8,7 +8,7 @@ const fileMimeTypes = ["application/pdf", "application/msword", "text/plain"];
 
    const HME = (err, req, res, next) => {
     if (err) {
-      sendResponse(res,RESPONSE_BAD_REQUEST,"Multer error",{},err)
+      sendResponse(res,RESPONSE_BAD_REQUEST,err.message,{},[])
     } else {
       next();
     }
@@ -30,6 +30,7 @@ const fileMimeTypes = ["application/pdf", "application/msword", "text/plain"];
       const upload = multer({ 
         storage: storage,
         fileFilter: fileFilter,
+        limits:{fileSize:2000000}//Max limit is 2MB 
       });
       return upload
 }

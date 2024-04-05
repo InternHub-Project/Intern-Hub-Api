@@ -34,13 +34,13 @@ const jobSchema=new mongoose.Schema({
     skills:[String],
     statusOfIntern:{
         type:String,
-        enum:["draft","active","closed"],
-        default:"draft"
+        enum:["active","inactive"],
+        default:"inactive"
     },
     description:String,
 },{
-    toJSON: { virtuals: true },
-    toObject: { virtuals: true },
+    toJSON: { virtuals: true,versionKey:false },
+    toObject: { virtuals: true,versionKey:false },
     timestamps:true
 })
 

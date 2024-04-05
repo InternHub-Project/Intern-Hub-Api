@@ -27,7 +27,7 @@ const companySchema = new mongoose.Schema({
     },
     description: String,
     image: String,
-    phone: [String],
+    phone: String,
     employees_number: Number,
     activateEmail: {
         type: Boolean,

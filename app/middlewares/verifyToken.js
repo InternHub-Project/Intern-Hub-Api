@@ -4,8 +4,9 @@ const passport = require('passport');
 require('../utils/passport')(passport);
 const CONFIG = require("../../config/config");
 const { sendResponse } = require("../utils/util.service");
+const tokenSchema = require('../auth/token.schema.js');
 
-const verifyToken = (req, res, next) => {
+const verifyToken =async (req, res, next) => {
     try {
         const authHeader = req.headers['Authorization'] || req.headers['authorization'];
         if (!authHeader) {
@@ -14,6 +15,11 @@ const verifyToken = (req, res, next) => {
         }
         else{
             const token = authHeader.split(`${CONFIG.authKey}`)[1];
+            const checktoken=await tokenSchema.findOne({token})
+            if(!checktoken){{
+                return sendResponse(res,constans.RESPONSE_BAD_REQUEST,"please login",{},[])
+            }
+            }
             jwt.verify(token, CONFIG.jwt_encryption, (err, decoded) => {
                 if (err) {
                     return sendResponse(res, constans.RESPONSE_BAD_REQUEST, err.message, {}, []);
