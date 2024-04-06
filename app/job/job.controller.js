@@ -24,12 +24,10 @@ const getAllJobs=async (req,res,next)=>{
                 path:"company",
                 select:"name image"
             }
-        ]).skip(skip).sort({createdAt:-1})
+        ]).skip(skip).limit(size).sort({createdAt:-1})
         const updatedFilteredData = filteredData.map(document => {
-            // Convert the Mongoose document to a plain JavaScript object
             const job = document.toObject();
-            // Add companyName field from the company array (assuming the first company is the correct one)
-            job.companyName = job.company[0]?.name; // Use optional chaining in case company array is empty
+            job.companyName = job.company[0]?.name; 
             job.companyImage=job.company[0]?.image
             // Remove the company field
             delete job.company;
