@@ -1,6 +1,7 @@
 const jobModel = require("../DB/models/job.schema.js");
 const { paginationWrapper, sendResponse } = require("../utils/util.service.js");
 const constans=require("../utils/constants.js");
+const userModel = require("../DB/models/user.Schema.js");
 
 
 const getAllJobs=async (req,res,next)=>{
@@ -41,8 +42,45 @@ const getAllJobs=async (req,res,next)=>{
 }
 
 
+const recommendedJobs = async (req, res, next) => {
+    try {
+        const { userId } = req.user;
+        const {init,limit}=req.query
+        const user = await userModel.findOne({ userId });
+        if (!user) {
+            return sendResponse(res,constans.RESPONSE_BAD_REQUEST,"User not found", "", []);
+        }
+        const { skills } = user;
+        const jobs = await fetchJobsBasedOnSkills(skills);
+        if (jobs.length === 0) {
+            return sendResponse(res,constans.RESPONSE_SUCCESS,"No recommended jobs for you.", "", []);
+        }
+        else{
+        jobs.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+        const numberOfJobsToSend = limit||10
+        const initNumber=init||0
+        const limitedJobs = jobs.slice(initNumber, numberOfJobsToSend);
+        return sendResponse(res,constans.RESPONSE_SUCCESS,"recommended jobs",limitedJobs,[]);
+        }
+      
+    } catch (error) {
+        sendResponse(res, constans.RESPONSE_INT_SERVER_ERROR, error.message, '',[]);
+    }
+};
+
+
+async function fetchJobsBasedOnSkills(skills) {
+    const allJobs = await jobModel.find();
+    return allJobs.filter(job =>
+        job.skills.some(skill => skills.includes(skill))
+    );
+}
+
+
+
 
 
 module.exports={
-    getAllJobs
+    getAllJobs,
+    recommendedJobs
 }
