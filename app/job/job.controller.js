@@ -81,7 +81,7 @@ const getJops = async (req, res, next) => {
         const query={
             statusOfIntern:"active"
         }
-        const { title, salary, type, location, duration, salaryType, jobType } = req.query;
+        const { title, salary, type, location, duration, salaryType, jobType, skills } = req.query;
         if(title){
             query.title = title;
         }
@@ -102,6 +102,12 @@ const getJops = async (req, res, next) => {
         }
         if(jobType){
             query.jobType = jobType;
+        }
+        if(skills){
+            const skill = [];
+            skill.push(...skills.split(','));
+            console.log(skill);
+            query.skills = { $in: skill };
         }
         const filteredData  = await jobModel.find(query).populate([
             {
