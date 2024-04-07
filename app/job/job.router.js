@@ -6,7 +6,7 @@ const verifyToken = require("../middlewares/verifyToken.js");
 const { myMullter, HME } = require("../utils/multer.js");
 
 router.get("/jobs",jonCon.getAllJobs)
-
+router.get("/recommendedjobs",verifyToken,jonCon.recommendedJobs)
 
 
 module.exports = router;
