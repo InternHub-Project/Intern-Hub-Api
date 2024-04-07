@@ -72,11 +72,64 @@ async function fetchJobsBasedOnSkills(skills) {
     );
 }
 
+const getJops = async (req, res, next) => {
+    try{
+        const{limit,offset}=paginationWrapper(
+            page = req.query.page,
+            size = req.query.size
+        )
+        const query={
+            statusOfIntern:"active"
+        }
+        const { title, salary, type, location, duration, salaryType, jobType } = req.query;
+        if(title){
+            query.title = title;
+        }
+        if(type){
+            query.internType = type
+        }
+        if(location){
+            query.internLocation = location
+        }
+        if(duration) {
+            query.duration = duration
+        }
+        if(salary){
+            query.Salary = salary.toString()
+        }
+        if(salaryType){
+            query.salaryType = salaryType;
+        }
+        if(jobType){
+            query.jobType = jobType;
+        }
+        const filteredData  = await jobModel.find(query).populate([
+            {
+                path:"company",
+                select:"name image"
+            }
+        ]).skip(offset||req.query.skip).limit(limit).sort({createdAt: -1})
+        const updatedFilteredData = filteredData.map(document => {
+            // Convert the Mongoose document to a plain JavaScript object
+            const job = document.toObject();
+            // Add companyName field from the company array (assuming the first company is the correct one)
+            job.companyName = job.company[0]?.name; // Use optional chaining in case company array is empty
+            job.companyImage=job.company[0]?.image
+            // Remove the company field
+            delete job.company;
+            return job;
+        });
+        updatedFilteredData.length?sendResponse(res,constans.RESPONSE_SUCCESS,"Done",updatedFilteredData ,[]):sendResponse(res,constans.RESPONSE_SUCCESS,"No Job found",{} ,[])
+    }catch{
+        sendResponse(res, constans.RESPONSE_INT_SERVER_ERROR, error.message, '',[]);
+    }
+}
 
 
 
 
 module.exports={
     getAllJobs,
-    recommendedJobs
+    recommendedJobs,
+    getJops
 }
