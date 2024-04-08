@@ -34,11 +34,6 @@ router.get(
   authCon.social_google
 );
 
-router.get('/facebook', passport.authenticate('facebook', { scope: ["email"] }));
-router.get('/facebook/callback',
-  passport.authenticate('facebook', { failureRedirect: 'localhost:3003/api/v1/auth/login' }),
-  authCon.social_facebook
-);
 
 
 

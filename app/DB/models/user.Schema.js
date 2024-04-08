@@ -14,8 +14,7 @@ const userSchema = new mongoose.Schema(
         encryptedPassword: {
             type:String,
         },
-        firstName: String,
-        lastName: String,
+        userName:String,
         birthdate: Date,
         gender:{
             type: String,
@@ -46,7 +45,7 @@ const userSchema = new mongoose.Schema(
         accountType:{
             type:String,
             default:"system",
-            enum:["system", "google", "facebook"]
+            enum:["system", "google"]
         },
         isDeleted:{
             type:Boolean,
