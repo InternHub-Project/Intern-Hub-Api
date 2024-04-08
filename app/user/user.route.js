@@ -11,7 +11,8 @@ router.post("/addskill", verifyToken, userCon.addSkills)
 router.put("/updateuserprofile", verifyToken, myMullter().fields([{ name: "image", maxCount: 1 }, { name: "file", maxCount: 1 }]), HME, userCon.updateUser);
 router.post("/apply/:jobId",verifyToken,myMullter().single("file"),HME , userCon.applyJob);
 router.get("/appliedjob", verifyToken, userCon.appliedjobs);
-router.get("/userdata",verifyToken,userCon.userData)
+router.get("/userdata",verifyToken,userCon.userData);
+
 
 
 

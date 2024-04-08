@@ -166,12 +166,12 @@ const reSendcode = async (req, res, next) => {
 const forgetPassword = async (req, res, next) => {
   try {
     const {email,type} = req.body;
-   let userOrcompamy;
-   const model=helper.checktype(type)
-   if(!model){
-     return sendResponse(res,constans.RESPONSE_BAD_REQUEST,"Invalid account type",{},[])
-   }
-        userOrcompamy = await model.findOne({ email: email });
+    let userOrcompamy;
+    const model=helper.checktype(type)
+    if(!model){
+      return sendResponse(res,constans.RESPONSE_BAD_REQUEST,"Invalid account type",{},[])
+    }
+    userOrcompamy = await model.findOne({ email: email });
     if (!userOrcompamy || userOrcompamy.isDeleted) {
       sendResponse(res, constans.RESPONSE_BAD_REQUEST, "This email does not exist", {}, []);
     } else {
@@ -197,12 +197,12 @@ const forgetPassword = async (req, res, next) => {
 //..............updatePassword for user and company...................//
 const setPassword = async (req, res, next) => {
   try {
-  const { password, code, email,type } = req.body;
+    const { password, code, email, type } = req.body;
     let model=helper.checktype(type)
-   if(!model){
-     return sendResponse(res,constans.RESPONSE_BAD_REQUEST,"Invalid account type",{},[])
-   }
-   let userOrcompamyId = (model === userModel) ? "userId" : "companyId";
+    if(!model){
+      return sendResponse(res,constans.RESPONSE_BAD_REQUEST,"Invalid account type",{},[])
+    }
+    let userOrcompamyId = (model === userModel) ? "userId" : "companyId";
     const  userOrcompamy = await userModel.findOne({ email });
     if (userOrcompamy.recoveryCode === code && validateExpiry(userOrcompamy.recoveryCodeDate) && code) {
       const encryptedPassword = bcrypt.hashSync(password, parseInt(CONFIG.BCRYPT_SALT));

@@ -1,4 +1,5 @@
 
+
 // const setTokenWithCookies = (res, token)=>{
 //     const options = {
 //         domain: '.codesplus.online',
@@ -9,5 +10,7 @@
 //     }
 //     return res.cookie("token", token, options);
 // }
+
+
 
 // module.exports = setTokenWithCookies

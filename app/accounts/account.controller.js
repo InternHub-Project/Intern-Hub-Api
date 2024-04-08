@@ -64,11 +64,11 @@ const passwordChangeFun=async(req,res,role)=>{
     let model,userOrCompanyId,companyOrUser,id;
     role=="user"?(model=userModel,userOrCompanyId="userId"):(model=companyModel,userOrCompanyId="companyId");
     id  = req.user[userOrCompanyId];
-      companyOrUser = await model.findOne({ [userOrCompanyId]: id }); 
+    companyOrUser = await model.findOne({ [userOrCompanyId]: id }); 
     const { currentPassword, newPassword } = req.body;
     const isPasswordValid = bcrypt.compareSync(currentPassword,companyOrUser.encryptedPassword);
     if (!isPasswordValid) {
-       return sendResponse(res,constans.RESPONSE_UNAUTHORIZED,"Current password is invalid",'',[]);
+        return sendResponse(res,constans.RESPONSE_UNAUTHORIZED,"Current password is invalid",'',[]);
     } else {
         if (currentPassword === newPassword) {
            return sendResponse(res,constans.RESPONSE_BAD_REQUEST,"New password must be different from the old password.",'', []);

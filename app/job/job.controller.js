@@ -50,6 +50,71 @@ const getAllJobs=async (req,res,next)=>{
 }
 
 
+
+const getJobs = async (req, res, next) => {
+    try{
+        const{limit,offset}=paginationWrapper(
+            page = req.query.page,
+            size = req.query.size
+        )
+        const query={
+            statusOfIntern:"active"
+        }
+        const { title, salary, type, location, duration, salaryType, jobType, skills } = req.query;
+        if(title){
+            query.title = title;
+        }
+        if(type){
+            query.internType = type
+        }
+        if(location){
+            query.internLocation = location
+        }
+        if(duration) {
+            query.duration = duration
+        }
+        if(salary){
+            query.Salary = salary.toString()
+        }
+        if(salaryType){
+            query.salaryType = salaryType;
+        }
+        if(jobType){
+            query.jobType = jobType;
+        }
+        if(skills){
+            const skill = [];
+            skill.push(...skills.split(','));
+            console.log(skill);
+            query.skills = { $in: skill };
+        }
+        const filteredData  = await jobModel.find(query).populate([
+            {
+                path:"company",
+                select:"name image"
+            }
+        ]).skip(offset||req.query.skip).limit(limit).sort({createdAt: -1})
+        const updatedFilteredData = filteredData.map(document => {
+            // Convert the Mongoose document to a plain JavaScript object
+            const job = document.toObject();
+            // Add companyName field from the company array (assuming the first company is the correct one)
+            job.companyName = job.company[0]?.name; // Use optional chaining in case company array is empty
+            job.companyImage=job.company[0]?.image
+            // Remove the company field
+            delete job.company;
+            return job;
+        });
+        updatedFilteredData.length?sendResponse(res,constans.RESPONSE_SUCCESS,"Done",updatedFilteredData ,[]):sendResponse(res,constans.RESPONSE_SUCCESS,"No Job found",{} ,[])
+    }catch{
+        sendResponse(res, constans.RESPONSE_INT_SERVER_ERROR, error.message, '',[]);
+    }
+}
+
+
+
+
+  
+
 const recommendedJobs = async (req, res, next) => {
     try {
         const { userId } = req.user;
@@ -77,8 +142,8 @@ const recommendedJobs = async (req, res, next) => {
 };
 
 
-
 const Applications=async(req,res)=>{
+    try {
         const {userId}=req.user;
         const{limit,offset}=paginationWrapper(
             page=req.query.page,
@@ -143,21 +208,29 @@ const Applications=async(req,res)=>{
             }
          
         }
+    } catch (error) {
+        sendResponse(res, constans.RESPONSE_INT_SERVER_ERROR, error.message, '',[]);
+    }
+       
 }
 
 const jobDetails=async(req,res,next)=>{
-    const {jobId}=req.params
-    if(!jobId){
-        return sendResponse(res,constans.RESPONSE_BAD_REQUEST,"Invalid Job ID","",[])
-    }
-    else{
-        const jobdetails=await jobModel.findOne({jobId})
-        if(!jobdetails){
-            sendResponse(res,constans.RESPONSE_BAD_REQUEST,"Job is Not found","",[])
-    }
-    else{
-        sendResponse(res,constans.RESPONSE_SUCCESS,"Done",jobdetails,[]);
-    }
+    try {
+        const {jobId}=req.params
+        if(!jobId){
+            return sendResponse(res,constans.RESPONSE_BAD_REQUEST,"Invalid Job ID","",[])
+        }
+        else{
+            const jobdetails=await jobModel.findOne({jobId})
+            if(!jobdetails){
+                sendResponse(res,constans.RESPONSE_BAD_REQUEST,"Job is Not found","",[])
+        }
+        else{
+            sendResponse(res,constans.RESPONSE_SUCCESS,"Done",jobdetails,[]);
+        }
+        }
+    } catch (error) {
+        sendResponse(res, constans.RESPONSE_INT_SERVER_ERROR, error.message, '',[]);
     }
    }
 
@@ -171,5 +244,7 @@ module.exports={
     getAllJobs,
     recommendedJobs,
     Applications,
-    jobDetails
+    jobDetails,
+    getJobs
+
 }

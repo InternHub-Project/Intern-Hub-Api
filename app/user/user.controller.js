@@ -206,7 +206,6 @@ const userData=async(req,res,next)=>{
 
 
 
-
 module.exports={
     addSkills,
     updateUser,

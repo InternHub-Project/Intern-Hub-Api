@@ -7,9 +7,11 @@ const { myMullter, HME } = require("../utils/multer.js");
 
 router.get("/jobs",jonCon.getAllJobs)
 router.get("/recommendedjobs",verifyToken,jonCon.recommendedJobs)
+
 router.get("/applications",verifyToken,jonCon.Applications)
 router.get("/jobdetails/:jobId",verifyToken,jonCon.jobDetails)
 
+router.get('/jobsfiltration',jonCon.getJobs);
 
 
 
