@@ -19,7 +19,9 @@ const applicantSchema=new mongoose.Schema({
         default: 'pending'
     },
     coverLetter: String,
-    resume: String
+    resume: String,
+    missingSkills: [String], // list of skills the applicant is missing from their profile that are on the job
+    points:String
 },{
     toJSON: { virtuals: true },
     toObject: { virtuals: true },

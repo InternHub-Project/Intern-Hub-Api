@@ -34,7 +34,9 @@ console.log("Environment:", CONFIG.app)
 
 // CORS 
 app.use(cors({
-  origin: ['http://localhost:5173', 'http://54.159.209.90'],
+
+  origin: ['https://localhost:5173', 'https://internhub.codesplus.online/'],
+
   credentials: true,
 }));
 
