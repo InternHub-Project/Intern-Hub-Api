@@ -3,19 +3,21 @@
 //     'FAILURE' : 'danger',
 // ]
 
-// pipeline{
+pipeline{
 
-//     agent {label 'BACK'}
+    agent {label 'BACK'}
 
-//      environment {
-//         PATH = "/home/ubuntu/.nvm/versions/node/v21.7.1/bin/npm:${env.PATH}"
-//     }
 
-//     tools {
-//         nodejs 'NODE21'
-//     }
 
-//     stages{
+   stages{
+
+    // Testing Ansible 
+    stage ('Ansible'){
+        steps{
+
+            sh 'ansible --version'
+        }
+    }
 
 //         // Create Or Update ENV File
 //         //stage('Create Or Update .env File') {
@@ -103,5 +105,5 @@
 //                 color: COLOR_MAP[currentBuild.currentResult],
 //                 message: "*${currentBuild.currentResult}:* Job ${env.JOB_NAME} build ${env.BUILD_NUMBER} \n More info at: ${env.BUILD_URL}"
 //         }
-//     }
-// }
+    }
+}
