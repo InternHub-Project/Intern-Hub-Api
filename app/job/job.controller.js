@@ -20,8 +20,8 @@ const getAllJobs=async (req,res,next)=>{
         const{limit,offset}=paginationWrapper(
             page=req.query.page,
             size=req.query.size
-          )
-            const query={}
+        )
+        const query={}
         if(req.query.search){
             query.search=req.query.search
         }
@@ -105,20 +105,16 @@ const getJobs = async (req, res, next) => {
             return job;
         });
         updatedFilteredData.length?sendResponse(res,constans.RESPONSE_SUCCESS,"Done",updatedFilteredData ,[]):sendResponse(res,constans.RESPONSE_SUCCESS,"No Job found",{} ,[])
-    }catch{
+    }catch(error){
         sendResponse(res, constans.RESPONSE_INT_SERVER_ERROR, error.message, '',[]);
     }
 }
 
 
-
-
-  
-
 const recommendedJobs = async (req, res, next) => {
     try {
         const { userId } = req.user;
-        const {init,limit}=req.query
+        const {skip,size}=req.query
         const user = await userModel.findOne({ userId });
         if (!user) {
             return sendResponse(res,constans.RESPONSE_BAD_REQUEST,"User not found", "", []);
@@ -130,12 +126,11 @@ const recommendedJobs = async (req, res, next) => {
         }
         else{
         jobs.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-        const numberOfJobsToSend = limit||10
-        const initNumber=init||0
+        const numberOfJobsToSend = size||10
+        const initNumber=skip||0
         const limitedJobs = jobs.slice(initNumber, numberOfJobsToSend);
         return sendResponse(res,constans.RESPONSE_SUCCESS,"recommended jobs",limitedJobs,[]);
         }
-      
     } catch (error) {
         sendResponse(res, constans.RESPONSE_INT_SERVER_ERROR, error.message, '',[]);
     }
@@ -148,7 +143,7 @@ const Applications=async(req,res)=>{
         const{limit,offset}=paginationWrapper(
             page=req.query.page,
             size=req.query.size
-          )
+        )
         const checkUser=await userModel.findOne({userId})
         if(!checkUser)
         {
@@ -206,12 +201,10 @@ const Applications=async(req,res)=>{
                 });
                 sendResponse(res,constans.RESPONSE_SUCCESS,"Done",transformedApplications,[]);
             }
-         
         }
     } catch (error) {
         sendResponse(res, constans.RESPONSE_INT_SERVER_ERROR, error.message, '',[]);
     }
-       
 }
 
 const jobDetails=async(req,res,next)=>{
@@ -224,17 +217,33 @@ const jobDetails=async(req,res,next)=>{
             const jobdetails=await jobModel.findOne({jobId})
             if(!jobdetails){
                 sendResponse(res,constans.RESPONSE_BAD_REQUEST,"Job is Not found","",[])
-        }
-        else{
-            sendResponse(res,constans.RESPONSE_SUCCESS,"Done",jobdetails,[]);
-        }
+            }
+            else{
+                sendResponse(res,constans.RESPONSE_SUCCESS,"Done",jobdetails,[]);
+            }
         }
     } catch (error) {
         sendResponse(res, constans.RESPONSE_INT_SERVER_ERROR, error.message, '',[]);
     }
-   }
+}
 
-
+const jobDetailsForCompany = async (req, res, next) => {
+    try{
+        const {companyId} = req.user;
+        const {jobId} = req.params;
+        if(!jobId){
+            return sendResponse(res,constans.RESPONSE_BAD_REQUEST,"Invalid Job ID","",[])
+        }
+        const job = await jobModel.findOne({jobId});
+        if(companyId !== job.companyId){
+            sendResponse(res, constans.RESPONSE_UNAUTHORIZED, "you are not allowed to do that", '' ,[]);
+        }else{
+            sendResponse(res, constans.RESPONSE_SUCCESS, "Done", job , []);
+        }
+    }catch(error){
+        sendResponse(res, constans.RESPONSE_INT_SERVER_ERROR, error.message, '',[]);
+    }
+}
 
 
 
@@ -245,6 +254,6 @@ module.exports={
     recommendedJobs,
     Applications,
     jobDetails,
-    getJobs
-
+    getJobs,
+    jobDetailsForCompany
 }
