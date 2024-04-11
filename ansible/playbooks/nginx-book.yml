@@ -1,0 +1,13 @@
+- name: Update Nginx Conf
+  hosts: localhost
+  tasks:
+  - name: Get The Old IP
+    shell: cat /etc/nginx/sites-available/default | grep -oP '(?<=//)[^:]+' | grep -v "request_uri"
+    register: OLD_IP
+
+  - name: Update The IP
+    ansible.builtin.lineinfile:
+      path: /etc/nginx/sites-available/default
+      regexp: '^( +proxy_pass +http://)OLD_IP(;)$'
+      line: '\1{{ 162.145.8.22 }}\2'
+
