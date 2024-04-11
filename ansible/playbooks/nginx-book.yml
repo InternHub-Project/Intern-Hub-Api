@@ -2,12 +2,15 @@
   hosts: localhost
   tasks:
   - name: Get The Old IP
-    shell: cat /etc/nginx/sites-available/default | grep -oP '(?<=//)[^:]+' | grep -v "request_uri"
+    shell: cat /etc/nginx/sites-available/default | grep -oP '(?<=http://)[^:]+'
     register: OLD_IP
+
+  # - name: Debug Old IP
+  #   ansible.builtin.debug:
+  #     var: OLD_IP
 
   - name: Update The IP
     ansible.builtin.lineinfile:
       path: /etc/nginx/sites-available/default
-      regexp: '^( +proxy_pass +http://)OLD_IP(;)$'
-      line: '        proxy_set http://{{ DOCKER_IP }}:3003;'
-
+      regexp: '^\s*proxy_pass\s*http://{{ OLD_IP.stdout }}:3003;'
+      line: '        proxy_pass http://189.54.78:3003;'
