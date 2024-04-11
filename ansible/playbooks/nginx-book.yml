@@ -11,7 +11,7 @@
   #     var: OLD_IP
 
   - name: Get IP address of Docker container
-    shell: docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' <container_name_or_id>
+    shell: docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' InternHub
     register: DOCKER_IP
 
 
