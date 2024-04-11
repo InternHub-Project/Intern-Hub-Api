@@ -1,6 +1,7 @@
 - name: Update Nginx Conf
   hosts: localhost
   tasks:
+
   - name: Get The Old IP
     shell: cat /etc/nginx/sites-available/default | grep -oP '(?<=http://)[^:]+'
     register: OLD_IP
@@ -9,8 +10,13 @@
   #   ansible.builtin.debug:
   #     var: OLD_IP
 
+  - name: Get IP address of Docker container
+    shell: docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' <container_name_or_id>
+    register: DOCKER_IP
+
+
   - name: Update The IP
     ansible.builtin.lineinfile:
       path: /etc/nginx/sites-available/default
       regexp: '^\s*proxy_pass\s*http://{{ OLD_IP.stdout }}:3003;'
-      line: '        proxy_pass http://189.54.78:3003;'
+      line: '        proxy_pass http://{{ DOCKER_IP.stdout}}:3003;'
