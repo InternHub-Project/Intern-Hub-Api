@@ -15,11 +15,10 @@ const verifyToken =async (req, res, next) => {
         }
         else{
             const token = authHeader.split(`${CONFIG.authKey}`)[1];
-            const checktoken=await tokenSchema.findOne({token})
-            if(!checktoken){{
-                return sendResponse(res,constans.RESPONSE_BAD_REQUEST,"please login",{},[])
-            }
-            }
+            // const checktoken=await tokenSchema.findOne({token})
+            // if(!checktoken){
+            //     return sendResponse(res,constans.RESPONSE_BAD_REQUEST,"please login",{},[])
+            // }
             jwt.verify(token, CONFIG.jwt_encryption, (err, decoded) => {
                 if (err) {
                     return sendResponse(res, constans.RESPONSE_BAD_REQUEST, err.message, {}, []);
