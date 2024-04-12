@@ -49,13 +49,13 @@ pipeline{
                     def containerIds = sh(script: 'docker ps -a -q', returnStdout: true).trim().split('\n')
                     echo "Number of containers: ${containerIds.size()}"
                     sh "docker ps -a"
-                    if (containerIds.size() > 0) {
+                    if (containerIds.size() == 1 && (containerIds[0] == '' || containerIds[0] == '\n')) {
+                        echo 'No Docker containers to stop or remove'
+                    } else {
                         containerIds.each { containerId ->
                             sh "docker stop ${containerId}"
                             sh "docker rm ${containerId}"
                         }
-                    } else {
-                        echo 'No Docker containers to stop or remove'
                     }
 
                     def imageIds = sh(script: 'docker images -q', returnStdout: true).trim().split('\n')
