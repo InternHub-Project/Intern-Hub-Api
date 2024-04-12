@@ -48,7 +48,7 @@ pipeline{
                 script {
                     def containerIds = sh(script: 'docker ps -a -q', returnStdout: true).trim().split('\n')
                     echo "Number of containers: ${containerIds.size()}"
-                    
+                    echo "docker ps -a"
                     if (containerIds.size() > 0) {
                         containerIds.each { containerId ->
                             sh "docker stop ${containerId}"
