@@ -67,7 +67,8 @@ pipeline{
 
         stage('Creating Docker Image') {
             steps{
-                sh 'docker run . -t backend'
+
+                sh 'docker run -t backend .'
             }
         }
 
