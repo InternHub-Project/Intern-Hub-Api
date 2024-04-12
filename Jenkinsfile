@@ -5,9 +5,7 @@ def COLOR_MAP = [
 
 pipeline{
 
-    agent {label 'BACK'}
-
-
+   agent {label 'BACK'}
 
    stages{
 
@@ -80,6 +78,7 @@ pipeline{
             }
         }
 
+    }
         post {
             success {
                 echo 'Slack Notifications .'
@@ -105,5 +104,4 @@ pipeline{
                     message: "*${currentBuild.currentResult}:* Job ${env.JOB_NAME} build ${env.BUILD_NUMBER} \n More info at: ${env.BUILD_URL}"
             }
         }
-    }
 }
