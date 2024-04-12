@@ -227,16 +227,20 @@ const jobDetails=async(req,res,next)=>{
     }
 }
 
-const jobDetailsForCompany = async (req, res, next) => {
+const jobApplicants = async (req, res, next) => {
     try{
         const {companyId} = req.user;
         const {jobId} = req.params;
         if(!jobId){
             return sendResponse(res,constans.RESPONSE_BAD_REQUEST,"Invalid Job ID","",[])
         }
-        const job = await jobModel.findOne({jobId});
-        if(companyId !== job.companyId){
-            sendResponse(res, constans.RESPONSE_UNAUTHORIZED, "you are not allowed to do that", '' ,[]);
+        const job = await jobModel.findOne({jobId,companyId}).populate([
+            {
+                path: "applicants"
+            }
+        ])
+        if(!job){
+            sendResponse(res, constans.RESPONSE_UNAUTHORIZED, "job Not found Or Something error ", '' ,[]);
         }else{
             sendResponse(res, constans.RESPONSE_SUCCESS, "Done", job , []);
         }
@@ -255,5 +259,5 @@ module.exports={
     Applications,
     jobDetails,
     getJobs,
-    jobDetailsForCompany
+    jobApplicants
 }

@@ -13,6 +13,6 @@ router.get("/jobdetails/:jobId",verifyToken,jonCon.jobDetails)
 
 router.get('/jobsfiltration',jonCon.getJobs);
 
-router.get('/jobdetailsforcompany/:jobId', verifyToken, jonCon.jobDetailsForCompany)
+router.get('/jobapplicants/:jobId', verifyToken, jonCon.jobApplicants)
 
 module.exports = router;
