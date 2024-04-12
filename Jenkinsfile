@@ -60,12 +60,12 @@ pipeline{
 
                     def imageIds = sh(script: 'docker images -q', returnStdout: true).trim().split('\n')
 
-                    if (imageIds.size() > 0) {
+                    if (imageIds.size() == 1 && (imageIds[0] == '' || imageIds[0] == '\n')) {
+                        echo 'No Docker images to remove'
+                    } else {
                         imageIds.each { imageId ->
                             sh "docker rmi ${imageId}"
                         }
-                    } else {
-                        echo 'No Docker images to remove'
                     }
                 }
             }
