@@ -85,10 +85,10 @@ pipeline{
 
         stage('Running Ansible Playbook'){
             steps{
-                sh 'ansible-playbook Backend-CICD_newUpdate/ansible/playbooks/nginx-book.yml'
+                sh 'ansible-playbook /Backend-CICD_newUpdate/ansible/playbooks/nginx-book.yml'
             }
         }
-        
+
 //     post {
 //         success {
 //             echo 'Slack Notifications .'
