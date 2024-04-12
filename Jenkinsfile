@@ -12,12 +12,12 @@ pipeline{
    stages{
 
     // Testing Ansible 
-    stage ('Ansible'){
-        steps{
+    // stage ('Ansible'){
+    //     steps{
 
-            sh 'ansible --version'
-        }
-    }
+    //         sh 'ansible --version'
+    //     }
+    // }
 
 //         // Create Or Update ENV File
 //         //stage('Create Or Update .env File') {
@@ -43,43 +43,27 @@ pipeline{
 //             // }
 //         //}
 
-//         // stage('Set up environment') {
-//         //     steps {
-//         //         script {
-//         //             sh 'export NVM_DIR=/home/ubuntu/.nvm'
-//         //         }
-//         //     }
-//         // }
+        stage('Check Docker Resources') {
+            steps {
+                script {
+                    def containerExists = sh(script: 'docker ps -a', returnStatus: true) == 0
+                    def imageExists = sh(script: 'docker images', returnStatus: true) == 0
 
-//         // Installing Dependancies And PM2 With NPM
-//         stage('Installing Dependencies') {
-//             steps {
-//                     sh 'npm install'
+                    if (containerExists) {
+                        sh 'docker stop $(docker ps-a -q)'
+                        sh 'docker rm $(docker ps-a -q)'
+                    } else {
+                        echo 'Docker container does not exist'
+                    }
 
-                    
-//             }
-//         }
-        
-
-//         // Restrating The Server When An Update Happens 
-//         stage('PM2') {
-//             steps {
-
-//                 sh 'pm2 start npm -- start'
-//                 //script {
-
-//                     // def pm2ListOutput = sh(script: 'pm2 list', returnStdout: true).trim()
-//                     // if (pm2ListOutput.contains('npm')) {
-//                     //     sh 'pm2 restart 0'
-//                     // } else {
-//                     //     echo 'Application is not running, starting it...'
-//                     //     sh 'pm2 start npm -- start'
-//                     // }
-//                 //}
-//             }
-//         }
-        
-//     }
+                    if (imageExists) {
+                        sh 'docker rmi $(docker iamges -q)'
+                    } else {
+                        echo 'Docker image does not exist'
+                    }
+                }
+            }
+        }
 
 //     post {
 //         success {
