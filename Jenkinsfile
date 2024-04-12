@@ -47,8 +47,6 @@ pipeline{
             steps {
                 script {
                     def containerIds = sh(script: 'docker ps -a -q', returnStdout: true).trim().split('\n')
-                    echo "Number of containers: ${containerIds.size()}"
-                    sh "docker ps -a"
                     if (containerIds.size() == 1 && (containerIds[0] == '' || containerIds[0] == '\n')) {
                         echo 'No Docker containers to stop or remove'
                     } else {
@@ -58,8 +56,8 @@ pipeline{
                         }
                     }
 
-                    def imageIds = sh(script: 'docker images -q', returnStdout: true).trim().split('\n')
 
+                    def imageIds = sh(script: 'docker images -q', returnStdout: true).trim().split('\n')
                     if (imageIds.size() == 1 && (imageIds[0] == '' || imageIds[0] == '\n')) {
                         echo 'No Docker images to remove'
                     } else {
