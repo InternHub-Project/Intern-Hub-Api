@@ -50,8 +50,8 @@ pipeline{
                     def imageExists = sh(script: 'docker images', returnStatus: true) == 0
 
                     if (containerExists) {
-                        sh 'docker stop $(docker ps-a -q)'
-                        sh 'docker rm $(docker ps-a -q)'
+                        sh 'docker stop $(docker ps -a -q)'
+                        sh 'docker rm $(docker ps -a -q)'
                     } else {
                         echo 'Docker container does not exist'
                     }
