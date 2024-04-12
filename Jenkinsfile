@@ -65,6 +65,19 @@ pipeline{
             }
         }
 
+        stage('Creating Docker Image') {
+            steps{
+                sh 'docker run . -t backend'
+            }
+        }
+
+
+        stage('Creating Docker Container') {
+            steps{
+                sh 'docker build -d --name InternHub backend'
+            }
+        }
+
 //     post {
 //         success {
 //             echo 'Slack Notifications .'
