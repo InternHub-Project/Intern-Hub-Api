@@ -46,20 +46,25 @@ pipeline{
         stage('Check Docker Resources') {
             steps {
                 script {
-                    def containerExists = sh(script: 'docker ps -a', returnStatus: true) == 0
-                    def imageExists = sh(script: 'docker images', returnStatus: true) == 0
+                    def containerIds = sh(script: 'docker ps -a -q', returnStdout: true).trim().split('\n')
 
-                    if (containerExists) {
-                        sh 'docker stop $(docker ps -a -q)'
-                        sh 'docker rm $(docker ps -a -q)'
+                    if (containerIds.size() > 0) {
+                        containerIds.each { containerId ->
+                            sh "docker stop ${containerId}"
+                            sh "docker rm ${containerId}"
+                        }
                     } else {
-                        echo 'Docker container does not exist'
+                        echo 'No Docker containers to stop or remove'
                     }
 
-                    if (imageExists) {
-                        sh 'docker rmi $(docker iamges -q)'
+                    def imageIds = sh(script: 'docker images -q', returnStdout: true).trim().split('\n')
+
+                    if (imageIds.size() > 0) {
+                        imageIds.each { imageId ->
+                            sh "docker rmi ${imageId}"
+                        }
                     } else {
-                        echo 'Docker image does not exist'
+                        echo 'No Docker images to remove'
                     }
                 }
             }
