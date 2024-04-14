@@ -26,6 +26,6 @@
 
   handlers:
   - name: Restarting Nginx
-    ansible.builtin.systemd:
+    ansible.builtin.service:
       name: nginx
       state: restarted
