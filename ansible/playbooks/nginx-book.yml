@@ -26,8 +26,6 @@
 
   handlers:
   - name: Restarting Nginx
-    become: true
     ansible.builtin.service:
       name: nginx
       state: restarted
-      sudo: yes
