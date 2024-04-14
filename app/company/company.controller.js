@@ -74,25 +74,30 @@ const closeIntern = async (req, res, next) => {
   }
 };
 
-///...................i will modify this endpoint  later..............//
+///............jobs that company make..............//
 const companyJobs=async(req,res,next)=>{
   try {
     const {companyId}=req.user
+    const {search,skip}=req.query
     const{limit,offset}=paginationWrapper(
       page=req.query.page,
       size=req.query.size
     )
-    const jobs=await jobModel.find({companyId}).populate([
-      {
-        path:"applicants",
-        populate:{
-          path:"user",
-          select:"email firstName lastName"
-        }
-      }
-    ]).skip(offset).limit(limit)
-    if(!jobs){
-      sendResponse(res,constans.RESPONSE_NOT_FOUND,"No Job Found!",{},[])
+    let jobs
+    if(search){
+      jobs=await jobModel.find({$and:[
+        {companyId},
+        {$or:[
+            {skills: { $regex: new RegExp(search, 'i') } },
+            {title: { $regex: new RegExp(search, 'i') }}
+        ]}
+      ]}).sort({createdAt:-1}).skip(offset).limit(limit)
+    }
+    else{
+     jobs=await jobModel.find({companyId}).sort({createdAt:-1}).skip(offset||skip).limit(limit)
+    }
+    if(!jobs.length){
+      sendResponse(res,constans.RESPONSE_NOT_FOUND,"No Jobs Found!",{},[])
     }else{
       sendResponse(res,constans.RESPONSE_SUCCESS,"Done",jobs,[])
     }

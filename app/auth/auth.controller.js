@@ -10,7 +10,7 @@ const tokenSchema = require("./token.schema.js");
 const bcrypt = require("bcryptjs");
 const userModel = require("../DB/models/user.Schema.js");
 const companyModel = require("../DB/models/company.Schema.js");
-const setTokenWithCookies = require('../utils/setcookies.js');
+// const setTokenWithCookies = require('../utils/setcookies.js');
 
 
 
@@ -18,14 +18,13 @@ const setTokenWithCookies = require('../utils/setcookies.js');
 //...........SignUp.................//
 const signUp = async (req, res, next) => {
   try {
-    const { email, firstName, lastName, password } = req.body;
+    const { email, userName, password } = req.body;
     const user = await userModel.findOne({ email: email });
     if (!user) {
       const newUser = await userModel({
         email,
         userId: "User" + uuidv4(),
-        firstName,
-        lastName,
+        userName,
         password,
       });
       const confirmLink = "confirm u account";
@@ -121,7 +120,7 @@ const login = async (req, res, next) => {
       await newToken.save();
     }
 
-    setTokenWithCookies(res, accToken);
+    // setTokenWithCookies(res, accToken);
     const data = {
       userId: user.userId,
       token: accToken,
@@ -134,7 +133,7 @@ const login = async (req, res, next) => {
 };
 
 
-///***** reSendcode *****///
+///***** reSendcode  for user and company *****///
 
 const reSendcode = async (req, res, next) => {
   try {
@@ -167,12 +166,12 @@ const reSendcode = async (req, res, next) => {
 const forgetPassword = async (req, res, next) => {
   try {
     const {email,type} = req.body;
-   let userOrcompamy;
-   const model=helper.checktype(type)
-   if(!model){
-     return sendResponse(res,constans.RESPONSE_BAD_REQUEST,"Invalid account type",{},[])
-   }
-        userOrcompamy = await model.findOne({ email: email });
+    let userOrcompamy;
+    const model=helper.checktype(type)
+    if(!model){
+      return sendResponse(res,constans.RESPONSE_BAD_REQUEST,"Invalid account type",{},[])
+    }
+    userOrcompamy = await model.findOne({ email: email });
     if (!userOrcompamy || userOrcompamy.isDeleted) {
       sendResponse(res, constans.RESPONSE_BAD_REQUEST, "This email does not exist", {}, []);
     } else {
@@ -198,12 +197,12 @@ const forgetPassword = async (req, res, next) => {
 //..............updatePassword for user and company...................//
 const setPassword = async (req, res, next) => {
   try {
-  const { password, code, email,type } = req.body;
+    const { password, code, email, type } = req.body;
     let model=helper.checktype(type)
-   if(!model){
-     return sendResponse(res,constans.RESPONSE_BAD_REQUEST,"Invalid account type",{},[])
-   }
-   let userOrcompamyId = (model === userModel) ? "userId" : "companyId";
+    if(!model){
+      return sendResponse(res,constans.RESPONSE_BAD_REQUEST,"Invalid account type",{},[])
+    }
+    let userOrcompamyId = (model === userModel) ? "userId" : "companyId";
     const  userOrcompamy = await userModel.findOne({ email });
     if (userOrcompamy.recoveryCode === code && validateExpiry(userOrcompamy.recoveryCodeDate) && code) {
       const encryptedPassword = bcrypt.hashSync(password, parseInt(CONFIG.BCRYPT_SALT));
@@ -288,74 +287,6 @@ const social_google = async (req, res, next) => {
 };
 
 
-const social_facebook = async (req, res, next) => {
-  try{
-    //console.log(req.user._json);
-    const { email } = req.user._json;
-    if (!email) {
-      sendResponse(res, constans.RESPONSE_BAD_REQUEST, "in_valid facebook account", {}, []);
-    } else {
-      const searchUser = await userModel.findOne({ email });
-      //.....if findUser then user want to login......//
-      if (searchUser) {
-        const accToken = await jwtGenerator({ userId: searchUser.userId }, 24, "h");
-        const existingToken = await tokenSchema.findOne({
-          userId: searchUser.userId,
-        });
-        if (existingToken) {
-          await tokenSchema.updateOne(
-            { userId: searchUser.userId },
-            { $set: { accToken } }
-          );
-        } else {
-          newToken = new tokenSchema({
-            userId: searchUser.userId,
-            token: accToken,
-          });
-          await newToken.save();
-        }
-        // Set the access token as an HTTP-only cookie
-        setTokenWithCookies(res, accToken);
-        const data = {
-          userId: searchUser.userId,
-          token: accToken,
-        }
-        sendResponse(res, constans.RESPONSE_SUCCESS, "Login Succeed", data, []);
-      }
-      //.....if not user then saved  user in database.........//
-      else {
-        const { first_name, last_name } = req.user._json;
-        const { provider } = req.user;
-        const user = await userModel({
-          userId: "user" + uuidv4(),
-          email,
-          accountType: provider,
-          activateEmail: true,
-          firstName: first_name,
-          lastName: last_name,
-          password:CONFIG.DUMMY_PASSWORD
-        });
-        const savedUser = await user.save();
-        const signupToken = await jwtGenerator({ userId: savedUser.userId }, 24, "h");
-        setTokenWithCookies(res, signupToken);
-        const token = new tokenSchema({
-          userId: savedUser.userId,
-          token: signupToken,
-        });
-        await token.save();
-        const data = {
-          userId: user.userId,
-          token: signupToken,
-        }
-        sendResponse(res, constans.RESPONSE_CREATED, "Done", data, []);
-      }
-    }
-  }catch(error){
-    sendResponse(res, constans.RESPONSE_INT_SERVER_ERROR, error.message, {}, constans.UNHANDLED_ERROR);
-  }
-}
-
-
 //------------------------------------company-----------------------------------------//
 
 //...........company SignUp.................//
@@ -435,7 +366,7 @@ const companyLogin = async (req, res, next) => {
     }
     // Set the access token as an HTTP-only cookie
 
-    setTokenWithCookies(res, accToken);
+    // setTokenWithCookies(res, accToken);
     const data = {
       companyId: company.companyId,
       token: accToken,
@@ -450,19 +381,16 @@ const companyLogin = async (req, res, next) => {
 
 //..................IS token valid....................//
 const checkToken = async (req, res, next) => {
-    function extractToken() {
+      function extractToken() {
         const token = req.headers['Authorization'] ?? req.headers['authorization'];
         if (token) {
             return token.split("internHub__")[1];
         }
     }
-
     const token = extractToken();
-
     if (!token) {
         return sendResponse(res, constans.RESPONSE_BAD_REQUEST, "Token is required", false, []);
     }
-
     try {
         jwt.verify(token, CONFIG.jwt_encryption);
     } catch (error) {
@@ -512,7 +440,6 @@ module.exports = {
   setPassword,
   forgetPassword,
   social_google,
-  social_facebook,
   reSendcode,
   companySignUp,
   companyLogin,

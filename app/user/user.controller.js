@@ -136,7 +136,7 @@ const applyJob=async(req,res,next)=>{
         sendResponse(res,constans.RESPONSE_BAD_REQUEST,"already apply to this job",{},[])
     }
     else{
-        const checkResume=await userModel.findOne({userId}).select("cv")
+        const checkResume=await userModel.findOne({userId}).select("cv skills")
         if(!checkResume.cv && !req.file){
             sendResponse(res,constans.RESPONSE_BAD_REQUEST,"please upload your Cv",{},[])
         }
@@ -153,12 +153,29 @@ const applyJob=async(req,res,next)=>{
             else{
                 req.body.resume=checkResume.cv
             }
+            const job=await jobModel.findOne({jobId}).select("skills")
+            const jobSkills=job.skills
+            const userSkills=checkResume.skills
+            let matchScore = 0;
+            const missingSkills = [];
+            
+            jobSkills.forEach(skill => {
+                if (userSkills.includes(skill)) {
+                    matchScore++;
+                } else {
+                    missingSkills.push(skill);
+                }
+            });
+            const matchPercentage = (matchScore / jobSkills.length) * 100
             const applyToJob=await applicantModel({
                 userId,
                 jobId,
                 coverLetter,
                 status:"pending",
-                resume:req.body.resume
+                applicantId:"applicant"+uuidv4(),
+                resume:req.body.resume,
+                missingSkills:missingSkills,
+                points:`${ matchPercentage.toFixed(2) }%`
             })
             await applyToJob.save()
             sendResponse(res,constans.RESPONSE_SUCCESS,"Successful to applying",{},[])
@@ -180,7 +197,6 @@ const userData=async(req,res,next)=>{
         sendResponse(res, constans.RESPONSE_INT_SERVER_ERROR, error.message, '',[]);
     }
 }
-
 
 
 
