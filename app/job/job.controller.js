@@ -3,10 +3,20 @@ const {paginationWrapper, sendResponse} = require("../utils/util.service.js");
 const constans = require("../utils/constants.js");
 const userModel = require("../DB/models/user.Schema.js");
 const applicantModel = require("../DB/models/applicant.schema.js");
+const { addCompanyNameAndImageToResponse, prepareQuery } = require("./helper.js");
 
-const getAllJobs = async (req, res) => {
-    async function getFilteredData(regex, offset, limit) {
-        return jobModel.find({
+
+
+
+
+
+
+const getAllJobs = async (req, res) => {    
+    try {
+        const {limit, offset} = paginationWrapper(req.query.page, req.query.size)
+        const search = req.query.search || '';
+        const regex = new RegExp(search, 'i');
+        const filteredData= await jobModel.find({
             $or: [
                 {skills: {$regex: regex}},
                 {title: {$regex: regex}},
@@ -16,24 +26,7 @@ const getAllJobs = async (req, res) => {
             .skip(offset || req.query.skip)
             .limit(limit)
             .sort({createdAt: -1});
-    }
-
-    function addCompanyNameAndImageToResponse(filteredData) {
-        return filteredData.map(document => {
-            const job = document.toObject();
-            job.companyName = job.company[0]?.name;
-            job.companyImage = job.company[0]?.image;
-            delete job.company;
-            return job;
-        });
-    }
-
-    try {
-        const {limit, offset} = paginationWrapper(req.query.page, req.query.size)
-        const search = req.query.search || '';
-        const regex = new RegExp(search, 'i');
-
-        const filteredData = await getFilteredData(regex, offset, limit);
+            //.....this function used to addCompanyNameAndImageToResponse.....//
         const updatedFilteredData = addCompanyNameAndImageToResponse(filteredData);
 
         if (updatedFilteredData.length) {
@@ -46,45 +39,17 @@ const getAllJobs = async (req, res) => {
     }
 }
 
+
+//......................................................................//
 const filterJobs = async (req, res) => {
-    async function getFilteredData(query, offset, limit) {
-        return jobModel.find(query).populate("company", "name image")
-            .skip(offset || req.query.skip)
-            .limit(limit)
-            .sort({createdAt: -1});
-    }
-
-    function addCompanyNameAndImageToResponse(filteredData) {
-        return filteredData.map(document => {
-            const job = document.toObject();
-            job.companyName = job.company[0]?.name;
-            job.companyImage = job.company[0]?.image;
-            delete job.company;
-            return job;
-        });
-    }
-
-    function prepareQuery(title, type, location, duration, salary, salaryType, jobType, skills) {
-        return {
-            statusOfIntern: "active",
-            ...(title && {title}),
-            ...(type && {internType: type}),
-            ...(location && {internLocation: location}),
-            ...(duration && {duration}),
-            ...(salary && {Salary: salary.toString()}),
-            ...(salaryType && {salaryType}),
-            ...(jobType && {jobType}),
-            ...(skills && {skills: {$in: skills.split(',')}})
-        };
-    }
-
     try {
         const {limit, offset} = paginationWrapper(req.query.page, req.query.size);
         const {title, salary, type, location, duration, salaryType, jobType, skills} = req.query;
-
         const query = prepareQuery(title, type, location, duration, salary, salaryType, jobType, skills);
-
-        const filteredData = await getFilteredData(query, offset, limit);
+        const filteredData = await  jobModel.find(query).populate("company", "name image")
+        .skip(offset || req.query.skip)
+        .limit(limit)
+        .sort({createdAt: -1});
 
         const updatedFilteredData = addCompanyNameAndImageToResponse(filteredData);
 
@@ -99,7 +64,6 @@ const recommendedJobs = async (req, res) => {
     try {
         const {userId} = req.user;
         const {skip, size} = req.query
-
         const user = await userModel.findOne({userId});
         if (!user) {
             return sendResponse(res, constans.RESPONSE_BAD_REQUEST, "User not found", [], []);
@@ -118,6 +82,8 @@ const recommendedJobs = async (req, res) => {
     }
 };
 
+
+//......All jobs that user apply to ............//
 const Applications = async (req, res) => {
     try {
         const {userId} = req.user;
