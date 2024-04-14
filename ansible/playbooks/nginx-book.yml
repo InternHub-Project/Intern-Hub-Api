@@ -1,0 +1,32 @@
+- name: Update Nginx Conf
+  hosts: localhost
+  tasks:
+  - name: Get The Old IP
+    shell: cat /etc/nginx/sites-available/default | grep -oP '(?<=http://)[^:]+'
+    register: OLD_IP
+
+    # - name: Debug Old IP
+    #   ansible.builtin.debug:
+    #     var: OLD_IP
+
+  - name: Get IP address of Docker container
+
+    docker_container_info:
+      name: InternHub
+    register: DOCKER_IP
+
+  - name: Update The IP
+    ansible.builtin.lineinfile:
+      path: /etc/nginx/sites-available/default
+      regexp: '^\s*proxy_pass\s*http://{{ OLD_IP.stdout }}:3003;'
+      line: '        proxy_pass http://{{ DOCKER_IP[''container''][''NetworkSettings''][''IPAddress''] }}:3003;'
+    when: OLD_IP.stdout  !=  DOCKER_IP['container']['NetworkSettings']['IPAddress']
+    notify:
+    - Restarting Nginx
+
+  handlers:
+  - name: Restarting Nginx
+    ansible.builtin.service:
+      name: nginx
+      state: restarted
+
