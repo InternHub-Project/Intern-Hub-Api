@@ -80,7 +80,7 @@ pipeline{
 
         stage('Running Ansible Playbook'){
             steps{
-                sh 'ansible-playbook /srv/Backend/workspace/Backend-CICD_newUpdate/ansible/playbooks/nginx-book.yml'
+                sh 'sudo ansible-playbook /srv/Backend/workspace/Backend-CICD_newUpdate/ansible/playbooks/nginx-book.yml'
             }
         }
 
