@@ -1,15 +1,16 @@
 - name: Update Nginx Conf
   hosts: localhost
+  become: true
   tasks:
-
   - name: Get The Old IP
     shell: cat /etc/nginx/sites-available/default | grep -oP '(?<=http://)[^:]+'
     register: OLD_IP
 
-  - name: Get IP address of Docker container
     # - name: Debug Old IP
     #   ansible.builtin.debug:
     #     var: OLD_IP
+
+  - name: Get IP address of Docker container
 
     docker_container_info:
       name: InternHub
