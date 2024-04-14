@@ -1,6 +1,8 @@
 - name: Update Nginx Conf
   hosts: localhost
   become: True
+  vars:
+    ansible_become_method: sudo
   tasks:
   - name: Get The Old IP
     shell: cat /etc/nginx/sites-available/default | grep -oP '(?<=http://)[^:]+'
