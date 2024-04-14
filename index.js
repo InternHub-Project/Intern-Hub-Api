@@ -31,12 +31,13 @@ app.use(compression())
 //Log Env
 console.log("Environment:", CONFIG.app)
 
+app.set("trust proxy",1)
 
 // CORS 
 app.use(cors({
 
   origin: ['https://localhost:5173', 'https://internhub.codesplus.online/'],
-
+  
   credentials: true,
 }));
 
