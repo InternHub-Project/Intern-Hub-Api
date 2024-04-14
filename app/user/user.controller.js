@@ -11,6 +11,7 @@ const { imageKit } = require("../utils/imagekit.js");
 const applicantModel = require('../DB/models/applicant.schema.js');
 const jobModel = require("../DB/models/job.schema.js");
 const companyModel = require("../DB/models/company.Schema.js");
+const userSkills = require("../DB/skills.js");
 
 
 
@@ -43,13 +44,32 @@ const addSkills=async(req,res,next)=>{
 //.............Update user profile.................//
 const updateUser=async(req,res,next)=>{
     try {
-        const {userId}=req.user;
+        const {userId}=req.user; 
+        if(req.body.email){
+            return sendResponse(res,constans.RESPONSE_BAD_REQUEST,"Not Allow to change Email","",[])
+        } 
+        let address={}
+        if(req.body.address){
+            address.address=req.body.address
+        }
+        if(req.body.city){
+            address.city=req.body.city
+        }
+        if(req.body.country){
+            address.country=req.body.country
+        }
+        if(req.body.state){
+            address.state=req.body.state
+        }
+        if(Object.keys(address).length>0){
+            req.body.address=address
+        }
         if(req.files && req.files["image"] && req.files["image"][0]){
             const image=await imageKit.upload(
                 {
                     file: req.files["image"][0].buffer.toString('base64'), //required
                     fileName: req.files["image"][0].originalname, //required,
-                    folder:`internHub/${userId}`,
+                    folder:`internHub/users/${userId}`,
                     useUniqueFileName:true
                 },
             );
@@ -60,7 +80,7 @@ const updateUser=async(req,res,next)=>{
                 {
                     file:req.files["file"][0].buffer.toString('base64'), //required
                     fileName: req.files["file"][0].originalname, //required,
-                    folder:`internHub/${userId}`,
+                    folder:`internHub/users/${userId}`,
                     useUniqueFileName:true
                 },
             );
@@ -70,45 +90,17 @@ const updateUser=async(req,res,next)=>{
         const user=await userModel.findOneAndUpdate({userId:userId},{$set:req.body},{runValidators: true})
         sendResponse(res,constans.RESPONSE_SUCCESS,"user updated success",user.userId,[])
     } catch (error) {
-        sendResponse(res,constans.RESPONSE_INT_SERVER_ERROR,error.message,"", constans.UNHANDLED_ERROR);
-    }
-}
-
-//..............soft Delete User .............//
-const deleteUser = async (req, res, next)=>{
-    try{
-        const {userId}=req.user;
-        await userModel.updateOne({userId}, {$set:{isDeleted: true}})
-        sendResponse(res, constans.RESPONSE_SUCCESS, "user deleted", '', [] );
-    }catch(error){
-           sendResponse(res,constans.RESPONSE_INT_SERVER_ERROR,error.message,"", constans.UNHANDLED_ERROR);
-    }
-}
-
-
-//****** changePassword *******/
-const changePassword = async (req, res, next) => {
-    try {
-        const { userId } = req.user;
-        const user=await userModel.findOne({userId})
-        const { currentPassword, newPassword } = req.body;
-        const isPasswordValid = bcrypt.compareSync(currentPassword,user.encryptedPassword);
-        if (!isPasswordValid) {
-            sendResponse(res,constans.RESPONSE_UNAUTHORIZED,"Current password is invalid",'',[]);
-        } else {
-            if (currentPassword === newPassword) {
-                sendResponse(res,constans.RESPONSE_BAD_REQUEST,"New password must be different from the old password.",'', []);
+        if (error.name === 'ValidationError') {
+            let errors = [];
+            for (field in error.errors) {
+                errors.push({ message: error.errors[field].message, key: field });
             }
-            const encryptedPassword = bcrypt.hashSync(newPassword, parseInt(CONFIG.BCRYPT_SALT));
-            const updatedPassword = await userModel.updateOne({ userId },{ $set: {encryptedPassword} });
-            //const updatedPassword = await userModel.updateOne({ userId },{ $set: { password: newPassword } });
-            sendResponse(res,constans.RESPONSE_SUCCESS,"Password changed successfully",updatedPassword,[]);
-        }
-    } catch (error) {
+            sendResponse(res,constans.RESPONSE_BAD_REQUEST,error.message,{},[])
+        } else {
             sendResponse(res,constans.RESPONSE_INT_SERVER_ERROR,error.message,"", constans.UNHANDLED_ERROR);
+        }
     }
-};
-
+}
 
 
 
@@ -136,7 +128,7 @@ const appliedjobs = async (req, res, next)=>{
 //...........Apply to job................//
 const applyJob=async(req,res,next)=>{
     try{
-          const {userId}=req.user;
+        const {userId}=req.user;
     const {jobId}=req.params
     const {coverLetter}=req.body;
     const checkJob=await applicantModel.findOne({userId, jobId})
@@ -144,7 +136,7 @@ const applyJob=async(req,res,next)=>{
         sendResponse(res,constans.RESPONSE_BAD_REQUEST,"already apply to this job",{},[])
     }
     else{
-        const checkResume=await userModel.findOne({userId}).select("cv")
+        const checkResume=await userModel.findOne({userId}).select("cv skills")
         if(!checkResume.cv && !req.file){
             sendResponse(res,constans.RESPONSE_BAD_REQUEST,"please upload your Cv",{},[])
         }
@@ -161,12 +153,29 @@ const applyJob=async(req,res,next)=>{
             else{
                 req.body.resume=checkResume.cv
             }
+            const job=await jobModel.findOne({jobId}).select("skills")
+            const jobSkills=job.skills
+            const userSkills=checkResume.skills
+            let matchScore = 0;
+            const missingSkills = [];
+            
+            jobSkills.forEach(skill => {
+                if (userSkills.includes(skill)) {
+                    matchScore++;
+                } else {
+                    missingSkills.push(skill);
+                }
+            });
+            const matchPercentage = (matchScore / jobSkills.length) * 100
             const applyToJob=await applicantModel({
                 userId,
                 jobId,
                 coverLetter,
                 status:"pending",
-                resume:req.body.resume
+                applicantId:"applicant"+uuidv4(),
+                resume:req.body.resume,
+                missingSkills:missingSkills,
+                points:`${ matchPercentage.toFixed(2) }%`
             })
             await applyToJob.save()
             sendResponse(res,constans.RESPONSE_SUCCESS,"Successful to applying",{},[])
@@ -179,50 +188,10 @@ const applyJob=async(req,res,next)=>{
 }
 
 
-const getAllJobs=async (req,res,next)=>{
-    try {
-        const{limit,offset}=paginationWrapper(
-            page=req.query.page,
-            size=req.query.size
-          )
-            const query={
-                statusOfIntern:"active"
-            }
-        const {title,salary,type,location,duration} =req.query;
-        if(title){
-            query.title = title;
-        }
-        if(type){
-            query.internType=type
-        }
-        if(location){
-            query.internLocation=location
-        }
-        if(duration) {
-            query.duration=duration
-        }
-        if(salary){
-            query.Salary=salary.toString()
-        }
-        const filteredData  = await jobModel.find(query).populate([
-            {
-                path:"company",
-                select:"name image"
-            }
-        ]).skip(offset).limit(limit)
-       filteredData.length?sendResponse(res,constans.RESPONSE_SUCCESS,"Done",filteredData ,[]):sendResponse(res,constans.RESPONSE_SUCCESS,"No Job found",{} ,[])
-    } catch (error) {
-        sendResponse(res, constans.RESPONSE_INT_SERVER_ERROR, error.message, '',[]);
-    }
-   
-}
-
-
 const userData=async(req,res,next)=>{
     try {
-        console.log(req.user);
         const {userId}=req.user
-        const userData=await userModel.findOne({userId}).select("-encryptedPassword -isDeleted")
+        const userData=await userModel.findOne({userId}).select("-encryptedPassword -activateEmail -isDeleted -recoveryCodeDate -recoveryCode -__v  -createdAt  -updatedAt -accountType")
         sendResponse(res,constans.RESPONSE_SUCCESS,"Done",userData,[])
     } catch (error) {
         sendResponse(res, constans.RESPONSE_INT_SERVER_ERROR, error.message, '',[]);
@@ -234,14 +203,13 @@ const userData=async(req,res,next)=>{
 
 
 
+
+
+
 module.exports={
     addSkills,
     updateUser,
-    deleteUser,
-    changePassword,
     applyJob,
     appliedjobs,
-    getAllJobs,
     userData,
-    
 }

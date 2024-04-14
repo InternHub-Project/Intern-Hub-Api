@@ -30,11 +30,11 @@ const sendConfirmEmail = async function (req, user, routeLink, messageLink, mess
 
 const checktype=(type)=>{
   if(type=="user"){
-   return  userModel
+    return  userModel
   }
   if(type=="company"){
     return companyModel
-   }
+  }
 }
 
 //--------------------//
