@@ -34,15 +34,15 @@ console.log("Environment:", CONFIG.app)
 app.set("trust proxy",1)
 
 // CORS 
-app.use(cors({
-  // 'https://internhub.codesplus.online'
-  
-  origin: 'https://localhost:5173',
-  
-  // credentials: true,
-  // exposedHeaders: ['Access-Control-Allow-Origin'],
+// app.use(cors({
+//   // 'https://internhub.codesplus.online'
 
-}));
+//   origin: 'https://localhost:5173',
+  
+//   // credentials: true,
+//   // exposedHeaders: ['Access-Control-Allow-Origin'],
+
+// }));
 
 app.use(function(req, res, next) {
     var originalUrl = req.originalUrl;
