@@ -38,7 +38,7 @@ app.use(cors({
 
   origin: ['https://localhost:5173', 'https://internhub.codesplus.online'],
   
-  credentials: true,
+  // credentials: true,
 }));
 
 app.use(function(req, res, next) {
