@@ -36,12 +36,11 @@ app.set("trust proxy",1)
 // CORS 
 app.use(cors({
 
-  // Online URL
-  //'https://internhub.codesplus.online'
+  origin: ['https://localhost:5173', 'https://internhub.codesplus.online'],
   
-  origin: 'https://localhost:5173',
+  credentials: true,
+  exposedHeaders: ['Access-Control-Allow-Origin'],
   
-  // credentials: true,
 }));
 
 app.use(function(req, res, next) {
