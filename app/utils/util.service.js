@@ -106,8 +106,15 @@ const currentDate = (inputDate) => {
 module.exports.currentDate = currentDate;
 
 const paginationWrapper = (page, size) => {
+  if (!page || page <= 0) {
+    page = 1;
+  }
+
+  if (!size || size <= 0) {
+    size = 2;
+  }
   const limit = size ? +size : CONFIG.PAGINATION_SIZE;
-  const offset = page ? page * limit : 0;
+  const offset = page ? (page-1) * limit : 0;
   return { limit, offset };
 };
 module.exports.paginationWrapper = paginationWrapper;
