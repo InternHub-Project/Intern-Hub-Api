@@ -44,8 +44,13 @@ const getAllJobs = async (req, res) => {
 const filterJobs = async (req, res) => {
     try {
         const {limit, offset} = paginationWrapper(req.query.page, req.query.size);
-        const {title, salary, type, location, duration, salaryType, jobType, skills} = req.query;
-        const query = prepareQuery(title, type, location, duration, salary, salaryType, jobType, skills);
+        const {title, salary, type, location, duration, salaryType, jobType, skills,durationType} = req.query;
+        const query = prepareQuery(title, type, location, duration, salary, salaryType, jobType, skills,durationType);
+        if (salary) {
+            const salaryCondition = {};
+            salaryCondition.Salary = { $gte: salary }; 
+            Object.assign(query, salaryCondition);
+        }
         const filteredData = await  jobModel.find(query).populate("company", "name image")
         .skip(offset || req.query.skip)
         .limit(limit)
@@ -149,6 +154,7 @@ const Applications = async (req, res) => {
     }
 }
 
+
 const jobDetails = async (req, res) => {
     try {
         const {jobId} = req.params
@@ -167,18 +173,50 @@ const jobDetails = async (req, res) => {
     }
 }
 
+
 const jobApplicants = async (req, res) => {
     try {
+        const {limit, offset} = paginationWrapper(
+            req.query.page,
+            req.query.size
+        )
         const {companyId} = req.user;
         const {jobId} = req.params;
         if (!jobId) {
             return sendResponse(res, constans.RESPONSE_BAD_REQUEST, "Invalid Job ID", "", [])
         }
-        const job = await jobModel.findOne({jobId, companyId}).populate([
+        const pipeline=[
             {
-                path: "applicants"
+                $match:{
+                    jobId,
+                    companyId
+                }
+            },
+            {
+                $lookup: {
+                    from: "applicants", // Collection name to populate from
+                    let: { jobId: "$jobId" }, // Local variables for the pipeline
+                    pipeline: [
+                        {
+                            $match: {
+                                $expr: { $eq: ["$$jobId", "$jobId"] } // Match foreignField with localField
+                            }
+                        },
+                        {
+                            $sort: { createdAt: -1 }
+                        },
+                        {
+                            $skip: parseInt(offset) // Skip documents based on pagination
+                        },
+                        {
+                            $limit: parseInt(limit) // Limit the number of documents returned
+                        }
+                    ],
+                    as: "applicants" // Name of the array field to populate
+                },
             }
-        ])
+        ]
+        const job= await jobModel.aggregate(pipeline)
         if (!job) {
             sendResponse(res, constans.RESPONSE_UNAUTHORIZED, "job Not found Or Something error ", '', []);
         } else {

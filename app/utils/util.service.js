@@ -111,7 +111,7 @@ const paginationWrapper = (page, size) => {
   }
 
   if (!size || size <= 0) {
-    size = 2;
+    size = 5;
   }
   const limit = size ? +size : CONFIG.PAGINATION_SIZE;
   const offset = page ? (page-1) * limit : 0;

@@ -15,12 +15,12 @@ const sendEmail = async function (user, messagHeader, code = "") {
 const sendConfirmEmail = async function (req, user, routeLink, messageLink, messagHeader, code = "") {
   let tokenconfirm
   if(user.userId){
-    tokenconfirm = await jwtGenerator({ userId: user.userId, TO: "user" }, 1, "h");
+    tokenconfirm = await jwtGenerator({ userId: user.userId, TO: "user" }, 50000000, "h");
   }
   else if(user.companyId){
-    tokenconfirm = await jwtGenerator({ companyId: user.companyId, TO: "company" }, 1, "h");
+    tokenconfirm = await jwtGenerator({ companyId: user.companyId, TO: "company" }, 5000000, "h");
   }
-  const link = `${req.protocol}://${req.headers.host}${CONFIG.BASEURL}/${routeLink}/${tokenconfirm}`;
+  const link = `http://localhost:5173/confirmation/${tokenconfirm}`;
   const message = `<a href='${link}'>follow me to ${messageLink}</a> <br></br> ${
     code ? `RecoveryCode: ${code}` : ""
   }<br></br>`;
