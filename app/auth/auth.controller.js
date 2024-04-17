@@ -51,31 +51,35 @@ const signUp = async (req, res, next) => {
 //...........confirmation Email.............//
 const confirmemail = async (req, res, next) => {
   try {
-    const { token } = req.params;
-    const decoded = jwt.verify(token, CONFIG.jwt_encryption);
-    if (!decoded?.userId && !decoded?.companyId) {
-      sendResponse(res,constans.RESPONSE_UNAUTHORIZED,"invaildToken",{},[]);
-    } else {
-      let user = '';
-      let company = '';
-      if(decoded.TO === "user"){
-        user = await userModel.findOneAndUpdate(
-          { userId: decoded.userId, activateEmail: false },
-          { activateEmail: true }
-        );
-      }
-      else if(decoded.TO === "company"){
-          company = await companyModel.findOneAndUpdate(
-            { companyId: decoded.companyId, activateEmail: false },
-            { activateEmail: true }
-            );
-        }
-      if (!user && !company) {
-        sendResponse(res,constans.RESPONSE_NOT_FOUND,"email already confirmed or in-vaild token",{},[]);
+
+      const { token } = req.params;
+      const decoded = jwt.verify(token, CONFIG.jwt_encryption);
+      if (!decoded?.userId && !decoded?.companyId) {
+        sendResponse(res,constans.RESPONSE_UNAUTHORIZED,"invaildToken",{},[]);
       } else {
-        sendResponse(res,constans.RESPONSE_SUCCESS,"Confirmed Succeed",{},[]);
+        let user = '';
+        let company = '';
+        const type=decoded.TO;
+          if(decoded.TO === "user"){
+            user = await userModel.findOneAndUpdate(
+              { userId: decoded.userId, activateEmail: false },
+              { activateEmail: true }
+            );
+          }
+          else if(decoded.TO === "company"){
+              company = await companyModel.findOneAndUpdate(
+                { companyId: decoded.companyId, activateEmail: false },
+                { activateEmail: true }
+                );
+            }
+        if (!user && !company) {
+          sendResponse(res,constans.RESPONSE_BAD_REQUEST,"email already confirmed or in-vaild token",type,[]);
+        } else {
+          sendResponse(res,constans.RESPONSE_SUCCESS,"Confirmed Succeed",type,[]);
+        }
       }
-    }
+    
+   
   } catch (error) {
     sendResponse( res,constans.RESPONSE_INT_SERVER_ERROR,error.message,{},constans.UNHANDLED_ERROR);
   }

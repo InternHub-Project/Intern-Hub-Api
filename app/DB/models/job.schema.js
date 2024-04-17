@@ -14,8 +14,13 @@ const jobSchema=new mongoose.Schema({
     },
     title: String,
     startDate:String,
-    duration:String,
-    Salary:String,
+    duration:Number,
+    durationType:{
+        type:String,
+        enum:["month","year","day"],
+        default:"month"
+    },
+    Salary:Number,
     salaryType:{
         type:String,
         enum:["monthly","yearly","daily"],

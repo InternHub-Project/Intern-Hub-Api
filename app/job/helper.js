@@ -16,15 +16,16 @@ function addCompanyNameAndImageToResponse(filteredData) {
 
 
 
-function prepareQuery(title, type, location, duration, salary, salaryType, jobType, skills) {
+function prepareQuery(title, type, location, duration, salary, salaryType, jobType, skills,durationType) {
     return {
         statusOfIntern: "active",
         ...(title && {title}),
         ...(type && {internType: type}),
         ...(location && {internLocation: location}),
         ...(duration && {duration}),
-        ...(salary && {Salary: salary.toString()}),
+        ...(salary && {Salary: salary}),
         ...(salaryType && {salaryType}),
+        ...(durationType && {durationType}),
         ...(jobType && {jobType}),
         ...(skills && {skills: {$in: skills.split(',')}})
     };
