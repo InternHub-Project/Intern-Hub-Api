@@ -25,7 +25,6 @@ function prepareQuery(title, type, location, duration, salary, salaryType, jobTy
         ...(duration && {duration}),
         ...(salary && {Salary: salary}),
         ...(salaryType && {salaryType}),
-        ...(salary && {Salary: salary}),
         ...(durationType && {durationType}),
         ...(jobType && {jobType}),
         ...(skills && {skills: {$in: skills.split(',')}})
