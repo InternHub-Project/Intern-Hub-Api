@@ -30,8 +30,7 @@ const signUp = async (req, res, next) => {
       const confirmLink = "confirm u account";
       const confirmMessag =
         "Confirmation Email Send From Intern-Hub Application";
-        const link="http://localhost:5173/confirmation"
-      const info = await helper.sendConfirmEmail(req,newUser,link,confirmLink,confirmMessag);
+      const info = await helper.sendConfirmEmail(req,newUser,"auth/confirmemail",confirmLink,confirmMessag);
       if (info) {
         const savedUser = await newUser.save();
         sendResponse(res,constans.RESPONSE_CREATED,"Done",savedUser.userId,{});

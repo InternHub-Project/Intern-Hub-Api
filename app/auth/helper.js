@@ -20,7 +20,7 @@ const sendConfirmEmail = async function (req, user, routeLink, messageLink, mess
   else if(user.companyId){
     tokenconfirm = await jwtGenerator({ companyId: user.companyId, TO: "company" }, 5000000, "h");
   }
-  const link = `http://localhost:5173/confirmation/${tokenconfirm}`;
+  const link = `https://internhub.codesplus.online/confirmation/${tokenconfirm}`;
   const message = `<a href='${link}'>follow me to ${messageLink}</a> <br></br> ${
     code ? `RecoveryCode: ${code}` : ""
   }<br></br>`;
