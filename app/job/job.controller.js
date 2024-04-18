@@ -4,6 +4,7 @@ const constans = require("../utils/constants.js");
 const userModel = require("../DB/models/user.Schema.js");
 const applicantModel = require("../DB/models/applicant.schema.js");
 const { addCompanyNameAndImageToResponse, prepareQuery } = require("./helper.js");
+const { Query } = require("mongoose");
 
 
 
@@ -11,33 +12,33 @@ const { addCompanyNameAndImageToResponse, prepareQuery } = require("./helper.js"
 
 
 
-const getAllJobs = async (req, res) => {    
-    try {
-        const {limit, offset} = paginationWrapper(req.query.page, req.query.size)
-        const search = req.query.search || '';
-        const regex = new RegExp(search, 'i');
-        const filteredData= await jobModel.find({
-            $or: [
-                {skills: {$regex: regex}},
-                {title: {$regex: regex}},
-                {description: {$regex: regex}}
-            ]
-        }).populate('company', 'name image')
-            .skip(offset || req.query.skip)
-            .limit(limit)
-            .sort({createdAt: -1});
-            //.....this function used to addCompanyNameAndImageToResponse.....//
-        const updatedFilteredData = addCompanyNameAndImageToResponse(filteredData);
+// const getAllJobs = async (req, res) => {    
+//     try {
+//         const {limit, offset} = paginationWrapper(req.query.page, req.query.size)
+//         const search = req.query.search || '';
+//         const regex = new RegExp(search, 'i');
+//         const filteredData= await jobModel.find({
+//             $or: [
+//                 {skills: {$regex: regex}},
+//                 {title: {$regex: regex}},
+//                 {description: {$regex: regex}}
+//             ]
+//         }).populate('company', 'name image')
+//             .skip(offset || req.query.skip)
+//             .limit(limit)
+//             .sort({createdAt: -1});
+//             //.....this function used to addCompanyNameAndImageToResponse.....//
+//         const updatedFilteredData = addCompanyNameAndImageToResponse(filteredData);
 
-        if (updatedFilteredData.length) {
-            return sendResponse(res, constans.RESPONSE_SUCCESS, "Done", updatedFilteredData, []);
-        }
+//         if (updatedFilteredData.length) {
+//             return sendResponse(res, constans.RESPONSE_SUCCESS, "Done", updatedFilteredData, []);
+//         }
 
-        sendResponse(res, constans.RESPONSE_NOT_FOUND, "No Jobs Found", [], []);
-    } catch (error) {
-        sendResponse(res, constans.RESPONSE_INT_SERVER_ERROR, error.message, [], []);
-    }
-}
+//         sendResponse(res, constans.RESPONSE_NOT_FOUND, "No Jobs Found", [], []);
+//     } catch (error) {
+//         sendResponse(res, constans.RESPONSE_INT_SERVER_ERROR, error.message, [], []);
+//     }
+// }
 
 
 //......................................................................//
@@ -161,11 +162,15 @@ const jobDetails = async (req, res) => {
         if (!jobId) {
             return sendResponse(res, constans.RESPONSE_BAD_REQUEST, "Invalid Job ID", "", [])
         } else {
-            const jobdetails = await jobModel.findOne({jobId})
-            if (!jobdetails) {
+            const jobdetails = await jobModel.findOne({jobId}).populate('company', 'name image')
+                const job = jobdetails.toObject();
+                job.companyName = job.company[0]?.name;
+                job.companyImage = job.company[0]?.image;
+                delete job.company;
+            if (!job) {
                 sendResponse(res, constans.RESPONSE_BAD_REQUEST, "Job is Not found", "", [])
             } else {
-                sendResponse(res, constans.RESPONSE_SUCCESS, "Done", jobdetails, []);
+                sendResponse(res, constans.RESPONSE_SUCCESS, "Done", job, []);
             }
         }
     } catch (error) {
@@ -228,6 +233,48 @@ const jobApplicants = async (req, res) => {
 }
 
 
+
+const getAllJobs = async (req, res) => {    
+    try {
+        const {limit, offset} = paginationWrapper(req.query.page, req.query.size)
+        const search = req.query.search || '';
+        const regex = new RegExp(search, 'i');
+        const {title, salary, type, location, duration, salaryType, jobType, skills,durationType} = req.query;
+        let query =prepareQuery(title, type, location, duration, salary, salaryType, jobType, skills,durationType);
+            if (salary) {
+                query.Salary = { $gte: salary }; 
+            }
+            if(search){
+                query={}
+            }
+        let filteredData
+        if(search){
+            filteredData= await jobModel.find({$or:[
+                {skills: {$regex: regex}},
+                {title: {$regex: regex}},
+            ]}).populate('company', 'name image')
+                .skip(offset || req.query.skip)
+                .limit(limit)
+                .sort({createdAt: -1});
+        }
+        if(Object.values(query).length>0){
+            filteredData= await jobModel.find(query).populate('company', 'name image')
+                .skip(offset || req.query.skip)
+                .limit(limit)
+                .sort({createdAt: -1});
+        }
+            //.....this function used to addCompanyNameAndImageToResponse.....//
+        const updatedFilteredData = addCompanyNameAndImageToResponse(filteredData);
+        if (updatedFilteredData.length) {
+            return sendResponse(res, constans.RESPONSE_SUCCESS, "Done", updatedFilteredData, []);
+        }
+        sendResponse(res, constans.RESPONSE_NOT_FOUND, "No Jobs Found", [], []);
+    } catch (error) {
+        sendResponse(res, constans.RESPONSE_INT_SERVER_ERROR, error.message, [], []);
+    }
+}
+
+
 module.exports = {
     getAllJobs,
     recommendedJobs,
@@ -236,3 +283,15 @@ module.exports = {
     getJobs: filterJobs,
     jobApplicants
 }
+
+
+
+
+
+
+
+
+
+
+
+
