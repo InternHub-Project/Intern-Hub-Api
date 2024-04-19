@@ -4,67 +4,9 @@ const constans = require("../utils/constants.js");
 const userModel = require("../DB/models/user.Schema.js");
 const applicantModel = require("../DB/models/applicant.schema.js");
 const { addCompanyNameAndImageToResponse, prepareQuery } = require("./helper.js");
-const { Query } = require("mongoose");
+const userSkills = require("../DB/skills.js");
 
 
-
-
-
-
-
-// const getAllJobs = async (req, res) => {    
-//     try {
-//         const {limit, offset} = paginationWrapper(req.query.page, req.query.size)
-//         const search = req.query.search || '';
-//         const regex = new RegExp(search, 'i');
-//         const filteredData= await jobModel.find({
-//             $or: [
-//                 {skills: {$regex: regex}},
-//                 {title: {$regex: regex}},
-//                 {description: {$regex: regex}}
-//             ]
-//         }).populate('company', 'name image')
-//             .skip(offset || req.query.skip)
-//             .limit(limit)
-//             .sort({createdAt: -1});
-//             //.....this function used to addCompanyNameAndImageToResponse.....//
-//         const updatedFilteredData = addCompanyNameAndImageToResponse(filteredData);
-
-//         if (updatedFilteredData.length) {
-//             return sendResponse(res, constans.RESPONSE_SUCCESS, "Done", updatedFilteredData, []);
-//         }
-
-//         sendResponse(res, constans.RESPONSE_NOT_FOUND, "No Jobs Found", [], []);
-//     } catch (error) {
-//         sendResponse(res, constans.RESPONSE_INT_SERVER_ERROR, error.message, [], []);
-//     }
-// }
-
-
-//......................................................................//
-const filterJobs = async (req, res) => {
-    try {
-        const {limit, offset} = paginationWrapper(req.query.page, req.query.size);
-        const {title, salary, type, location, duration, salaryType, jobType, skills,durationType} = req.query;
-        const query = prepareQuery(title, type, location, duration, salary, salaryType, jobType, skills,durationType);
-        if (salary) {
-            const salaryCondition = {};
-            salaryCondition.Salary = { $gte: salary }; 
-            Object.assign(query, salaryCondition);
-        }
-        const filteredData = await  jobModel.find(query).populate("company", "name image")
-        .skip(offset || req.query.skip)
-        .limit(limit)
-        .sort({createdAt: -1});
-
-        const updatedFilteredData = addCompanyNameAndImageToResponse(filteredData);
-
-        const message = updatedFilteredData.length ? "Done" : "No Job found";
-        sendResponse(res, constans.RESPONSE_SUCCESS, message, updatedFilteredData, []);
-    } catch (error) {
-        sendResponse(res, constans.RESPONSE_INT_SERVER_ERROR, error.message, '', []);
-    }
-}
 
 const recommendedJobs = async (req, res) => {
     try {
@@ -87,7 +29,6 @@ const recommendedJobs = async (req, res) => {
         sendResponse(res, constans.RESPONSE_INT_SERVER_ERROR, error.message, [], []);
     }
 };
-
 
 //......All jobs that user apply to ............//
 const Applications = async (req, res) => {
@@ -155,7 +96,6 @@ const Applications = async (req, res) => {
     }
 }
 
-
 const jobDetails = async (req, res) => {
     try {
         const {jobId} = req.params
@@ -177,7 +117,6 @@ const jobDetails = async (req, res) => {
         sendResponse(res, constans.RESPONSE_INT_SERVER_ERROR, error.message, '', []);
     }
 }
-
 
 const jobApplicants = async (req, res) => {
     try {
@@ -232,8 +171,6 @@ const jobApplicants = async (req, res) => {
     }
 }
 
-
-
 const getAllJobs = async (req, res) => {    
     try {
         const {limit, offset} = paginationWrapper(req.query.page, req.query.size)
@@ -274,17 +211,82 @@ const getAllJobs = async (req, res) => {
     }
 }
 
+const returnSkills= async (req, res) => {
+    const data=userSkills
+    sendResponse(res,constans.RESPONSE_SUCCESS,"All skills return successfully",data,[])
+}
+
 
 module.exports = {
     getAllJobs,
     recommendedJobs,
     Applications,
     jobDetails,
-    getJobs: filterJobs,
-    jobApplicants
+    jobApplicants,
+    returnSkills,
+    // getJobs: filterJobs,
 }
 
 
+
+
+
+
+
+
+// const getAllJobs = async (req, res) => {    
+//     try {
+//         const {limit, offset} = paginationWrapper(req.query.page, req.query.size)
+//         const search = req.query.search || '';
+//         const regex = new RegExp(search, 'i');
+//         const filteredData= await jobModel.find({
+//             $or: [
+//                 {skills: {$regex: regex}},
+//                 {title: {$regex: regex}},
+//                 {description: {$regex: regex}}
+//             ]
+//         }).populate('company', 'name image')
+//             .skip(offset || req.query.skip)
+//             .limit(limit)
+//             .sort({createdAt: -1});
+//             //.....this function used to addCompanyNameAndImageToResponse.....//
+//         const updatedFilteredData = addCompanyNameAndImageToResponse(filteredData);
+
+//         if (updatedFilteredData.length) {
+//             return sendResponse(res, constans.RESPONSE_SUCCESS, "Done", updatedFilteredData, []);
+//         }
+
+//         sendResponse(res, constans.RESPONSE_NOT_FOUND, "No Jobs Found", [], []);
+//     } catch (error) {
+//         sendResponse(res, constans.RESPONSE_INT_SERVER_ERROR, error.message, [], []);
+//     }
+// }
+
+
+//......................................................................//
+// const filterJobs = async (req, res) => {
+//     try {
+//         const {limit, offset} = paginationWrapper(req.query.page, req.query.size);
+//         const {title, salary, type, location, duration, salaryType, jobType, skills,durationType} = req.query;
+//         const query = prepareQuery(title, type, location, duration, salary, salaryType, jobType, skills,durationType);
+//         if (salary) {
+//             const salaryCondition = {};
+//             salaryCondition.Salary = { $gte: salary }; 
+//             Object.assign(query, salaryCondition);
+//         }
+//         const filteredData = await  jobModel.find(query).populate("company", "name image")
+//         .skip(offset || req.query.skip)
+//         .limit(limit)
+//         .sort({createdAt: -1});
+
+//         const updatedFilteredData = addCompanyNameAndImageToResponse(filteredData);
+
+//         const message = updatedFilteredData.length ? "Done" : "No Job found";
+//         sendResponse(res, constans.RESPONSE_SUCCESS, message, updatedFilteredData, []);
+//     } catch (error) {
+//         sendResponse(res, constans.RESPONSE_INT_SERVER_ERROR, error.message, '', []);
+//     }
+// }
 
 
 
