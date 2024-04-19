@@ -199,6 +199,12 @@ const userData=async(req,res,next)=>{
 }
 
 
+const returnSkills= async (req, res) => {
+    const data=userSkills
+    sendResponse(res,constans.RESPONSE_SUCCESS,"All skills return successfully",data,[])
+}
+
+
 
 
 
@@ -212,4 +218,5 @@ module.exports={
     applyJob,
     appliedjobs,
     userData,
+    returnSkills
 }

@@ -211,10 +211,7 @@ const getAllJobs = async (req, res) => {
     }
 }
 
-const returnSkills= async (req, res) => {
-    const data=userSkills
-    sendResponse(res,constans.RESPONSE_SUCCESS,"All skills return successfully",data,[])
-}
+
 
 
 module.exports = {
@@ -223,7 +220,6 @@ module.exports = {
     Applications,
     jobDetails,
     jobApplicants,
-    returnSkills,
     // getJobs: filterJobs,
 }
 
