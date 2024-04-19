@@ -11,8 +11,9 @@ router.get("/recommendedjobs",verifyToken,jonCon.recommendedJobs)
 router.get("/applications",verifyToken,jonCon.Applications)
 router.get("/jobdetails/:jobId",jonCon.jobDetails)
 
-router.get('/jobsfiltration',jonCon.getJobs);
+// router.get('/jobsfiltration',jonCon.getJobs);
 
 router.get('/jobapplicants/:jobId', verifyToken, jonCon.jobApplicants)
+router.get("/skills",jonCon.returnSkills)
 
 module.exports = router;
