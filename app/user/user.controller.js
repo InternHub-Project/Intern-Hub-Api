@@ -205,7 +205,43 @@ const returnSkills= async (req, res) => {
 }
 
 
+const addToFavourite = async (req, res, next)=>{
+    try{
+        const {userId} = req.user;
+        const {jobId} = req.body;
+        if(jobId){
+            const user = await userModel.findOne({userId});
+            const favourite = user.userFavourite
+            if(favourite.includes(jobId)){
+                return sendResponse(res,constans.RESPONSE_FORBIDDEN,"already in your favourite",{},[])
+            }
+            favourite.push(jobId);
+            await userModel.findOneAndUpdate({userId},{userFavourite: favourite});
+            sendResponse(res,constans.RESPONSE_SUCCESS,"Added to favourite",{},[])
+        }else{
+            sendResponse(res,constans.RESPONSE_FORBIDDEN,"No job to add to favourite",{},[])
+        }
+    }catch(err){
+        sendResponse(res, constans.RESPONSE_INT_SERVER_ERROR, err.message, '',[]);
+    }
+}
 
+const userFavourite = async (req, res, next)=>{
+    try{
+        const {userId} = req.user;
+        const user = await userModel.findOne({userId});
+        const favourite = user.userFavourite
+        const userFavourite = [];
+        for (const jobId of favourite) {
+            const fav = await jobModel.findOne({ jobId });
+            userFavourite.push(fav);
+        }
+        userFavourite.reverse();
+        sendResponse(res,constans.RESPONSE_SUCCESS,"Done",userFavourite,[])
+    }catch(err){
+        sendResponse(res, constans.RESPONSE_INT_SERVER_ERROR, err.message, '',[]);
+    }
+}
 
 
 
@@ -218,5 +254,7 @@ module.exports={
     applyJob,
     appliedjobs,
     userData,
-    returnSkills
+    returnSkills,
+    addToFavourite,
+    userFavourite
 }

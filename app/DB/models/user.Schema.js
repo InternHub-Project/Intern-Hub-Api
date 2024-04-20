@@ -54,8 +54,8 @@ const userSchema = new mongoose.Schema(
         platform:{
             type:String,
             enum:["website","mobileApp"]
-        }
-     
+        },
+        userFavourite: [String]
     },
     {
         timestamps: true
