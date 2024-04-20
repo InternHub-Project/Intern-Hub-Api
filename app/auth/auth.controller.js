@@ -10,6 +10,9 @@ const tokenSchema = require("./token.schema.js");
 const bcrypt = require("bcryptjs");
 const userModel = require("../DB/models/user.Schema.js");
 const companyModel = require("../DB/models/company.Schema.js");
+const { OAuth2Client } = require('google-auth-library');
+const client = new OAuth2Client(CONFIG.GOOGLE_CLIENT_ID);
+
 // const setTokenWithCookies = require('../utils/setcookies.js');
 
 
@@ -223,72 +226,7 @@ const setPassword = async (req, res, next) => {
   }
 };
 
-//............SignUp || Login with google...........//
-const social_google = async (req, res, next) => {
-  try {
-    const { email, email_verified } = req.user._json;
-    if (!email_verified) {
-      sendResponse(res, constans.RESPONSE_BAD_REQUEST, "in_valid google account", {}, []);
-    } else {
-      const searchUser = await userModel.findOne({ email });
-      //.....if findUser then user want to login......//
-      if (searchUser) {
-        const accToken = await jwtGenerator({ userId: searchUser.userId }, 24, "h");
-        const existingToken = await tokenSchema.findOne({
-          userId: searchUser.userId,
-        });
-        if (existingToken) {
-          await tokenSchema.updateOne(
-            { userId: searchUser.userId },
-            { $set: { accToken } }
-          );
-        } else {
-          newToken = new tokenSchema({
-            userId: searchUser.userId,
-            token: accToken,
-          });
-          await newToken.save();
-        }
-        // Set the access token as an HTTP-only cookie
-        setTokenWithCookies(res, accToken);
-        const data = {
-          userId: searchUser.userId,
-          token: accToken,
-        }
-        sendResponse(res, constans.RESPONSE_SUCCESS, "Login Succeed", data, []);
-      }
-      //.....if not user then saved  user in database.........//
-      else {
-        const { given_name, family_name } = req.user._json;
-        const { provider } = req.user;
-        const user = await userModel({
-          userId: "user" + uuidv4(),
-          email,
-          accountType: provider,
-          activateEmail: true,
-          firstName: given_name,
-          lastName: family_name,
-          password:CONFIG.DUMMY_PASSWORD
-        });
-        const savedUser = await user.save();
-        const signupToken = await jwtGenerator({ userId: savedUser.userId }, 24, "h");
-        setTokenWithCookies(res, signupToken);
-        const token = new tokenSchema({
-          userId: savedUser.userId,
-          token: signupToken,
-        });
-        await token.save();
-        const data = {
-          userId: user.userId,
-          token: signupToken,
-        }
-        sendResponse(res, constans.RESPONSE_CREATED, "Done", data, []);
-      }
-    }
-  } catch (error) {
-    sendResponse(res, constans.RESPONSE_INT_SERVER_ERROR, error.message, {}, constans.UNHANDLED_ERROR);
-  }
-};
+
 
 
 //------------------------------------company-----------------------------------------//
@@ -434,7 +372,80 @@ const signOut=async(req,res,next)=>{
 }
 
 
-
+//.............signup && login with google...............//
+const googleLogin=async(req,res,next)=>{
+  const token = req.body.accessToken;
+  if (!token) {
+    return sendResponse(res,constans.RESPONSE_UNAUTHORIZED,"Missing access token",{},[])
+  }
+  try {
+    const ticket = await client.verifyIdToken({
+      idToken: token,
+      audience: CONFIG.GOOGLE_CLIENT_ID, // Important: Set the audience to your Client ID
+    });
+    const payload = ticket.getPayload();
+    if(!payload. email_verified){
+      sendResponse(res,constans.RESPONSE_BAD_REQUEST,"in-valid google Account",{},[])
+    }
+    else{
+      const searchEmail=await userModel.findOne({email:payload.email})
+      if(searchEmail.accountType=="system"){
+        return sendResponse(res,constans.RESPONSE_BAD_REQUEST,"plese login with Tradinal Way",{},[])
+      }
+      if(searchEmail){
+        const accToken = await jwtGenerator({ userId: searchEmail.userId }, 24, "h");
+        const existingToken = await tokenSchema.findOne({
+          userId: searchEmail.userId,
+        });
+        console.log("oneeeeeeeee");
+        if (existingToken) {
+          await tokenSchema.updateOne(
+            { userId: searchEmail.userId },
+            { $set: { accToken } }
+          );
+          console.log("twwwwwwwwwwwwwo");
+        } else {
+          newToken = new tokenSchema({
+            userId: searchEmail.userId,
+            token: accToken,
+          });
+          await newToken.save();
+        }
+        const data = {
+          userId: searchEmail.userId,
+          token: accToken,
+        }
+        sendResponse(res, constans.RESPONSE_SUCCESS, "Successfully logged in with Google", data, []);
+      }
+      else{
+        const user = await userModel({
+          userId: "user" + uuidv4(),
+          email:payload.email,
+          accountType: "google",
+          activateEmail: true,
+          userName: payload.name,
+          profileImage: payload.picture,
+          password:CONFIG.DUMMY_PASSWORD
+        });
+        const savedUser = await user.save();
+        const signupToken = await jwtGenerator({ userId: savedUser.userId }, 24, "h");
+        setTokenWithCookies(res, signupToken);
+        const token = new tokenSchema({
+          userId: savedUser.userId,
+          token: signupToken,
+        });
+        await token.save();
+        const data = {
+          userId: user.userId,
+          token: signupToken,
+        }
+        sendResponse(res, constans.RESPONSE_CREATED, "Successfully logged in with Google", data, []);
+      }
+    }
+  } catch (error) {
+    sendResponse(res, constans.RESPONSE_INT_SERVER_ERROR, error.message, {}, constans.UNHANDLED_ERROR);
+  }
+}
 
 
 module.exports = {
@@ -443,12 +454,12 @@ module.exports = {
   login,
   setPassword,
   forgetPassword,
-  social_google,
   reSendcode,
   companySignUp,
   companyLogin,
   checkToken,
-  signOut
+  signOut,
+  googleLogin
 };
 
 

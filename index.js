@@ -33,6 +33,7 @@ console.log("Environment:", CONFIG.app)
 
 app.set("trust proxy",1)
 
+
 // CORS 
 // app.use(cors({
 //   origin: 'http://localhost:5173',
