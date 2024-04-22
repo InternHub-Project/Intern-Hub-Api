@@ -61,14 +61,14 @@ pipeline{
         stage('Creating Docker Image') {
             steps{
 
-                sh 'docker build -t backend .'
+                sh 'docker compose build'
             }
         }
 
 
         stage('Creating Docker Container') {
             steps{
-                sh 'docker run -d --name InternHub backend'
+                sh 'docker up -d'
             }
         }
 
