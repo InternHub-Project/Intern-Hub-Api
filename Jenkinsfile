@@ -68,7 +68,7 @@ pipeline{
 
         stage('Creating Docker Container') {
             steps{
-                sh 'docker up -d'
+                sh 'docker compose up -d'
             }
         }
 
