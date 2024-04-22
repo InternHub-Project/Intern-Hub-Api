@@ -15,4 +15,6 @@ router.get("/jobdetails/:jobId",jonCon.jobDetails)
 
 router.get('/jobapplicants/:jobId', verifyToken, jonCon.jobApplicants)
 
+router.get("/apply_requirement/:jobId",verifyToken,jonCon.applyPageDetails)
+
 module.exports = router;

@@ -211,6 +211,24 @@ const getAllJobs = async (req, res) => {
     }
 }
 
+const applyPageDetails=async(req,res)=>{
+    const {jobId}=req.params;
+    const job=await jobModel.findOne({jobId})
+    if(!job){
+        sendResponse(res,constans.RESPONSE_BAD_REQUEST,"JobId is in_valid",{},[])
+    }
+    else{
+        const details=await jobModel.findOne({jobId}).select("questions")
+        if(!details.questions||details.questions.length==0){
+           return  sendResponse(res,constans.RESPONSE_NOT_FOUND,"there is no questions found",{},[])
+        }
+       const data= details.questions.map((item=>{
+            return item
+        }))
+        sendResponse(res,constans.RESPONSE_SUCCESS,"Done",data,[])
+    }
+}
+
 
 
 
@@ -220,6 +238,7 @@ module.exports = {
     Applications,
     jobDetails,
     jobApplicants,
+    applyPageDetails
     // getJobs: filterJobs,
 }
 

@@ -12,6 +12,7 @@ const applicantModel = require('../DB/models/applicant.schema.js');
 const jobModel = require("../DB/models/job.schema.js");
 const companyModel = require("../DB/models/company.Schema.js");
 const userSkills = require("../DB/skills.js");
+const { getMissingSkills } = require("./helper.js");
 
 
 
@@ -61,9 +62,18 @@ const updateUser=async(req,res,next)=>{
         if(req.body.state){
             address.state=req.body.state
         }
+        if(req.body.skills){
+            
+            req.body.skills=JSON.parse(req.body.skills)
+        }
+        if(req.body.fieldOfInterest){
+            
+            req.body.fieldOfInterest=JSON.parse(req.body.fieldOfInterest)
+        }
         if(Object.keys(address).length>0){
             req.body.address=address
         }
+        
         if(req.files && req.files["image"] && req.files["image"][0]){
             const image=await imageKit.upload(
                 {
@@ -130,7 +140,7 @@ const applyJob=async(req,res,next)=>{
     try{
         const {userId}=req.user;
     const {jobId}=req.params
-    const {coverLetter}=req.body;
+    const {coverLetter,question}=req.body;
     const checkJob=await applicantModel.findOne({userId, jobId})
     if(checkJob){
         sendResponse(res,constans.RESPONSE_BAD_REQUEST,"already apply to this job",{},[])
@@ -156,17 +166,11 @@ const applyJob=async(req,res,next)=>{
             const job=await jobModel.findOne({jobId}).select("skills")
             const jobSkills=job.skills
             const userSkills=checkResume.skills
-            let matchScore = 0;
-            const missingSkills = [];
-            
-            jobSkills.forEach(skill => {
-                if (userSkills.includes(skill)) {
-                    matchScore++;
-                } else {
-                    missingSkills.push(skill);
-                }
-            });
-            const matchPercentage = (matchScore / jobSkills.length) * 100
+            const {missingSkills,matchPercentage}=getMissingSkills(jobSkills,userSkills)
+            if(matchPercentage<50)
+            {
+                return sendResponse(res,constans.RESPONSE_BAD_REQUEST,"You can't apply because you have a big lack in skills",{},[])
+            }
             const applyToJob=await applicantModel({
                 userId,
                 jobId,
@@ -174,6 +178,7 @@ const applyJob=async(req,res,next)=>{
                 status:"pending",
                 applicantId:"applicant"+uuidv4(),
                 resume:req.body.resume,
+                question,
                 missingSkills:missingSkills,
                 points:`${ matchPercentage.toFixed(2) }%`
             })
@@ -225,6 +230,7 @@ const addToFavourite = async (req, res, next)=>{
         sendResponse(res, constans.RESPONSE_INT_SERVER_ERROR, err.message, '',[]);
     }
 }
+
 
 const userFavourite = async (req, res, next)=>{
     try{

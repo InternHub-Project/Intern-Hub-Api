@@ -21,6 +21,7 @@ const createIntern = async (req, res, next) => {
             numberOfOpenings,
             skills,
             description,
+            question
         } = req.body;
         const job = await jobModel({
             jobId: "Job" + uuidv4(),
@@ -35,6 +36,7 @@ const createIntern = async (req, res, next) => {
             numberOfOpenings,
             skills,
             description,
+            question
         });
         const jobData = await job.save();
         sendResponse(res, constans.RESPONSE_CREATED, "Done", jobData, []);
@@ -61,8 +63,8 @@ const closeIntern = async (req, res, next) => {
     try {
         const {jobId} = req.params;
         const updatedStatus = await jobModel.findOneAndUpdate(
-            {jobId, statusOfIntern: {$ne: "closed"}},
-            {$set: {statusOfIntern: "closed"}},
+            {jobId, statusOfIntern: {$ne: "inactive"}},
+            {$set: {statusOfIntern: "inactive"}},
             {new: true, runValidators: true}
         );
         if (!updatedStatus) {
