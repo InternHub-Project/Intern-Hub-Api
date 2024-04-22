@@ -12,6 +12,9 @@ router.put("/updateuserprofile", verifyToken, myMullter().fields([{ name: "image
 router.post("/apply/:jobId",verifyToken,myMullter().single("file"),HME , userCon.applyJob);
 router.get("/appliedjob", verifyToken, userCon.appliedjobs);
 router.get("/userdata",verifyToken,userCon.userData);
+router.get("/skills",userCon.returnSkills);
+router.put("/addtofavourite", verifyToken, userCon.addToFavourite);
+router.get("/userfavourite", verifyToken, userCon.userFavourite);
 
 
 

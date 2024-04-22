@@ -23,7 +23,7 @@ globalThis.fetch = fetch;
 //app.use(i18n.init);
 //app.use(logger('dev'));
 app.use(morgan('combined', { stream: LOG.stream }));
-app.use(bodyParser.json({limit:"5kb"}));
+app.use(bodyParser.json({limit:"5mb"}));
 app.use(bodyParser.urlencoded({ extended: false }));
 //Passport
 app.use(passport.initialize());
@@ -32,6 +32,7 @@ app.use(compression())
 console.log("Environment:", CONFIG.app)
 
 app.set("trust proxy",1)
+
 
 // CORS 
 // app.use(cors({

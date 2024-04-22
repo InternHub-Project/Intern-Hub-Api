@@ -43,6 +43,18 @@ const jobSchema=new mongoose.Schema({
         default:"inactive"
     },
     description:String,
+    questions: [{
+        question: {
+            type: String,
+            required: true
+        },
+        type: {
+            type: String,
+            enum: ['text', 'multiple_choice', 'checkbox'],
+            default: 'text'
+        },
+        options: [String] 
+    }],
 },{
     toJSON: { virtuals: true,versionKey:false },
     toObject: { virtuals: true,versionKey:false },

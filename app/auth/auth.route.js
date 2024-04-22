@@ -8,6 +8,8 @@ const rateLimiter = require("../utils/rate.limit.js"); //ADDED A RATE-LIMITER US
 //----------------User--------------//
 router.post("/user/signup", authCon.signUp);
 router.post("/user/login", authCon.login);
+router.post('/googlelogin',authCon.googleLogin)
+
 
 //----------------company--------------//
 router.post("/company/signup", authCon.companySignUp);
@@ -21,22 +23,6 @@ router.post("/forgetPassword", authCon.forgetPassword);
 router.post("/istokenvalid",authCon.checkToken)
 router.post("/reSendcode", rateLimiter, authCon.reSendcode);
 router.post("/logout", authCon.signOut)
-
-
-
-
-router.get("/google", passport.authenticate("google", { scope: ["email", "profile"] }));
-router.get(
-  "/google/callback",
-  passport.authenticate("google", {
-    failureRedirect: "localhost:3003/api/v1/auth/login",
-  }),
-  authCon.social_google
-);
-
-
-
-
 
 
 
