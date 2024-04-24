@@ -388,22 +388,20 @@ const googleLogin=async(req,res,next)=>{
       sendResponse(res,constans.RESPONSE_BAD_REQUEST,"in-valid google Account",{},[])
     }
     else{
-      const searchEmail=await userModel.findOne({email:payload.email})
-      if(searchEmail.accountType=="system"){
-        return sendResponse(res,constans.RESPONSE_BAD_REQUEST,"plese login with Tradinal Way",{},[])
-      }
+      const searchEmail=await userModel.findOne({email:payload.email})   
       if(searchEmail){
+        if(searchEmail.accountType=="system"){
+          return sendResponse(res,constans.RESPONSE_BAD_REQUEST,"plese login with Tradinal Way",{},[])
+        }
         const accToken = await jwtGenerator({ userId: searchEmail.userId }, 24, "h");
         const existingToken = await tokenSchema.findOne({
           userId: searchEmail.userId,
         });
-        console.log("oneeeeeeeee");
         if (existingToken) {
           await tokenSchema.updateOne(
             { userId: searchEmail.userId },
             { $set: { accToken } }
           );
-          console.log("twwwwwwwwwwwwwo");
         } else {
           newToken = new tokenSchema({
             userId: searchEmail.userId,
@@ -429,7 +427,6 @@ const googleLogin=async(req,res,next)=>{
         });
         const savedUser = await user.save();
         const signupToken = await jwtGenerator({ userId: savedUser.userId }, 24, "h");
-        setTokenWithCookies(res, signupToken);
         const token = new tokenSchema({
           userId: savedUser.userId,
           token: signupToken,

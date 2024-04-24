@@ -16,6 +16,7 @@ const fetch = require('cross-fetch');
 const { connectiondb } = require('./app/DB/connectiondb.js');
 const passportSetup=require("./app/utils/social.login.setup");
 const cookieParser = require('cookie-parser');
+const { Server } = require('socket.io');
 
 
 globalThis.fetch = fetch;
@@ -64,6 +65,7 @@ app.use(cookieParser());
 
 connectiondb()
 
+
 routes.v1routes(app)
 
 app.use('/', function(req, res){
@@ -100,7 +102,13 @@ app.listen(CONFIG.port, err => {
   }
   console.log(`${CONFIG.APP_NAME} API Server is listening on %s`, CONFIG.port);
 });
+// const io=new Server(httpServer,{
+//   cors:"*"
+// })
 
+// io.on("connection",(socket)=>{
+//   console.log(socket.id);
+// })
 
 //This is here to handle all the uncaught promise rejections
 app.on('unhandledRejection', error => {

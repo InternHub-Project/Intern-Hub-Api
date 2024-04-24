@@ -5,6 +5,7 @@ const userModel = require("../DB/models/user.Schema.js");
 const applicantModel = require("../DB/models/applicant.schema.js");
 const { addCompanyNameAndImageToResponse, prepareQuery } = require("./helper.js");
 const userSkills = require("../DB/skills.js");
+const companyModel = require("../DB/models/company.Schema.js");
 
 
 
@@ -220,7 +221,7 @@ const applyPageDetails=async(req,res)=>{
     else{
         const details=await jobModel.findOne({jobId}).select("questions")
         if(!details.questions||details.questions.length==0){
-           return  sendResponse(res,constans.RESPONSE_NOT_FOUND,"there is no questions found",{},[])
+           return  sendResponse(res,constans.RESPONSE_SUCCESS,"there is no questions found",[],[])
         }
        const data= details.questions.map((item=>{
             return item
@@ -229,6 +230,24 @@ const applyPageDetails=async(req,res)=>{
     }
 }
 
+//.....used to get the top 10 companies that create the most jobs...//
+const topBrands=async(req,res)=>{
+    const topCompanies = await jobModel.aggregate([
+        { $group: { _id: '$companyId', totalJobs: { $sum: 1 } } },
+        { $sort: { totalJobs: -1 } },
+        { $limit: 10 }
+      ]);
+     const data=await Promise.all( topCompanies.map(async (item) => {
+        return await companyModel.findOne({ companyId: item._id }).select("name")
+        }))
+      sendResponse(res,constans.RESPONSE_SUCCESS,"Done",data,[])
+}
+
+
+const newjobs=async(req,res)=>{
+    const data=await jobModel.find().sort({createdAt:-1}).limit(10)
+    sendResponse(res,constans.RESPONSE_SUCCESS,"Done",data,[])
+}
 
 
 
@@ -238,7 +257,9 @@ module.exports = {
     Applications,
     jobDetails,
     jobApplicants,
-    applyPageDetails
+    applyPageDetails,
+    topBrands,
+    newjobs
     // getJobs: filterJobs,
 }
 

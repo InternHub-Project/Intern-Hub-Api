@@ -62,12 +62,16 @@ const updateUser=async(req,res,next)=>{
         if(req.body.state){
             address.state=req.body.state
         }
-        if(req.body.skills){
-            
+        if(req.body?.skills){
+            if(Array.isArray(req.body.skills)){
+               req.body.skills= JSON.stringify(req.body.skills)
+            }
             req.body.skills=JSON.parse(req.body.skills)
         }
-        if(req.body.fieldOfInterest){
-            
+        if(req.body?.fieldOfInterest){
+            if(Array.isArray(req.body.fieldOfInterest)){
+                req.body.fieldOfInterest= JSON.stringify(req.body.fieldOfInterest)
+             }
             req.body.fieldOfInterest=JSON.parse(req.body.fieldOfInterest)
         }
         if(Object.keys(address).length>0){
@@ -215,14 +219,23 @@ const addToFavourite = async (req, res, next)=>{
         const {userId} = req.user;
         const {jobId} = req.body;
         if(jobId){
-            const user = await userModel.findOne({userId});
-            const favourite = user.userFavourite
-            if(favourite.includes(jobId)){
-                return sendResponse(res,constans.RESPONSE_FORBIDDEN,"already in your favourite",{},[])
-            }
-            favourite.push(jobId);
-            await userModel.findOneAndUpdate({userId},{userFavourite: favourite});
+            const user = await userModel.findOneAndUpdate({userId},{$addToSet:{userFavourite:jobId}},{new:true});
             sendResponse(res,constans.RESPONSE_SUCCESS,"Added to favourite",{},[])
+        }else{
+            sendResponse(res,constans.RESPONSE_FORBIDDEN,"No job to add to favourite",{},[])
+        }
+    }catch(err){
+        sendResponse(res, constans.RESPONSE_INT_SERVER_ERROR, err.message, '',[]);
+    }
+}
+
+const removeFromFavourite = async (req, res, next)=>{
+    try{
+        const {userId} = req.user;
+        const {jobId} = req.body;
+        if(jobId){
+            const user = await userModel.findOneAndUpdate({userId},{$pull:{userFavourite:jobId}},{new:true});
+            sendResponse(res,constans.RESPONSE_SUCCESS,"removed to favourite",{},[])
         }else{
             sendResponse(res,constans.RESPONSE_FORBIDDEN,"No job to add to favourite",{},[])
         }
@@ -262,5 +275,6 @@ module.exports={
     userData,
     returnSkills,
     addToFavourite,
+    removeFromFavourite,
     userFavourite
 }

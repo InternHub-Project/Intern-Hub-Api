@@ -26,6 +26,7 @@ const userSchema = new mongoose.Schema(
         skills: {
             type: [String],
             validate: [arrayLimit, 'MaxNumber of skills: 30'], // Custom error message
+            defult:[]
         },
         cv:String,
         phone: String,
@@ -33,7 +34,10 @@ const userSchema = new mongoose.Schema(
         experienceYears: Number,
         educationLevel: String,
         college: String,
-        fieldOfInterest: [String],
+        fieldOfInterest: {
+            type:[String],
+            default:[]
+        },
         gruduationDate: String,
         bio:String,
         activateEmail: {
@@ -52,10 +56,11 @@ const userSchema = new mongoose.Schema(
             default:false
         },
         platform:{
-            type:String,
+            type:String, 
             enum:["website","mobileApp"]
         },
-        userFavourite: [String]
+        userFavourite: [String],
+        socketId:[String]
     },
     {
         timestamps: true
