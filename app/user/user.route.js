@@ -14,6 +14,8 @@ router.get("/appliedjob", verifyToken, userCon.appliedjobs);
 router.get("/userdata",verifyToken,userCon.userData);
 router.get("/skills",userCon.returnSkills);
 router.put("/addtofavourite", verifyToken, userCon.addToFavourite);
+router.put("/removefromfavourite", verifyToken, userCon.removeFromFavourite);
+
 router.get("/userfavourite", verifyToken, userCon.userFavourite);
 
 
