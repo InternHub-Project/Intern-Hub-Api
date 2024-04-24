@@ -2,7 +2,6 @@ const mongoose = require("mongoose");
 'use strict';
 const db = {};
 const dbConfig = require("./db.config.js");
-const jobModel = require("./models/job.schema.js");
 // mongoose.Promise = global.Promise;
 mongoose.set('strictQuery', false);
 db.mongoose = mongoose;
@@ -12,7 +11,7 @@ const connectiondb=async()=>{
     useNewUrlParser: true,
     useUnifiedTopology: true
   })
-  .then(async() => {
+  .then(() => {
     console.log("Connected to the database!");
   })
   .catch(err => {
