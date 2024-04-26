@@ -9,6 +9,8 @@ require("../utils/passport")(passport);
 
 router.delete('/delete', verifyToken, accCon.deleteAccount);
 router.put("/changePassword",verifyToken, accCon.changePassword);
+router.get("/user_or_company_list",verifyToken, accCon.userOrCompanyList);
+
 
 
 

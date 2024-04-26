@@ -17,6 +17,12 @@ const { connectiondb } = require('./app/DB/connectiondb.js');
 const passportSetup=require("./app/utils/social.login.setup");
 const cookieParser = require('cookie-parser');
 const { Server } = require('socket.io');
+const userModel = require('./app/DB/models/user.Schema.js');
+const messageModel = require('./app/DB/models/message.schema.js');
+const { v4: uuidv4 } = require("uuid");
+const chatModel = require('./app/DB/models/chat.schema.js');
+const companyModel = require('./app/DB/models/company.Schema.js');
+
 
 
 globalThis.fetch = fetch;
@@ -35,7 +41,7 @@ console.log("Environment:", CONFIG.app)
 app.set("trust proxy",1)
 
 
-// CORS 
+// CORS  using for testing local 
 // app.use(cors({
 //   origin: 'http://localhost:5173',
 //   credentials: true,
@@ -96,19 +102,46 @@ app.use(function(err, req, res, next) {
 });
 
 // module.exports = app;
-app.listen(CONFIG.port, err => {
+const httpServer=app.listen(CONFIG.port, err => {
   if (err) {
     return console.log('something bad happened', err);
   }
   console.log(`${CONFIG.APP_NAME} API Server is listening on %s`, CONFIG.port);
 });
-// const io=new Server(httpServer,{
-//   cors:"*"
-// })
 
-// io.on("connection",(socket)=>{
-//   console.log(socket.id);
-// })
+
+//.............SocketIo.............//
+const io=new Server(httpServer,{
+  cors:"http://localhost:5173"
+})
+
+io.on("connection", (socket) => {
+  socket.on("SEND_MESSAGE", async (data) => {
+    console.log(data.receiverId);
+      const { senderId, receiverId, message } = data;
+      const messagecreate = {
+          messageId: uuidv4(),
+          senderId,
+          content: message
+      };
+      const searchForChat = await chatModel.find({ $or: [{ userId: senderId, companyId: receiverId }, { userId: receiverId, companyId: senderId }] });
+      if (searchForChat) {
+         const chat = searchForChat;
+         console.log(chat);
+        const allchat =await chat.updateOne({ $push: { messages: messagecreate } });
+         io.emit("message",allchat)
+      } else {
+          const createChat = await chatModel({
+              companyId: senderId,
+              userId: receiverId,
+              messages: [messagecreate]
+          });
+          await createChat.save();
+      }
+  });
+  
+});
+
 
 //This is here to handle all the uncaught promise rejections
 app.on('unhandledRejection', error => {

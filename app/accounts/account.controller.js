@@ -5,6 +5,7 @@ const companyModel = require("../DB/models/company.Schema.js");
 const tokenSchema = require("../auth/token.schema.js");
 const CONFIG = require("../../config/config.js");
 const bcrypt = require("bcryptjs");
+const chatModel = require("../DB/models/chat.schema.js");
 
 
 
@@ -81,6 +82,53 @@ const passwordChangeFun=async(req,res,role)=>{
 }
 
 
+//.............helper function..................//
+function addInfoToResponse(filteredData, infoType) {
+    return filteredData.map(document => {
+        const item = document.toObject();
+        if (infoType === 'company') {
+            item.companyName = item.companyList[0]?.name;
+            item.companyImage = item.companyList[0]?.image;
+            delete item.companyList;
+        } else if (infoType === 'user') {
+            item.userName = item.userList[0]?.userName;
+            item.userImage = item.userList[0]?.profileImage;
+            delete item.userList;
+        }
+        return item;
+    });
+}
+
+
+
+
+
+const userOrCompanyList=async(req,res)=>{
+    const {role}=req.user;
+ 
+   if(role=="user"){
+    const userList=await chatModel.find({userId:req.user.userId}).populate([
+        {
+            path: "companyList",
+            select:"name companyId image"
+        }
+    ])
+    const data=addInfoToResponse(userList,"company")
+    sendResponse(res,constans.RESPONSE_SUCCESS,"userChatList",data,[])
+    }
+    else{
+        const companyList=await chatModel.find({companyId:req.user.companyId}).populate([
+            {
+                path: "userList",
+                select:"userName userId"
+            }
+        ])
+        const data=addInfoToResponse(companyList,"user")
+        sendResponse(res,constans.RESPONSE_SUCCESS,"companyChatList",data,[])
+    }
+}
+
+
 
 
 
@@ -95,5 +143,6 @@ const passwordChangeFun=async(req,res,role)=>{
 
 module.exports={
     deleteAccount,
-    changePassword
+    changePassword,
+    userOrCompanyList
 }
