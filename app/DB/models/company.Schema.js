@@ -35,7 +35,7 @@ const companySchema = new mongoose.Schema({
     },
     recoveryCode:String,
     recoveryCodeDate:Date,
-    socketId:[String]
+    socketId:String
 
 },{
     timestamps:true
