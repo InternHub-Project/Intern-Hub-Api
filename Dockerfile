@@ -4,7 +4,7 @@ FROM node:18.20.0 AS Builder
 LABEL "Author"="Shady Osama"
 LABEL "Project"="InternHub"
 
-RUN apt update && apt install python3-pip
+RUN apt update && apt install python3-pip -y
 
 WORKDIR /usr/src/internhub-back
 
