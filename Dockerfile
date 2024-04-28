@@ -4,11 +4,11 @@ FROM node:18.20.0 AS Builder
 LABEL "Author"="Shady Osama"
 LABEL "Project"="InternHub"
 
-RUN apt update && apt install python3
+RUN apt update && apt install python3-pip
 
 WORKDIR /usr/src/internhub-back
 
-COPY package.json /recommendation_system/requirements.txt entrypoint.sh ./
+COPY package.json /recommendation_system/requirements.txt ./
 
 RUN npm install && pip install -r requirements.txt
 
