@@ -5,8 +5,6 @@ const applicantSchema=new mongoose.Schema({
     applicantId: String,
     userId: {
         type: String,
-        ref: 'User', 
-        required: true
     },
     jobId: {
         type: String,

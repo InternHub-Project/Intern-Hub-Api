@@ -148,14 +148,49 @@ const jobApplicants = async (req, res) => {
                             }
                         },
                         {
-                            $sort: { createdAt: -1 }
+                            $sort: { createdAt: -1}
                         },
                         {
                             $skip: parseInt(offset) // Skip documents based on pagination
                         },
                         {
                             $limit: parseInt(limit) // Limit the number of documents returned
-                        }
+                        },
+                        {
+                            $lookup: {
+                                from: "users",
+                                localField: "userId",
+                                foreignField: "userId",
+                                as: "user"
+                            }
+                        },
+                        {
+                            $addFields: {
+                                user: { $arrayElemAt: ["$user", 0] } 
+                            }
+                        },
+                        {
+                            $project: {
+                                _id: 1,
+                                jobId: 1,
+                                companyId: 1,
+                                resume:1,
+                                points:1,
+                                coverLetter:1,
+                                status:1,
+                                question:1,
+                                missingSkills:1,
+                                // Merge fields from user into the document
+                                userName: "$user.userName",
+                                email: "$user.email",
+                                country: "$user.address.country",
+                                phone:"$user.phone",
+                                skills: "$user.skills",
+                                gender: "$user.gender",
+                                experienceYears: "$user.experienceYears",
+                            }
+                        
+                    }
                     ],
                     as: "applicants" // Name of the array field to populate
                 },
@@ -179,6 +214,7 @@ const getAllJobs = async (req, res) => {
         const regex = new RegExp(search, 'i');
         const {title, salary, type, location, duration, salaryType, jobType, skills,durationType} = req.query;
         let query =prepareQuery(title, type, location, duration, salary, salaryType, jobType, skills,durationType);
+        console.log(salary);
             if (salary) {
                 query.Salary = { $gte: salary }; 
             }
@@ -195,6 +231,7 @@ const getAllJobs = async (req, res) => {
                 .limit(limit)
                 .sort({createdAt: -1});
         }
+        console.log(query);
         if(Object.values(query).length>0){
             filteredData= await jobModel.find(query).populate('company', 'name image')
                 .skip(offset || req.query.skip)
