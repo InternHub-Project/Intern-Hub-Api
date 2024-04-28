@@ -60,7 +60,7 @@ const userSchema = new mongoose.Schema(
             enum:["website","mobileApp"]
         },
         userFavourite: [String],
-        socketId:[String]
+        socketId:String
     },
     {
         timestamps: true
