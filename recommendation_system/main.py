@@ -5,7 +5,7 @@ from src.data_injection import *
 
 app = Flask(__name__)
 
-@app.route('/get_recommendations', methods=['Get'])
+@app.route('/get_recommendations', methods=['Post'])
 def recommendations():
     user_skills = request.get_json()
     user_skills_list = user_skills['skills']
