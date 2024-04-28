@@ -6,6 +6,7 @@ const tokenSchema = require("../auth/token.schema.js");
 const CONFIG = require("../../config/config.js");
 const bcrypt = require("bcryptjs");
 const chatModel = require("../DB/models/chat.schema.js");
+const constants = require("../utils/constants");
 
 
 
@@ -130,6 +131,26 @@ const userOrCompanyList=async(req,res)=>{
 
 
 
+const userOrCompanyChat=async(req,res)=>{
+    const {receivedId,role}=req.body
+    if(!receivedId||!role){
+        return sendResponse(res,constans.RESPONSE_BAD_REQUEST,"please Enter receivedId and role",{},[])
+    }
+    if(role=="user"){
+        const {userId}=req.user
+        const chatMessages=await chatModel.find({userId,companyId:receivedId}).select("messages")
+        sendResponse(res,constants.RESPONSE_SUCCESS,"All Chat Messages",chatMessages,[])
+    }
+    else if(role=="company") {
+        const {companyId}=req.user
+        const chatMessages=await chatModel.find({companyId,userId:receivedId}).select("messages")
+        sendResponse(res,constants.RESPONSE_SUCCESS,"All Chat Messages",chatMessages,[])
+    }
+    
+}
+
+
+
 
 
 
@@ -144,5 +165,6 @@ const userOrCompanyList=async(req,res)=>{
 module.exports={
     deleteAccount,
     changePassword,
-    userOrCompanyList
+    userOrCompanyList,
+    userOrCompanyChat
 }

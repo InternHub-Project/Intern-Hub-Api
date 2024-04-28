@@ -21,7 +21,7 @@ const createIntern = async (req, res, next) => {
             numberOfOpenings,
             skills,
             description,
-            question
+            questions
         } = req.body;
         const job = await jobModel({
             jobId: "Job" + uuidv4(),
@@ -36,7 +36,7 @@ const createIntern = async (req, res, next) => {
             numberOfOpenings,
             skills,
             description,
-            question
+            questions
         });
         const jobData = await job.save();
         sendResponse(res, constans.RESPONSE_CREATED, "Done", jobData, []);

@@ -110,6 +110,8 @@ const httpServer=app.listen(CONFIG.port, err => {
 });
 
 
+
+
 //.............SocketIo.............//
 const io=new Server(httpServer,{
   cors:"http://localhost:5173"
@@ -117,29 +119,26 @@ const io=new Server(httpServer,{
 
 io.on("connection", (socket) => {
   socket.on("SEND_MESSAGE", async (data) => {
-    console.log(data.receiverId);
-      const { senderId, receiverId, message } = data;
+      const { senderId, receivedId, message } = data;
       const messagecreate = {
           messageId: uuidv4(),
           senderId,
           content: message
       };
-      const searchForChat = await chatModel.find({ $or: [{ userId: senderId, companyId: receiverId }, { userId: receiverId, companyId: senderId }] });
+      const searchForChat = await chatModel.find({ $or: [{ userId: senderId, companyId: receivedId }, { userId: receivedId, companyId: senderId }] });
       if (searchForChat) {
-         const chat = searchForChat;
-         console.log(chat);
-        const allchat =await chat.updateOne({ $push: { messages: messagecreate } });
-         io.emit("message",allchat)
+        await chatModel.findOneAndUpdate({ $or: [{ userId: senderId, companyId: receivedId }, { userId: receivedId, companyId: senderId }] },{$push:{messages:messagecreate}})
+         io.emit("message",messagecreate)
       } else {
           const createChat = await chatModel({
               companyId: senderId,
-              userId: receiverId,
+              userId: receivedId,
               messages: [messagecreate]
           });
           await createChat.save();
+         io.emit("message",messagecreate)
       }
   });
-  
 });
 
 
