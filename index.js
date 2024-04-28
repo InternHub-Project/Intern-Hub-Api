@@ -114,7 +114,7 @@ const httpServer=app.listen(CONFIG.port, err => {
 
 //.............SocketIo.............//
 const io=new Server(httpServer,{
-  cors:"http://localhost:5173"
+  cors:"https://internhub.codesplus.online"
 })
 
 io.on("connection", (socket) => {
