@@ -113,9 +113,10 @@ const httpServer=app.listen(CONFIG.port, err => {
 
 
 //.............SocketIo.............//
-const io=new Server(httpServer,{
-  cors:"https://internhub.codesplus.online"
-})
+// const io=new Server(httpServer,{
+//   cors:"https://internhub.codesplus.online"
+// })
+const io=new Server(httpServer)
 
 io.on("connection", (socket) => {
   socket.on("SEND_MESSAGE", async (data) => {
