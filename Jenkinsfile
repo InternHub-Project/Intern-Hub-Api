@@ -72,11 +72,11 @@ pipeline{
             }
         }
 
-        stage('Docker System Prune') {
-            steps{
-                sh 'docker system prune -f'
-            }
-        }
+        // stage('Docker System Prune') {
+        //     steps{
+        //         sh 'docker system prune -f'
+        //     }
+        // }
 
         stage('Running Ansible Playbook'){
             steps{
