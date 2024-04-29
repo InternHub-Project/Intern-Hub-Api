@@ -11,6 +11,8 @@ RUN npm install
 
 COPY . .
 
+RUN rm -rf recommendation_system
+
 # Production Image
 FROM node:18.20.0-alpine
 
