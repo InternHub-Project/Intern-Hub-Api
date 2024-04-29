@@ -1,3 +1,4 @@
+# Builder Image
 FROM python:3.10.14 AS Builder
 
 LABEL "Author"="Shady Osama"
@@ -13,14 +14,17 @@ RUN pip install -r requirements.txt
 
 COPY . .
 
-FROM python:3.10.14-alpine
 
-RUN apk update && apk install -y python3-pip
+# Production Image
+FROM python:3.10.14-slim
 
 WORKDIR /usr/src/internhub-ai
+
+COPY --from=Builder /usr/local/lib/python3.10/site-packages/ /usr/local/lib/python3.10/site-packages/
 
 COPY --from=Builder /usr/src/internhub-ai .
 
 EXPOSE 5000
 
 CMD [ "python" , "main.py" ]
+
