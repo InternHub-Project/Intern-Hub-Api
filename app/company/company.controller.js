@@ -94,13 +94,16 @@ const companyJobs = async (req, res, next) => {
                     {
                         $or: [
                             {skills: {$regex: new RegExp(search, 'i')}},
-                            {title: {$regex: new RegExp(search, 'i')}}
+                            {title: {$regex: new RegExp(search, 'i')}},
+                            {statusOfIntern:search},
+                            {internType: {$regex: new RegExp(search, 'i')}},
+
                         ]
                     }
                 ]
-            }).sort({createdAt: -1}).skip(offset).limit(limit)
+            }).sort({createdAt: -1,statusOfIntern:1}).skip(offset||skip).limit(limit)
         } else {
-            jobs = await jobModel.find({companyId}).sort({createdAt: -1}).skip(offset || skip).limit(limit)
+            jobs = await jobModel.find({companyId}).sort({createdAt: -1,statusOfIntern:1}).skip(offset || skip).limit(limit)
         }
         if (!jobs.length) {
             sendResponse(res, constans.RESPONSE_NOT_FOUND, "No Jobs Found!", [], [])
@@ -199,7 +202,8 @@ const acceptedOrRejectedIntern=async(req,res)=>{
         const {companyId}=req.user
         const checkValid=await jobModel.findOne({companyId,jobId})
         if(checkValid){
-            const convertStatus=await applicantModel.findOneAndUpdate({userId,jobId},{status})
+            const newStatus=status.toLowerCase()
+            const convertStatus=await applicantModel.findOneAndUpdate({userId,jobId},{status:newStatus})
             if(convertStatus){
                 sendResponse(res,constans.RESPONSE_SUCCESS,"Done",{},[])
             }
