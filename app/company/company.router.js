@@ -15,6 +15,7 @@ router.get("/companyjobs",verifyToken,companyCon.companyJobs)
 router.put("/applicantStatus/:userId/:status",verifyToken,companyCon.applicantStatus);
 router.get("/companydata",verifyToken,companyCon.companyData)
 router.put("/updatecompanyprofile",verifyToken,myMullter().fields([{ name: "image", maxCount: 1 }, { name: "file", maxCount: 1 }]),HME,companyCon.companyProfile)
+router.patch("/change_intern_status",verifyToken,companyCon.acceptedOrRejectedIntern)
 
 
 

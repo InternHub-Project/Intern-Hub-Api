@@ -144,7 +144,7 @@ const applyJob=async(req,res,next)=>{
     try{
         const {userId}=req.user;
     const {jobId}=req.params
-    const {coverLetter,question}=req.body;
+    const {coverLetter,questions}=req.body;
     const checkJob=await applicantModel.findOne({userId, jobId})
     if(checkJob){
         sendResponse(res,constans.RESPONSE_BAD_REQUEST,"already apply to this job",{},[])
@@ -182,7 +182,7 @@ const applyJob=async(req,res,next)=>{
                 status:"pending",
                 applicantId:"applicant"+uuidv4(),
                 resume:req.body.resume,
-                question,
+                questions,
                 missingSkills:missingSkills,
                 points:`${ matchPercentage.toFixed(2) }%`
             })
