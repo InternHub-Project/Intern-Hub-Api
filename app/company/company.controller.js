@@ -62,9 +62,10 @@ const updateIntren = async (req, res, next) => {
 const closeIntern = async (req, res, next) => {
     try {
         const {jobId} = req.params;
+        const {status}=req.body
         const updatedStatus = await jobModel.findOneAndUpdate(
-            {jobId, statusOfIntern: {$ne: "inactive"}},
-            {$set: {statusOfIntern: "inactive"}},
+            {jobId, statusOfIntern: {$ne: status}},
+            {$set: {statusOfIntern: status}},
             {new: true, runValidators: true}
         );
         if (!updatedStatus) {
@@ -186,20 +187,36 @@ const companyProfile = async (req, res, next) => {
         );
         req.body.profileImage = image.url
     }
-    if (req.files && req.files["file"] && req.files["file"][0]) {
-        const cv = await imageKit.upload(
-            {
-                file: req.files["file"][0].buffer.toString('base64'), //required
-                fileName: req.files["file"][0].originalname, //required,
-                folder: `internHub/companies/${companyId}`,
-                useUniqueFileName: true
-            },
-        );
-        req.body.cv = cv.url
-    }
 
     const company = await companyModel.findOneAndUpdate({companyId: companyId}, {$set: req.body}, {runValidators: true})
     sendResponse(res, constans.RESPONSE_SUCCESS, "profile updated success", company.companyId, [])
+}
+
+
+const acceptedOrRejectedIntern=async(req,res)=>{
+    try {
+        const {status,userId,jobId}=req.body
+        const {companyId}=req.user
+        const checkValid=await jobModel.findOne({companyId,jobId})
+        if(checkValid){
+            const convertStatus=await applicantModel.findOneAndUpdate({userId,jobId},{status})
+            if(convertStatus){
+                sendResponse(res,constans.RESPONSE_SUCCESS,"Done",{},[])
+            }
+            else{
+                sendResponse(res,constans.RESPONSE_BAD_REQUEST,"something wrong",{},[])
+            }
+        }
+        else{
+            sendResponse(res,constans.RESPONSE_BAD_REQUEST,"something wrong",{},[])
+            
+        }
+     
+    } catch (error) {
+        sendResponse(res, constans.RESPONSE_INT_SERVER_ERROR, error.message, {}, []);
+        
+    }
+   
 }
 
 
@@ -210,5 +227,6 @@ module.exports = {
     companyJobs,
     applicantStatus,
     companyData,
-    companyProfile
+    companyProfile,
+    acceptedOrRejectedIntern
 };
