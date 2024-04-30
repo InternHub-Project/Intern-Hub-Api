@@ -113,10 +113,12 @@ const httpServer=app.listen(CONFIG.port, err => {
 
 
 //.............SocketIo.............//
+
 const io=new Server(httpServer)
 // const io=new Server(httpServer,{
 //   cors:"http://localhost:5173"
 // })
+
 
 io.on("connection", (socket) => {
   socket.on("SEND_MESSAGE", async (data) => {
