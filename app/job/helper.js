@@ -17,7 +17,7 @@ function addCompanyNameAndImageToResponse(filteredData) {
 
 
 function prepareQuery(title, type, location, duration, salary, salaryType, jobType, skills,durationType) {
-    return {
+    const query={
         statusOfIntern: "active",
         ...(title && {title}),
         ...(type && {internType: type}),
@@ -29,6 +29,25 @@ function prepareQuery(title, type, location, duration, salary, salaryType, jobTy
         ...(jobType && {jobType}),
         ...(skills && {skills: {$in: skills.split(',')}})
     };
+    if(title){
+        query.title = { $regex: new RegExp(title, 'i') };
+    }
+    if(skills){
+        query.skills={$regex:new RegExp(skills,"i")}
+    }
+    if(location){
+        query.internLocation={$regex:new RegExp(location,"i")}
+    }
+    if(type){
+        query.internType={$regex:new RegExp(type,"i")}
+    }
+    if(jobType){
+        query.jobType={$regex:new RegExp(jobType,"i")}
+    }
+    if(durationType){
+        query.durationType={$regex:new RegExp(durationType,"i")}
+    }
+    return query
 }
 
 

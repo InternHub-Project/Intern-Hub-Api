@@ -58,37 +58,40 @@ const Applications = async (req, res) => {
             if (!applications) {
                 return sendResponse(res, constans.RESPONSE_SUCCESS, "No application Found ,applay to Jobs", "", [])
             } else {
+
                 const transformedApplications = applications.map(app => {
                     // Destructure the application document to extract fields you want to omit or modify
                     const {__v, ...rest} = app.toObject({getters: true});
                     const userObject = app.user[0];
                     const jobObject = app.job[0];
                     const companyObject = app.job[0].company[0]
+                  
                     // Construct a new object with the fields you want to keep or add
                     return {
                         //.....applicants.....//
-                        applicantId: res.applicantId,
-                        numberOfApplicants: jobObject.numberOfApplicants,
-                        createdAt: rest.createdAt,
+                        applicantId: rest?.applicantId,
+                        numberOfApplicants: jobObject?.numberOfApplicants,
+                        createdAt: rest?.createdAt,
                         //.....user......//
-                        userId: rest.userId,
-                        email: userObject.email,
-                        phone: userObject.phone,
-                        userName: userObject.userName,
-                        resume: rest.resume,
-                        coverLetter: rest.coverLetter,
-                        userSkills: userObject.skills,
-                        status: rest.status,
-                        points: rest.points,
-                        missingSkills: rest.missingSkills,
+                        userId: rest?.userId,
+                        email: userObject?.email,
+                        phone: userObject?.phone,
+                        userName: userObject?.userName,
+                        resume: rest?.resume,
+                        coverLetter: rest?.coverLetter,
+                        userSkills: userObject?.skills,
+                        status: rest?.status,
+                        points: rest?.points,
+                        missingSkills: rest?.missingSkills,
                         //.....Job.....//
-                        jobId: rest.jobId,
-                        jobtitle: jobObject.title,
+                        jobId: rest?.jobId,
+                        jobtitle: jobObject?.title,
                         //......company.....//
-                        companyId: companyObject.companyId,
-                        companyName: companyObject.name,
+                        companyId: companyObject?.companyId,
+                        companyName: companyObject?.name,
                     };
                 });
+
                 sendResponse(res, constans.RESPONSE_SUCCESS, "Done", transformedApplications, []);
             }
         }
@@ -214,7 +217,6 @@ const getAllJobs = async (req, res) => {
         const regex = new RegExp(search, 'i');
         const {title, salary, type, location, duration, salaryType, jobType, skills,durationType} = req.query;
         let query =prepareQuery(title, type, location, duration, salary, salaryType, jobType, skills,durationType);
-        console.log(salary);
             if (salary) {
                 query.Salary = { $gte: salary }; 
             }
@@ -231,7 +233,7 @@ const getAllJobs = async (req, res) => {
                 .limit(limit)
                 .sort({createdAt: -1});
         }
-        console.log(query);
+
         if(Object.values(query).length>0){
             filteredData= await jobModel.find(query).populate('company', 'name image')
                 .skip(offset || req.query.skip)
