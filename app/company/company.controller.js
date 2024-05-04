@@ -7,6 +7,8 @@ const {v4: uuidv4} = require("uuid");
 const jobModel = require("../DB/models/job.schema.js");
 const companyModel = require("../DB/models/company.Schema.js");
 const applicantModel = require('../DB/models/applicant.schema.js');
+const chatModel = require("../DB/models/chat.schema.js");
+const userModel = require("../DB/models/user.Schema.js");
 
 const createIntern = async (req, res, next) => {
     try {
@@ -215,13 +217,45 @@ const acceptedOrRejectedIntern=async(req,res)=>{
             sendResponse(res,constans.RESPONSE_BAD_REQUEST,"something wrong",{},[])
             
         }
-     
     } catch (error) {
         sendResponse(res, constans.RESPONSE_INT_SERVER_ERROR, error.message, {}, []);
         
     }
-   
 }
+
+
+const startCaht = async(req,res)=>{
+    try {
+        const {userId} = req.body
+        const {companyId} = req.user
+        const chat = await chatModel.findOne({companyId, userId});
+        if(!chat){
+            const newChat = await chatModel({
+                companyId,
+                userId,
+                messages: []
+            });
+            await newChat.save();
+            return sendResponse(res,constans.RESPONSE_CREATED,"Done",{},{});
+        }
+        const userName = await userModel.findOne({userId}).select('userName');
+        sendResponse(res,constans.RESPONSE_FORBIDDEN,`already have chat with ${userName.userName}`,{},{});
+    } catch (error) {
+        sendResponse(res, constans.RESPONSE_INT_SERVER_ERROR, error.message, {}, []);
+    }
+}
+
+const closeCaht = async(req,res)=>{
+    try {
+        const {userId} = req.body
+        const {companyId} = req.user
+        await chatModel.findOneAndUpdate({companyId, userId},{status: 'close'});
+        sendResponse(res,constans.RESPONSE_CREATED,"Done",{},{});
+    } catch (error) {
+        sendResponse(res, constans.RESPONSE_INT_SERVER_ERROR, error.message, {}, []);
+    }
+}
+
 
 
 module.exports = {
@@ -232,5 +266,7 @@ module.exports = {
     applicantStatus,
     companyData,
     companyProfile,
-    acceptedOrRejectedIntern
+    acceptedOrRejectedIntern,
+    startCaht,
+    closeCaht
 };
