@@ -61,26 +61,26 @@ pipeline{
         stage('Creating Docker Image') {
             steps{
 
-                sh 'docker build -t backend .'
+                sh 'docker compose build'
             }
         }
 
 
         stage('Creating Docker Container') {
             steps{
-                sh 'docker run -d --name InternHub backend'
+                sh 'docker compose up'
             }
         }
 
-        // stage('Docker System Prune') {
-        //     steps{
-        //         sh 'docker system prune -f'
-        //     }
-        // }
+        stage('Docker System Prune') {
+            steps{
+                sh 'docker system prune -f'
+            }
+        }
 
         stage('Running Ansible Playbook'){
             steps{
-                sh 'sudo ansible-playbook /srv/Backend/workspace/Backend-CICD_main/ansible/playbooks/nginx-book.yml'
+                sh 'sudo ansible-playbook /srv/Backend/workspace/Backend-CICD_main/ansible/master-book.yml'
             }
         }
 
