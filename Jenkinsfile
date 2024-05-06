@@ -58,7 +58,7 @@ pipeline{
             }
         }
 
-        stage('Creating Docker Image') {
+        stage('Creating Docker Images') {
             steps{
 
                 sh 'docker compose build'
@@ -66,9 +66,9 @@ pipeline{
         }
 
 
-        stage('Creating Docker Container') {
+        stage('Creating Docker Containers') {
             steps{
-                sh 'docker compose up'
+                sh 'docker compose up -d'
             }
         }
 
