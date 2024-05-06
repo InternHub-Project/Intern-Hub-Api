@@ -1,0 +1,5 @@
+- name: Ansible Roles
+  hosts: localhost
+  roles:
+    - api-role
+    - ai-role

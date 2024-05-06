@@ -1,0 +1,20 @@
+---
+# tasks file for ai-role
+- name: Get The Old IP
+  shell: awk '/5000/ {print}' /etc/nginx/sites-available/default | grep -oP '(?<=http://)[^:]+'
+  register: OLD_IP
+
+
+- name: Get IP address of Docker container
+  command: docker inspect --format '{{"{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}"}}' internhub-ai
+  register: DOCKER_IP
+
+- name: Update The IP
+  ansible.builtin.lineinfile:
+    path: /etc/nginx/sites-available/default
+    regexp: '^\s*proxy_pass\s*http://{{ OLD_IP.stdout }}:5000;'
+    line: '        proxy_pass http://{{ DOCKER_IP.stdout  }}:5000;'
+  when: OLD_IP.stdout  !=  DOCKER_IP.stdout
+  notify:
+  - Restarting Nginx
+
