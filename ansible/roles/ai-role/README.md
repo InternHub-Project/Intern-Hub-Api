@@ -1,40 +1,37 @@
-Role Name
-=========
+## Role Name
 
-A brief description of the role goes here.
+# API Ansible Playbook Role: Nginx Dynamic IP Updater
 
-Requirements
-------------
+## Overview
 
-Any pre-requisites that may not be covered by Ansible itself or the role should be mentioned here. For instance, if the role uses the EC2 module, it may be a good idea to mention in this section that the boto package is required.
+The AI Ansible playbook role is designed to manage the dynamic IP addresses of Docker containers hosting AI (Python) services and ensure smooth integration with Nginx configurations. This role automates the process of updating Nginx configuration files to reflect changes in container IP addresses, facilitating seamless scalability and reliability of AI services within containerized environments.
 
-Role Variables
---------------
+### Key Features
 
-A description of the settable variables for this role should go here, including any variables that are in defaults/main.yml, vars/main.yml, and any variables that can/should be set via parameters to the role. Any variables that are read from other roles and/or the global scope (ie. hostvars, group vars, etc.) should be mentioned here as well.
+- **Dynamic IP Management:** Automatically retrieves the IP addresses of Docker containers hosting AI services.
+- **Nginx Configuration Update:** Updates Nginx configuration files to route traffic to the corresponding container instances based on their IP addresses.
+- **Scalability and Flexibility:** Enables easy scaling of AI services without manual intervention, ensuring smooth operations as container instances are added or removed.
 
-Dependencies
-------------
+### Requirements
 
-A list of other roles hosted on Galaxy should go here, plus any details in regards to parameters that may need to be set for other roles, or variables that are used from other roles.
+- Ansible installed on the control machine.
+- Docker installed on target hosts.
+- Nginx configured to proxy traffic to AI services.
 
-Example Playbook
-----------------
+### Example Playbook
 
-Including an example of how to use your role (for instance, with variables passed in as parameters) is always nice for users too:
+- hosts: servers
+  roles:
+  - { role name }
 
-    - hosts: servers
-      roles:
-         - { role: username.rolename, x: 42 }
-
-License
--------
+### License
 
 BSD
 
-Author Information
-------------------
+### Author Information
 
-Shady Osama
-Github : https://github.com/shadyosama9
-linkedin : https://www.linkedin.com/in/shadyosama9/
+**Name:** Shady Osama
+
+**GitHub:** [shadyosama9](https://github.com/shadyosama9)
+
+**LinkedIn:** [shadyosama9](https://www.linkedin.com/in/shadyosama9/)
