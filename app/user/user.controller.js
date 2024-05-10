@@ -145,7 +145,11 @@ const applyJob=async(req,res,next)=>{
         const {userId}=req.user;
     const {jobId}=req.params
     const {coverLetter,questions}=req.body;
-    const checkJob=await applicantModel.findOne({userId, jobId})
+
+    const checkJob = await applicantModel.findOne({
+        $and: [{userId}, {jobId}]
+    });
+
     if(checkJob){
         sendResponse(res,constans.RESPONSE_BAD_REQUEST,"already apply to this job",{},[])
     }
