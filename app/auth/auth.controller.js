@@ -131,6 +131,8 @@ const login = async (req, res, next) => {
     const data = {
       userId: user.userId,
       token: accToken,
+      userName:user.userName,
+      profileImage:user?.profileImage
     }
     return sendResponse(res, constans.RESPONSE_SUCCESS, "Login Succeed", data, []);
 
@@ -312,6 +314,8 @@ const companyLogin = async (req, res, next) => {
     const data = {
       companyId: company.companyId,
       token: accToken,
+      name:company.name,
+      image:company.image
     }
     sendResponse(res, constans.RESPONSE_SUCCESS, "Login Succeed", data, []);
 
