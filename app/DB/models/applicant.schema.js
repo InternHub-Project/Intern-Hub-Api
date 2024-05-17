@@ -20,13 +20,9 @@ const applicantSchema=new mongoose.Schema({
     resume: String,
     missingSkills: [String], // list of skills the applicant is missing from their profile that are on the job
     points:String,
-    question:[{
-        question:{
-            type: String,
-        },
+    questions:[{
         answer: {
             type: String,
-            required: true
         }
     }
        
