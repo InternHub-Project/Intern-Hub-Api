@@ -58,17 +58,17 @@ pipeline{
             }
         }
 
-        stage('Creating Docker Image') {
+        stage('Creating Docker Images') {
             steps{
 
-                sh 'docker build -t backend .'
+                sh 'docker compose build'
             }
         }
 
 
-        stage('Creating Docker Container') {
+        stage('Creating Docker Containers') {
             steps{
-                sh 'docker run -d --name InternHub backend'
+                sh 'docker compose up -d'
             }
         }
 
@@ -80,7 +80,7 @@ pipeline{
 
         stage('Running Ansible Playbook'){
             steps{
-                sh 'sudo ansible-playbook /srv/Backend/workspace/Backend-CICD_main/ansible/playbooks/nginx-book.yml'
+                sh 'sudo ansible-playbook /srv/Backend/workspace/Backend-CICD_main/ansible/master-book.yml'
             }
         }
 

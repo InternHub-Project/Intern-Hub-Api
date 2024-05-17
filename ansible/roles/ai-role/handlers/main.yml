@@ -1,0 +1,7 @@
+---
+# handlers file for ai-role
+- name: Restarting Nginx
+  ansible.builtin.service:
+    name: nginx
+    state: restarted
+

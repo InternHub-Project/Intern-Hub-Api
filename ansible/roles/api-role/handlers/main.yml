@@ -1,0 +1,7 @@
+---
+# handlers file for api-role
+- name: Restarting Nginx
+  ansible.builtin.service:
+    name: nginx
+    state: restarted
+

@@ -1,0 +1,15 @@
+version: '3.8'
+services:
+  api:
+    build: .
+    image: backend
+    container_name: internhub-api
+
+  ai:
+    build: 
+      context: ./recommendation_system
+      dockerfile: Dockerfile
+    image: ai
+    container_name: internhub-ai
+
+  

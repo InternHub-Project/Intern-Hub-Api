@@ -1,0 +1,23 @@
+---
+# tasks file for api-role
+- name: Get The Old IP
+  shell: awk '/3003/ {print}' /etc/nginx/sites-available/default | grep -oP '(?<=http://)[^:]+'
+  register: OLD_IP
+
+#- name: Debug Old IP
+#  ansible.builtin.debug:
+#    var: OLD_IP
+
+- name: Get IP address of Docker container
+  command: docker inspect --format '{{"{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}"}}' internhub-api
+  register: DOCKER_IP
+
+- name: Update The IP
+  ansible.builtin.lineinfile:
+    path: /etc/nginx/sites-available/default
+    regexp: '^\s*proxy_pass\s*http://{{ OLD_IP.stdout }}:3003;'
+    line: '        proxy_pass http://{{ DOCKER_IP.stdout  }}:3003;'
+  when: OLD_IP.stdout  !=  DOCKER_IP.stdout
+  notify:
+  - Restarting Nginx
+
