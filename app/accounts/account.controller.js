@@ -121,7 +121,7 @@ const userOrCompanyList=async(req,res)=>{
         const companyList=await chatModel.find({companyId:req.user.companyId}).populate([
             {
                 path: "userList",
-                select:"userName userId"
+                select:"userName userId profileImage"
             }
         ])
         const data=addInfoToResponse(companyList,"user")
