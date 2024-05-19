@@ -42,10 +42,10 @@ app.set("trust proxy",1)
 
 
 // CORS  using for testing local 
-// app.use(cors({
-//   origin: 'http://localhost:5173',
-//   credentials: true,
-// }));
+app.use(cors({
+  origin: 'http://localhost:5173',
+  credentials: true,
+}));
 
 app.use(function(req, res, next) {
     var originalUrl = req.originalUrl;

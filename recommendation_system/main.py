@@ -1,10 +1,10 @@
 from flask import Flask, request
-
+# from flask_cors import CORS
 from src.job_recommendations import *
 from src.data_injection import *
 
 app = Flask(__name__)
-
+# CORS(app)
 @app.route('/get_recommendations', methods=['Post'])
 def recommendations():
     user_skills = request.get_json()

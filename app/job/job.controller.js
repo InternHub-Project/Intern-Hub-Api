@@ -285,7 +285,12 @@ const topBrands=async(req,res)=>{
 
 
 const newjobs=async(req,res)=>{
-    const data=await jobModel.find().sort({createdAt:-1}).limit(10)
+    const data=await jobModel.find().populate({path:"company"}).sort({createdAt:-1}).limit(10)
+    const updatedFilteredData = addCompanyNameAndImageToResponse(data);
+    if (updatedFilteredData.length) {
+        return sendResponse(res, constans.RESPONSE_SUCCESS, "Done", updatedFilteredData, []);
+    }
+    sendResponse(res, constans.RESPONSE_NOT_FOUND, "No Jobs Found", [], []);
     sendResponse(res,constans.RESPONSE_SUCCESS,"Done",data,[])
 }
 

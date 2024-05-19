@@ -256,8 +256,16 @@ const userFavourite = async (req, res, next)=>{
         const favourite = user.userFavourite
         const userFavourite = [];
         for (const jobId of favourite) {
-            const fav = await jobModel.findOne({ jobId });
-            userFavourite.push(fav);
+            const fav = await jobModel.findOne({ jobId }).populate({
+                path: 'company',
+                select:"image name"
+            });
+            const job = fav.toObject();
+            job.companyName = job.company[0]?.name;
+            job.companyImage = job.company[0]?.image;
+            delete job.company;
+
+            userFavourite.push(job);
         }
         userFavourite.reverse();
         sendResponse(res,constans.RESPONSE_SUCCESS,"Done",userFavourite,[])
