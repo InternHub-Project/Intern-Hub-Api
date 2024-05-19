@@ -132,7 +132,8 @@ const login = async (req, res, next) => {
       userId: user.userId,
       token: accToken,
       userName:user.userName,
-      profileImage:user?.profileImage
+      profileImage:user?.profileImage,
+      skills:user?.skills
     }
     return sendResponse(res, constans.RESPONSE_SUCCESS, "Login Succeed", data, []);
 

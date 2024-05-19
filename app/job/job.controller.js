@@ -175,6 +175,7 @@ const jobApplicants = async (req, res) => {
                         {
                             $project: {
                                 _id: 1,
+                                userId:1,
                                 jobId: 1,
                                 companyId: 1,
                                 resume:1,
