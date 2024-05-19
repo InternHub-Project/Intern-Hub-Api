@@ -99,7 +99,6 @@ const companyJobs = async (req, res, next) => {
                             {title: {$regex: new RegExp(search, 'i')}},
                             {statusOfIntern:search},
                             {internType: {$regex: new RegExp(search, 'i')}},
-
                         ]
                     }
                 ]

@@ -125,19 +125,19 @@ io.on("connection", (socket) => {
           senderId,
           content: message
       };
-      const searchForChat = await chatModel.find({ $or: [{ userId: senderId, companyId: receivedId }, { userId: receivedId, companyId: senderId }] });
-      if (searchForChat) {
+    //   const searchForChat = await chatModel.find({ $or: [{ userId: senderId, companyId: receivedId }, { userId: receivedId, companyId: senderId }] });
+    //   if (searchForChat) {
         await chatModel.findOneAndUpdate({ $or: [{ userId: senderId, companyId: receivedId }, { userId: receivedId, companyId: senderId }] },{$push:{messages:messagecreate}})
          io.emit("message",messagecreate)
-      } else {
-          const createChat = await chatModel({
-              companyId: senderId,
-              userId: receivedId,
-              messages: [messagecreate]
-          });
-          await createChat.save();
-         io.emit("message",messagecreate)
-      }
+    //   } else {
+    //       const createChat = await chatModel({
+    //           companyId: senderId,
+    //           userId: receivedId,
+    //           messages: [messagecreate]
+    //       });
+    //       await createChat.save();
+    //      io.emit("message",messagecreate)
+    //   }
   });
 });
 
