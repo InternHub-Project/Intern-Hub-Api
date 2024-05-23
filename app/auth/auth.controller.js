@@ -417,6 +417,9 @@ const googleLogin=async(req,res,next)=>{
         const data = {
           userId: searchEmail.userId,
           token: accToken,
+          userName:searchEmail.userName,
+          profileImage:searchEmail?.profileImage,
+          skills:searchEmail?.skills
         }
         sendResponse(res, constans.RESPONSE_SUCCESS, "Successfully logged in with Google", data, []);
       }
@@ -440,6 +443,8 @@ const googleLogin=async(req,res,next)=>{
         const data = {
           userId: user.userId,
           token: signupToken,
+          userName:user.userName,
+          profileImage:user?.profileImage
         }
         sendResponse(res, constans.RESPONSE_CREATED, "Successfully logged in with Google", data, []);
       }
