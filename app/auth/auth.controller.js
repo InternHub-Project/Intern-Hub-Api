@@ -425,7 +425,7 @@ const googleLogin=async(req,res,next)=>{
       }
       else{
         const user = await userModel({
-          userId: "user" + uuidv4(),
+          userId: "User" + uuidv4(),
           email:payload.email,
           accountType: "google",
           activateEmail: true,
@@ -444,7 +444,8 @@ const googleLogin=async(req,res,next)=>{
           userId: user.userId,
           token: signupToken,
           userName:user.userName,
-          profileImage:user?.profileImage
+          profileImage:user?.profileImage,
+          skills:user?.skills
         }
         sendResponse(res, constans.RESPONSE_CREATED, "Successfully logged in with Google", data, []);
       }

@@ -105,8 +105,7 @@ function addInfoToResponse(filteredData, infoType) {
 
 
 const userOrCompanyList=async(req,res)=>{
-    const {role}=req.user;
- 
+    const {role}=req.body;
    if(role=="user"){
     const userList=await chatModel.find({userId:req.user.userId}).populate([
         {
@@ -118,6 +117,7 @@ const userOrCompanyList=async(req,res)=>{
     sendResponse(res,constans.RESPONSE_SUCCESS,"userChatList",data,[])
     }
     else{
+    console.log("gggggggfhgfhfgggggggggggg");
         const companyList=await chatModel.find({companyId:req.user.companyId}).populate([
             {
                 path: "userList",
