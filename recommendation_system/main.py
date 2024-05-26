@@ -10,7 +10,10 @@ app = Flask(__name__)
 # CORS(app)
 
 
-@app.route('/get_recommendations', methods=['POST'])
+
+
+@app.route('/get_recommendations', methods=['Post'])
+
 def recommendations():
 
     user_skills = request.get_json()
