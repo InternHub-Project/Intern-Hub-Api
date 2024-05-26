@@ -1,5 +1,5 @@
 from flask import Flask, request
-from flask_cors import CORS
+# from flask_cors import CORS
 from src.job_recommendations import *
 from src.data_injection import *
 
