@@ -17,7 +17,7 @@ def get_recommendations(user_skills):
     df['similarity_score'] = similarity_percentage
     df = df.sort_values(by='similarity_score', ascending=False)
 
-    N = 3
+    N = 5
     recommended_jobs = df.head(N)
 
     return recommended_jobs
