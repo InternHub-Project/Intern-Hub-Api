@@ -117,7 +117,6 @@ const userOrCompanyList=async(req,res)=>{
     sendResponse(res,constans.RESPONSE_SUCCESS,"userChatList",data,[])
     }
     else{
-    console.log("gggggggfhgfhfgggggggggggg");
         const companyList=await chatModel.find({companyId:req.user.companyId}).populate([
             {
                 path: "userList",
