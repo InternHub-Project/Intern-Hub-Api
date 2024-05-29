@@ -1,12 +1,7 @@
----
 # tasks file for api-role
 - name: Get The Old IP
   shell: awk '/3003/ {print}' /etc/nginx/sites-available/default | grep -oP '(?<=http://)[^:]+'
   register: OLD_IP
-
-#- name: Debug Old IP
-#  ansible.builtin.debug:
-#    var: OLD_IP
 
 - name: Get IP address of Docker container
   command: docker inspect --format '{{"{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}"}}' internhub-api
